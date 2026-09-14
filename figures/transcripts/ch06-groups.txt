@@ -1,0 +1,3 @@
+all good: []
+two known: ['bad value: name is empty', "missing key: 'port'"]
+left uncaught: ['OwnerMissingError'] | message: 3 check(s) failed
