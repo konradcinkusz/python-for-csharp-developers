@@ -8,5 +8,7 @@ unknown fields are            'allow'
 
 anthropic  1.5.0    transport httpx2
                     requires  httpx2<3,>=2.0.0
+                    read timeout 600 s
 openai     3.13.0   transport httpx2
                     requires  httpx2<3,>=2.7.0
+                    read timeout 600 s

@@ -227,8 +227,8 @@ Z tego listingu wynikają jeszcze dwie rzeczy. Własne modele SDK są
 skonfigurowane tak, by \emph{zachowywać} pola, których nikt nie
 zadeklarował, zamiast je ignorować \dash{} i to właśnie sprawia, że dodanie
 pola przez dostawcę jest nie-wydarzeniem. Domyślne limity czasu natomiast nie
-są czymś, co chcesz odziedziczyć: limit odczytu to dziesięć minut, co jest
-rozsądnym ustawieniem dla dostawcy strumieniującego długą odpowiedź i
+są czymś, co chcesz odziedziczyć: limit odczytu, który wypisuje listing, to
+dziesięć minut, co jest rozsądnym ustawieniem dla dostawcy strumieniującego długą odpowiedź i
 fatalnym dla żądania siedzącego w handlerze HTTP, na który ktoś czeka.
 Rozdział~\ref{ch:services} daje temu żądaniu budżet; SDK nie da mu go za
 ciebie.

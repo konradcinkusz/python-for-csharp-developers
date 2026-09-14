@@ -37,7 +37,7 @@ one.
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
 | `main-en` | 52 | 0 | 0 | 0 | 0 |
-| `main-pl` | 52 | 0 | 0 | 0 | 0 |
+| `main-pl` | 53 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -59,7 +59,7 @@ does not:
 - 10 Mermaid sources, five per language, all rendering, all placed
 - 19 computed value keys, every one produced and every one used
 - Parity: 23 file pairs, 0 failures, 0 warnings · 48 labels in each edition,
-  0 mismatches · chapter 13 at 2540 prose words in English and 2220 in
+  0 mismatches · chapter 13 at 2543 prose words in English and 2223 in
   Polish, against a budget of 3000
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that

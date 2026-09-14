@@ -59,6 +59,13 @@ def transport_of(client: object) -> str:
 # --8<-- [end:transport]
 
 
+def read_timeout(client: object) -> float:
+    """The read timeout the SDK ships with, in seconds. Printed rather
+    than described, because a default is a fact about a version."""
+    read = getattr(getattr(client, "timeout", None), "read", None)
+    return float(read) if isinstance(read, (int, float)) else -1.0
+
+
 def httpx_requirement(distribution: str) -> str:
     """What the SDK's own metadata asks for."""
     wanted = [r for r in (requires(distribution) or []) if "httpx" in r]
@@ -83,11 +90,16 @@ def main() -> int:
     ):
         print(f"{name:10} {version(name):8} transport {transport_of(client)}")
         print(f"{'':10} {'':8} requires  {httpx_requirement(name)}")
+        print(f"{'':10} {'':8} read timeout {read_timeout(client):.0f} s")
 
     # The listing is the check. If a later version changes any of this,
     # this file fails in CI and the chapter is wrong on the same day.
     assert result_types_are_pydantic()
     assert transport_of(openai_client) == transport_of(anthropic_client)
+    # The chapter calls this ten minutes. If a release changes it, the
+    # sentence is wrong and this is where the build says so.
+    assert read_timeout(openai_client) == 600.0
+    assert read_timeout(anthropic_client) == 600.0
     return 0
 
 

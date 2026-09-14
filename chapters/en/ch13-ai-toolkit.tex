@@ -222,8 +222,8 @@ the client you passed is the one the SDK expects.
 Two more things fall out of that listing. The SDKs' own models are
 configured to \emph{keep} fields nobody declared rather than ignore them,
 which is what makes a provider adding a field a non-event. And the default
-timeouts are not a mistake you want to inherit: the read timeout is ten
-minutes, which is a sensible default for a provider that streams a long
+timeouts are not a mistake you want to inherit: the read timeout the listing
+prints is ten minutes, which is a sensible default for a provider that streams a long
 answer and a terrible one for a request sitting inside an HTTP handler that
 somebody is waiting on. Chapter~\ref{ch:services} gives that request a
 budget; the SDK will not give it one for you.
