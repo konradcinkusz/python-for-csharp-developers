@@ -28,6 +28,7 @@ dependencies = [
     "uvicorn==0.53.0",
     "sqlalchemy==2.0.52",
     "alembic==1.20.0",
+    "aiosqlite==0.22.1",
     "httpx==0.28.1",
     "structlog==26.1.0",
     "opentelemetry-sdk==1.44.0",
@@ -97,6 +98,20 @@ extraPaths = ["ch11"]
 # glob matches ch00 through ch14 as they arrive. A hard-coded "ch00"
 # left every future chapter's listings out of strict type-checking
 # while the CI step stayed green -- proved on a scratch ch01/probe.py.
+
+# A measurement script imports the chapter's own listings rather than a
+# copy of them, and a listing is a SCRIPT: it imports its siblings by bare
+# name, which is what the reader typing `uv run python ch10/nplusone.py`
+# gets. pyright searches the file's own directory, so that resolves inside
+# ch10/ and not from measure/. This names the chapter directories the
+# measurement scripts reach into; add one when a chapter's measurement
+# does.
+[[tool.pyright.executionEnvironments]]
+root = "measure"
+extraPaths = ["ch10"]
+
+[[tool.pyright.executionEnvironments]]
+root = "."
 
 [tool.mypy]
 python_version = "3.14"

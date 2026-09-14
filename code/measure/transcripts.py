@@ -108,6 +108,11 @@ TRANSCRIPTS: dict[str, Listing | Command] = {
     "ch08-cancelled": Listing("ch08/cancelled.py"),
     "ch08-deadline": Listing("ch08/deadline.py"),
     "ch08-boundary": Listing("ch08/boundary.py"),
+    "ch10-async": Listing("ch10/async_session.py"),
+    "ch10-autogenerate": Listing("ch10/autogenerate.py"),
+    "ch10-expiry": Listing("ch10/expiry.py"),
+    "ch10-frames": Listing("ch10/frames.py"),
+    "ch10-nplusone": Listing("ch10/nplusone.py"),
     # Chapter 11. Each of the two pytest runs is a FAILING run on purpose:
     # the file it names is a trap_*.py, which the suite never collects
     # because the name does not begin with test_.
