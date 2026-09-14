@@ -304,8 +304,9 @@ Ostatnia kolumna jest wynikiem, i nie tym, który sugeruje nagłówek. Zapełnio
 cache daje \pkg{uv} czynnik \val{e2.uv.cachegain}; \code{pip}-owi nie daje
 prawie nic. Czas \code{pip}-a to nie pobieranie. To własna praca \code{pip}-a
 \dash{} budowanie środowiska, rozpakowywanie kół, kopiowanie plików \dash{} i
-żaden cache nie usuwa z niej niczego, dlatego ciepły wynik \code{pip}-a mieści
-się w zaokrągleniu jego zimnego. \pkg{uv} zapisuje ciepłe instalacje,
+żaden cache nie usuwa z niej niczego, dlatego ciepły przebieg \code{pip}-a
+jest szybszy od zimnego mniej więcej o jedną dziesiątą, a nie o rząd
+wielkości. \pkg{uv} zapisuje ciepłe instalacje,
 linkując z cache'u zamiast kopiować, więc gdy koła są już lokalne, zostaje
 prawie nic do zrobienia.
 
@@ -320,7 +321,7 @@ sekundy to jedna maszyna jednego popołudnia, a maszyna, która je wykonała, ma
 wolną i zawodną sieć. Trzy zimne próby \code{pip}-a wylądowały między
 \val{e2.pip.cold.best} a \val{e2.pip.cold.worst} sekundy, co jest ciasne.
 Najlepsza zimna próba \pkg{uv} to \val{e2.uv.cold.best} sekundy, a najgorsza
-\val{e2.uv.cold.worst} \dash{} pobieranie, które zatrzymało się na ponad pięć
+\val{e2.uv.cold.worst} sekund \dash{} pobieranie, które zatrzymało się na ponad pięć
 minut. To jest właściwość łącza, a nie narzędzia, dlatego raportowana jest
 mediana zamiast średniej, i dlatego liczba zimna jest najmniej przenośną
 pozycją w tabeli. Skrypt to \code{code/measure/e2\_install.py}, a surowe próby

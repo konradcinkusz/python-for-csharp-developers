@@ -302,8 +302,9 @@ The last column is the finding, and it is not the one the headline suggests. A
 populated cache buys \pkg{uv} a factor of \val{e2.uv.cachegain}; it buys
 \code{pip} almost nothing at all. \code{pip}'s time is not the download. It is
 \code{pip}'s own work \dash{} building the environment, unpacking wheels,
-copying files \dash{} and no cache removes any of it, which is why
-\code{pip}'s warm figure is within a rounding of its cold one. \pkg{uv} writes
+copying files \dash{} and no cache removes any of it, which is why a warm
+\code{pip} run comes in about a tenth faster than a cold one rather than in a
+fraction of the time. \pkg{uv} writes
 its warm installs by linking from the cache rather than copying, so once the
 wheels are local there is very nearly nothing left to do.
 
@@ -319,7 +320,7 @@ machine that ran them has a slow and unreliable network. \code{pip}'s three
 cold trials landed between \val{e2.pip.cold.best} and
 \val{e2.pip.cold.worst} seconds, which is tight. \pkg{uv}'s best cold trial
 was \val{e2.uv.cold.best} seconds and its worst was \val{e2.uv.cold.worst}
-\dash{} a download that stalled for over five minutes. That is a property of
+seconds \dash{} a download that stalled for over five minutes. That is a property of
 the link and not of the tool, it is why a median rather than a mean is
 reported, and it is why a cold number is the least transferable figure in the
 table. The script is \code{code/measure/e2\_install.py} and the raw trials are
