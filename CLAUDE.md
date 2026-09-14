@@ -402,15 +402,16 @@ are listed by name and their reasoning is in the companion books.
   Modern and `make` goes red on prose nobody wrote that day.** `kpsewhich`
   returns nothing for all three on the container this note was written on,
   and the preamble probes, degrades and says nothing, which is what it is
-  supposed to do. Measured on the four-chapter merge: CM reports **seven**
-  overfull boxes, **every one of them in Chapters 3, 6 and 7 and none in the
-  chapter the pass was writing** — the worst 28.1 pt,
-  over the 15 pt budget, so `checklog` fails and `make en pl` exits 2 on
-  files CI had compiled green on their own branches. The header's page
-  table carries the figures and the reasoning; what belongs here is the
-  instruction. **Attribute every box to a file before touching anything**
-  (the paragraph-location loop over `main-*.log` in *After each pass* does
-  it), and if the boxes are not in your chapter, **leave them**: rewording
+  supposed to do. The consequence, measured every time this container has
+  built the book: CM reports overfull boxes **in chapters the pass was not
+  writing and CI had already compiled green**, the worst of them over the
+  15 pt budget, so `checklog` fails and `make en pl` exits 2 on prose nobody
+  touched. No count is given here on purpose — it grows with every chapter
+  that lands, and the header's page table carries the current figures. What
+  belongs here is the instruction. **Attribute every box to a file before
+  touching anything** (the paragraph-location loop over `main-*.log` in
+  *After each pass* does it), and if the boxes are not in your chapter,
+  **leave them**: rewording
   prose to satisfy a font the book is not typeset in moves the box onto CI,
   which is the unwinnable loop the companion books record having entered
   once. A local red build on another chapter's box is a fact about the
