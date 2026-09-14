@@ -1,40 +1,385 @@
-%% ch02 --- Środowiska i pakowanie: uv, pyproject i plik blokady
+%% ch02 --- Srodowiska i pakowanie: uv, pyproject i plik blokady
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie zalążkowego bloku (tego, który zaczyna się po
-%% linii \chapter) i zastąpienie go rozdziałem -- po czym ten plik nie jest
-%% już generowany.
+%% Napisane. Kontraktem tego rozdzialu jest wpis ch02 w tools/chapters.json.
+%% Kazdy listing to plik w code/ch02/, ktory uruchamia build, kazde cytowane
+%% wyjscie to wygenerowany transkrypt, a kazda liczba trafia na strone przez
+%% \val{} z code/measure/e2_install.py.
 
 \chapter{Środowiska i pakowanie: uv, pyproject i plik blokady}
 \label{ch:packaging}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\noindent
+W .NET środowisko jest właściwością maszyny i nigdy nie musiałeś o nim
+myśleć. SDK instaluje się raz, \code{dotnet restore} zapełnia jeden cache
+pakietów, z którego czyta każdy projekt na maszynie, a wersja środowiska
+uruchomieniowego, której chce projekt, to linia w pliku honorowana przez
+narzędzia bez proszenia. Działa to tak niezawodnie, że jest niewidoczne.
 
-Argument: a Python environment is a directory, not a machine setting, and
-the reason .NET engineers get burned is that nothing in Python enforces
-that. The map: uv and venv against NuGet and \code{dotnet restore};
-\code{pyproject.toml} against \code{.csproj}; \code{uv.lock} against
-\code{packages.lock.json}; the \code{src/} layout against project folders;
-ruff against analysers plus \code{dotnet format}; pre-commit against
-nothing, because .NET has no equivalent. The \code{[project]} table,
-dependency groups, \code{uv run}, \code{uv sync --locked}, \code{uvx}, entry
-points against \code{Program.cs}. Payoff: a repository skeleton the reader
-can copy \dash{} this book's own \code{code/} directory is that skeleton and
-is what CI runs on every push, so the skeleton is verified by construction.
-Traps to elicit: a global \code{pip install}; activating the environment
-instead of \code{uv run}; no lockfile committed; a \code{requirements.txt}
-treated as a lockfile. Listings: the book's own \code{pyproject.toml} pulled
-in by region; a shell transcript of \code{uv init}, \code{uv add} and
-\code{uv run}. Measurement: experiment E2, cold \code{uv sync} against
-\code{pip install -r} on the same lockfile, free. Overlap rule: the
-LangChain book's chapter 2 has a half-page toolchain table; this is the full
-treatment, and that book should point back here once this ships.
+Python odwraca to i na tym odwróceniu stoi cały rozdział.
+\textbf{Środowisko Pythona to katalog.} Nie klucz w rejestrze, nie instalacja
+ogólnosystemowa i nie ustawienie, które jakieś narzędzie odczytuje; to folder
+z interpreterem w środku, a jedyne, co czyni go \emph{twoim} środowiskiem, to
+fakt, że polecenie, które uruchomiłeś, akurat na niego wskazywało. Nic w
+języku tego układu nie wymusza, nic nie ostrzega, gdy jesteś poza nim, a każdy
+sposób, w jaki idzie to źle dla inżyniera .NET, wynika z tego jednego faktu.
 
-\medskip
-\textbf{Budżet słów:} 3000.\\
-\textbf{Wydanie:} v0.1.\\
-\textbf{Pomiar:} E2.
-}
+\section{Mapa}
+\label{sec:ch02-map}
+\index{pakowanie!mapa narzędzi}
+
+\noindent
+Wszystko w tym rozdziale to jedna z tych par. Lewą kolumnę już znasz; prawa to
+to, czego używa ta książka, a tam, gdzie jest wybór, powód wyboru znajdziesz w
+kolejnej sekcji.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{.NET} & \textbf{Python, tak jak używa go ta książka} \\
+\midrule
+NuGet & PyPI, z \pkg{uv} jako klientem \\
+\code{dotnet restore} & \code{uv sync} \\
+jeden cache pakietów na maszynę & jeden katalog \code{.venv/} na projekt \\
+\code{.csproj} & \code{pyproject.toml} \\
+\code{packages.lock.json} & \code{uv.lock} \\
+\code{dotnet run} & \code{uv run} \\
+\code{dotnet tool} & \code{uvx} \\
+analizatory plus \code{dotnet format} & \pkg{ruff} \code{check} i \pkg{ruff} \code{format} \\
+\code{Program.cs} & punkt wejścia w \code{[project.scripts]} \\
+jeden folder na projekt w rozwiązaniu & układ \code{src/} \\
+\dash{} & \pkg{pre-commit}, który nie ma odpowiednika w .NET \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent
+Jeden wiersz tej tabeli jest prawdziwą luką, a nie tłumaczeniem.
+\pkg{pre-commit} uruchamia formatter i linter jako hak gita, na plikach, których
+dotyka commit, zanim commit powstanie. .NET nie ma powszechnie używanego
+odpowiednika, bo analizatory działają w buildzie, a build działa bez przerwy.
+Build Pythona nie działa bez przerwy \dash{} nie ma buildu \dash{} więc to hak
+musi być źródłem tej samej presji.
+
+\section{Środowisko to katalog}
+\label{sec:ch02-directory}
+\index{środowisko!wirtualne}
+\index{pakowanie!uv}
+
+\noindent
+Zanim przeczytasz dalej, odpowiedz na to ze swojego obecnego modelu Pythona.
+Wpisujesz \code{pip install httpx} na maszynie, na której jest Python. Gdzie
+wyląduje \pkg{httpx} i które z tego, co możesz potem uruchomić, będzie go
+widzieć?
+
+Uczciwa odpowiedź brzmi: nie da się tego wiedzieć bez sprawdzenia, i o to
+właśnie chodzi. Nie ma jednego miejsca. \code{pip} instaluje do tego
+interpretera, który go wywołał, a który to interpreter, zależy od twojego
+\code{PATH}, od tego, czy w tej powłoce jest aktywne środowisko, i od tego, co
+menedżer pakietów twojego systemu zrobił z \code{/usr/bin} lata temu.
+
+Ta książka nigdy więc nie prosi, żebyś wiedział. Pyta interpreter:
+
+\pyfile{code/ch02/where_am_i.py}{Środowisko opisane przez interpreter, który w nim siedzi}{lst:ch02-where}
+
+\noindent
+Uruchomione z \code{code/} wypisuje to:
+
+\transcript{ch02-where-am-i}
+
+\noindent
+Cztery fakty, a każdy z nich jest pytaniem o katalog. \code{sys.prefix} to
+korzeń środowiska; \code{sys.base\_prefix} to korzeń interpretera, z którego
+środowisko zbudowano. Gdy się różnią, jesteś w środowisku wirtualnym, i to
+porównanie jest całym testem \dash{} nie ma nic więcej do sprawdzenia.
+Interpreter jest w środku katalogu. Pakiet zewnętrzny też jest w środku, w
+\code{site-packages}. Biblioteki standardowej tam nie ma, bo jedzie razem z
+interpreterem i nigdy nie była niczyją zależnością.
+
+\begin{csbox}
+\code{.venv/} jest najbliżej \code{obj/} i \code{bin/} razem wziętych: wynik
+buildu, osobno na projekt, bezpieczny do skasowania, nigdy niecommitowany.
+Różnica, która się liczy, jest taka, że skasowanie \code{obj/} kosztuje cię
+przebudowę, a skasowanie \code{.venv/} nie kosztuje nic, bo \code{uv sync}
+odbuduje je z pliku, który akurat zacommitowałeś. Traktuj je jak
+jednorazowe, a za każdym razem będziesz miał rację.
+\end{csbox}
+
+\begin{trapbox}
+\textbf{\code{pip install} kładzie pakiet na maszynie, jak narzędzie globalne.}
+Nie kładzie, a wersja tego przekonania, która żyje najdłużej, jest tą groźną:
+że nie ma wielkiego znaczenia, który interpreter go dostanie. Zainstaluj do
+interpretera systemowego, a zmieniłeś zależność skryptów własnego systemu
+operacyjnego. Zainstaluj do środowiska niewłaściwego projektu, a czysty
+checkout kolegi nie uruchomi twojego kodu, bez żadnego komunikatu, który
+nazwałby przyczynę. Reguła, która usuwa całą tę klasę: \textbf{nigdy nie
+uruchamiaj \code{pip install} w tej książce.} Zależności trafiają do
+\code{pyproject.toml} przez \code{uv add}, a środowiska buduje się z pliku
+blokady.
+\end{trapbox}
+
+\mermaidfig{env-is-a-directory}{Gdzie oba ekosystemy kładą zależność i co z tego wynika}{katalog, nie maszyna}
+
+\section{Dwa pliki, a prawdą jest tylko jeden}
+\label{sec:ch02-two-files}
+\index{pakowanie!pyproject.toml}
+\index{pakowanie!plik blokady}
+
+\noindent
+\code{pyproject.toml} to plik projektu, a ten należący do tej książki jest
+szkieletem obiecanym w opisie rozdziału. Oto część mówiąca, czego kod
+potrzebuje, żeby działać:
+
+\pyregion{code/pyproject.toml}{project}{Tabela \code{[project]}: czego ten projekt potrzebuje, żeby działać}{lst:ch02-project}
+
+\noindent
+I, osobno, czego ty potrzebujesz, żeby nad nim pracować:
+
+\pyregion{code/pyproject.toml}{groups}{Grupy zależności: czego potrzebujesz do pracy, a to nie ta sama lista}{lst:ch02-groups}
+
+\noindent
+Ten podział to pierwsza rzecz do podkradnięcia. \code{[project].dependencies}
+to to, co instaluje wdrożenie; grupa zależności nie jest instalowana, dopóki
+ktoś o nią nie poprosi. Obraz kontenera zbudowany z pierwszej listy nie
+zawiera runnera testów, lintera ani checkera typów, i nie zawiera ich dlatego,
+gdzie napisano linię, a nie dlatego, że ktoś pamiętał, żeby je potem wyciąć.
+
+\begin{csbox}
+\code{pyproject.toml} to \code{.csproj}: tożsamość projektu, jego zależności i
+konfiguracja każdego narzędzia, które na nim działa. Jest w TOML-u zamiast w
+XML-u i mieści znacznie więcej \dash{} \pkg{ruff}, \pkg{pytest}, \pkg{pyright}
+i \pkg{mypy} konfiguruje się w tym jednym pliku, więc repozytorium Pythona nie
+ma odpowiednika rozproszenia na \code{.editorconfig},
+\code{Directory.Build.props} i zestaw reguł.
+\end{csbox}
+
+\noindent
+Teraz drugie pytanie, i znowu odpowiedz przed czytaniem dalej. Ten projekt
+deklaruje zależności, które właśnie widziałeś, w dwóch krótkich listach. Gdy
+\code{uv sync} skończy, ile dystrybucji będzie w \code{.venv}?
+
+\pyfile{code/ch02/lockfile.py}{Liczenie tego, co zadeklarowano, przeciw temu, co rozwiązano}{lst:ch02-lockfile}
+
+\transcript{ch02-lockfile}
+
+\noindent
+Większości środowiska nikt nigdy nie nazwał. To są zależności przechodnie
+\dash{} czego potrzebuje \pkg{fastapi}, czego potrzebuje \pkg{anthropic},
+czego z kolei potrzebują tamte \dash{} a plikiem, który przypina je do
+dokładnych wersji, jest \code{uv.lock}, i on jest commitowany. To jest
+rozróżnienie, na którym stoi reszta rozdziału: \code{pyproject.toml} zapisuje
+\emph{zamiar}, a \code{uv.lock} zapisuje \emph{wynik}. Tylko jednego z nich da
+się użyć do odtworzenia środowiska.
+
+\begin{csbox}
+\code{uv.lock} to \code{packages.lock.json}, a argument za commitowaniem go
+już akceptujesz. Różnica jest raczej kulturowa niż techniczna: blokowanie jest
+w .NET opcjonalne i rzadkie, a w Pythonie \code{uv.lock} powstaje domyślnie
+przy pierwszym uruchomieniu czegokolwiek, więc jedynym sposobem, żeby go nie
+mieć, jest celowe dopisanie go do \code{.gitignore}.
+\end{csbox}
+
+\begin{trapbox}
+\textbf{\code{requirements.txt} to plik blokady.} To lista życzeń, i zwykle
+niepełna. To plik, który napisał jakiś człowiek, zwykle wymieniając tylko
+pakiety, o których pomyślał, zwykle z zakresami zamiast dokładnych wersji, i
+nic nie sprawdza go względem tego, co jest zainstalowane. Dwie maszyny idące
+za tym samym \code{requirements.txt} rutynowo kończą z różnymi wersjami
+większości tego, co uruchamiają, a awaria pojawia się tygodnie później jako
+błąd odtwarzalny na jednej z nich. \code{uv.lock} jest generowany, obejmuje
+cały graf, zapisuje skrót każdego artefaktu, a \code{uv sync --locked} odmawia
+instalacji czegokolwiek innego.
+\end{trapbox}
+
+\mermaidfig{declare-resolve-lock}{Zadeklarowane, rozwiązane, zainstalowane: trzy pliki i ten, który odtwarza środowisko}{deklaracja, rozwiązanie, blokada}
+
+\begin{exercise}{e02_01_pinned_version}{Czytaj blokadę, nie listę życzeń}
+Plik startowy ma jedną funkcję do dokończenia: mając sparsowany
+\code{uv.lock} i nazwę dystrybucji, zwróć dokładną wersję, do której jest
+przypięta. Testy napędzają ją plikiem blokady tej książki, więc jeden z nich
+prosi o pakiet, który nie występuje w żadnej liście zależności w całym
+repozytorium \dash{} i mimo to oczekuje, że znajdziesz dla niego wersję. Ten
+test jest całym rozdziałem w jednej asercji.
+\end{exercise}
+
+\section{Uruchamiaj, nie aktywuj}
+\label{sec:ch02-run}
+\index{pakowanie!uv run}
+
+\noindent
+Każdy tutorial, jaki przeczytasz, każe ci aktywować środowisko. Odruch, który
+sprawia, że inżynierowi .NET jest z tym wygodnie, warto przesłuchać, zanim go
+przyjmiesz: które z tego, co jutro uruchomi twój kod, wykona ten krok
+aktywacji?
+
+Powłoka, którą otworzyłeś, i nic poza tym. Aktywacja edytuje \code{PATH} w
+jednym procesie. Drugi terminal jej nie wykonał. Cel w \code{Makefile} jej nie
+wykonał. \code{cron} jej nie wykonał. CI jej nie wykonało, ani runner testów w
+twoim edytorze, dlatego właśnie zestaw testów, który przechodzi w terminalu, a
+pada w IDE, to tak często to i nic ciekawszego.
+
+Cały przepływ pracy tej książki to trzy polecenia, z których żadne nie
+potrzebuje aktywnego środowiska:
+
+\begin{shellcmd}
+uv init --name incident-tools   # a project, with a src/ layout
+uv add httpx                    # a dependency, written into pyproject.toml
+uv run python -m incident_tools # and run it, in the right environment
+\end{shellcmd}
+
+\noindent
+\code{uv run} czyta \code{pyproject.toml} i \code{uv.lock}, upewnia się, że
+\code{.venv} im odpowiada, a potem uruchamia twoje polecenie w środku. Robi to
+przy każdym wywołaniu, dlatego jest poprawne z powłoki, z \code{Makefile}, z
+\code{cron}-a i z CI, bez niczego do zapamiętania i bez niczego do
+ustawienia. \code{uvx} to jego rodzeństwo dla narzędzia, które chcesz
+uruchomić, a nie mieć w zależnościach \dash{} odpowiednik \code{dotnet tool},
+bez kroku instalacji.
+
+\begin{csbox}
+\code{uv run} to \code{dotnet run}, i przywraca zależności przed
+uruchomieniem z tego samego powodu. \code{uv add} to \code{dotnet add
+package}. Tym bez odpowiednika jest aktywacja, a to dlatego, że .NET nigdy jej
+nie potrzebował: nie ma czego aktywować, gdy środowiskiem jest maszyna.
+\end{csbox}
+
+\begin{trapbox}
+\textbf{Aktywuję środowisko i dopiero potem uruchamiam.} Ten nawyk nie tyle
+jest błędny, co zawodny, i zawodzi w kierunku najtrudniejszym do
+zdiagnozowania: działa na twojej maszynie. Aktywacja jest per powłoka, więc
+awarie lądują tam, gdzie nie możesz patrzeć \dash{} w zadaniu z
+harmonogramu, na agencie buildu, przy pierwszym checkoucie kolegi. Zamiast
+tego dopisz \code{uv run} przed poleceniem, a pytanie, w którym środowisku
+jesteś, przestanie istnieć.
+\end{trapbox}
+
+\begin{warning}
+\code{uv run} i \code{uv sync --locked} robią co innego z plikiem blokady,
+który został w tyle za \code{pyproject.toml}, i ta różnica jest warta
+poznania. Dopisz zależność ręcznie, a potem uruchom \code{uv sync --locked}:
+kończy kodem niezerowym i mówi ci, że blokada wymaga aktualizacji. Uruchom
+zamiast tego \code{uv run}, a przeblokuje, zainstaluje i pójdzie dalej bez
+słowa. To jest wygodne przy biurku i błędne w CI, gdzie cały sens polega na
+tym, żeby zawieść, a nie po cichu zainstalować coś, czego nikt nie
+przejrzał. W każdym kontekście zautomatyzowanym używaj
+\code{uv sync --locked}.
+\end{warning}
+
+\mermaidfig{run-not-activate}{Aktywacja jest per powłoka; \code{uv run} jest per wywołanie}{uruchamiaj, nie aktywuj}
+
+\section{Co daje uv, zmierzone}
+\label{sec:ch02-measured}
+\index{pomiar!E2}
+
+\noindent
+To, że \pkg{uv} jest szybkie, jest pierwszą rzeczą, którą każdy o nim mówi, i
+samo w sobie nie jest powodem, żeby przyjąć narzędzie. Pytaniem wartym
+odpowiedzi jest \emph{gdzie idzie czas}, bo to ono rozstrzyga, czy
+skonfigurowanie cache'u w CI jest warte popołudnia.
+
+Zatem: własny plik blokady tej książki, wyeksportowany tak, by oba narzędzia
+instalowały dokładnie te same \val{e2.packages} dystrybucji bez niczego do
+rozwiązania, na przypiętym interpreterze, każde z prywatnym cache'em pakietów
+opróżnianym przed próbą zimną i zachowywanym przed ciepłą. Środowisko
+powstaje w mierzonym odcinku w obu przypadkach, bo przy \code{pip} oznacza to
+\code{python -m venv}, a czytelnik kupuje całą drogę od checkoutu do gotowego
+do uruchomienia. Mediana z \val{e2.trials} prób.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}Xrrr@{}}
+\toprule
+& \textbf{cache zimny} & \textbf{cache ciepły} & \textbf{co daje cache} \\
+\midrule
+\code{uv sync --locked} & \val{e2.uv.cold}\,s & \val{e2.uv.warm}\,s & \val{e2.uv.cachegain}$\times$ \\
+\code{pip install -r} & \val{e2.pip.cold}\,s & \val{e2.pip.warm}\,s & \val{e2.pip.cachegain}$\times$ \\
+\midrule
+\textbf{stosunek} & \val{e2.cold.ratio}$\times$ & \val{e2.warm.ratio}$\times$ & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent
+Ostatnia kolumna jest wynikiem, i nie tym, który sugeruje nagłówek. Zapełniony
+cache daje \pkg{uv} czynnik \val{e2.uv.cachegain}; \code{pip}-owi nie daje
+prawie nic. Czas \code{pip}-a to nie pobieranie. To własna praca \code{pip}-a
+\dash{} budowanie środowiska, rozpakowywanie kół, kopiowanie plików \dash{} i
+żaden cache nie usuwa z niej niczego, dlatego ciepły wynik \code{pip}-a mieści
+się w zaokrągleniu jego zimnego. \pkg{uv} zapisuje ciepłe instalacje,
+linkując z cache'u zamiast kopiować, więc gdy koła są już lokalne, zostaje
+prawie nic do zrobienia.
+
+Dwie konsekwencje, na które możesz zadziałać. Cache'owanie katalogu pakietów w
+CI jest warte zachodu przy \pkg{uv} i niemal bezcelowe przy \code{pip}. A
+build kontenera instalujący \code{pip}-em płaci ten sam koszt przy każdym
+przebudowaniu warstwy, choćbyś cache'ował jak najlepiej.
+
+\begin{note}
+\textbf{Czym te liczby są, a czym nie są.} Stosunki są połową przenośną;
+sekundy to jedna maszyna jednego popołudnia, a maszyna, która je wykonała, ma
+wolną i zawodną sieć. Trzy zimne próby \code{pip}-a wylądowały między
+\val{e2.pip.cold.best} a \val{e2.pip.cold.worst} sekundy, co jest ciasne.
+Najlepsza zimna próba \pkg{uv} to \val{e2.uv.cold.best} sekundy, a najgorsza
+\val{e2.uv.cold.worst} \dash{} pobieranie, które zatrzymało się na ponad pięć
+minut. To jest właściwość łącza, a nie narzędzia, dlatego raportowana jest
+mediana zamiast średniej, i dlatego liczba zimna jest najmniej przenośną
+pozycją w tabeli. Skrypt to \code{code/measure/e2\_install.py}, a surowe próby
+są zacommitowane obok niego; uruchom go sam i spodziewaj się innych sekund i
+podobnych stosunków. \code{pip} był w wersji \valtext{e2.pip.version}, tej,
+która jedzie z przypiętym interpreterem.
+\end{note}
+
+\section{Szkielet do skopiowania}
+\label{sec:ch02-skeleton}
+\index{pakowanie!układ src}
+\index{pakowanie!ruff}
+
+\noindent
+\code{uv init} daje ci projekt, którego pakiet siedzi w katalogu \code{src/}, a
+nie w korzeniu repozytorium, i powód wart jest akapitu, bo wygląda na
+ceremonię, a nią nie jest. Jeśli twój pakiet leży w korzeniu, da się go
+zaimportować z korzenia niezależnie od tego, czy został zainstalowany, więc
+twoje testy przechodzą względem plików na dysku i nie mówią nic o tym, czy
+rzecz, którą wysyłasz, by działała. Pod \code{src/} musi być zainstalowany,
+żeby dało się go zaimportować, co znaczy, że testy idą względem
+zainstalowanego artefaktu. To różnica między testowaniem drzewa źródeł a
+testowaniem pakietu.
+
+\code{uv init} zapisuje też punkt wejścia: nazwę w \code{[project.scripts]}
+związaną z funkcją, która staje się poleceniem na ścieżce, gdy projekt zostanie
+zainstalowany. To jest \code{Program.cs} projektu Pythona, tyle że projekt
+może zadeklarować ich kilka i każdy jest jedną linią.
+
+\begin{csbox}
+W Pythonie nie ma \code{Program.cs} ani \code{Main}. Moduł, który ma dać się
+uruchomić, kończy się na \code{if \_\_name\_\_ == "\_\_main\_\_":}, co jest
+tematem Rozdziału~\ref{ch:runtime}; pakiet, który ma zainstalować polecenie,
+deklaruje je w \code{[project.scripts]}. Te dwie rzeczy są niezależne, a
+większość projektów chce obu.
+\end{csbox}
+
+\noindent
+Ostatnim elementem jest linter. \pkg{ruff} zastępuje naraz analizatory i
+\code{dotnet format} \dash{} jedno narzędzie, konfigurowane w
+\code{pyproject.toml}, które i raportuje, i poprawia \dash{} i jest na tyle
+szybkie, że nie ma powodu, żeby nie uruchamiać go przy każdym zapisie.
+\pkg{pre-commit} jest tym, co czyni je nieuniknionym dla wszystkich
+pozostałych: hak gita, zadeklarowany w pliku, który puszcza formatter i linter
+po plikach dotkniętych commitem i odmawia commita, gdy są niezadowolone. Nic w
+.NET tego nie robi, bo nic w .NET tego nie potrzebuje.
+
+\begin{exercise}{e02_02_install_set}{Co wdrożenie naprawdę instaluje?}
+Dokończ funkcję, która odpowiada na pytanie, dla którego istnieje podział na
+\code{[project]} i \code{[dependency-groups]}: mając sparsowany
+\code{pyproject.toml} i wybór grup, które dystrybucje zostałyby
+zainstalowane? Jeden test napędza ją małym dokumentem niosącym każdy kształt,
+jaki może przyjąć wymaganie; ostatni pyta własny projekt tej książki, czy jego
+wdrożenie zawierałoby \pkg{pytest}.
+\end{exercise}
+
+\noindent
+Masz teraz środowisko, któremu możesz zaufać, i sposób na odbudowanie go z
+pliku. To jest podłoga, na której stoją listingi każdego kolejnego rozdziału.
+Następny jest o innym rodzaju zaufania: Rozdział~\ref{ch:typing} jest tam,
+gdzie twój odruch, że adnotacja typu coś znaczy, spotyka środowisko
+uruchomieniowe, które nigdy żadnej nie sprawdza.

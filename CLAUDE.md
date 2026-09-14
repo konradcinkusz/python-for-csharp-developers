@@ -19,14 +19,16 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **0 of 14 written.** Every chapter is a brief printed where the chapter will go | all fourteen |
+| Chapters | **1 of 14 written: Chapter 2.** Every other chapter is a brief printed where the chapter will go | thirteen |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: the `trace-assert` skeleton, the first listing, the first exercise, the two measurement scripts, and CI runs all of it | every chapter's listings and exercises; the eight experiments |
+| Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapter 2's two listings and two exercises, three measurement scripts, and CI runs all of it | the other chapters' listings and exercises; the seven experiments that have not run |
 
-**This is the scaffold.** It exists so that the shape of the book can be
-argued with before Chapter 1 is written, and so that the first chapter is
-written into a build that already has every gate. Nothing in it teaches
-Python yet.
+**The scaffold, plus Chapter 2.** The scaffold existed so that the shape of
+the book could be argued with before any chapter was written, and so that the
+first chapter went into a build that already had every gate. Chapter 2 is the
+first chapter through it, and it went through unmodified except for one
+preamble fix the chapter's own subject exposed — see *The double-dash
+ligature* below.
 
 **Two editions, one paper size, both clean.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
@@ -34,8 +36,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 37 | 0 | 0 | 0 | 0 |
-| `main-pl` | 37 | 0 | 0 | 0 | 0 |
+| `main-en` | 48 | 0 | 0 | 0 | 0 |
+| `main-pl` | 48 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -46,17 +48,17 @@ for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **14 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **13 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 2 listing references, every file and region present · 1 exercise, with a
-  starter, a solution and a test · 2 transcript references, every file
-  present · 14 code files, none over 79 columns · 19 pins agree between
+- 10 listing references, every file and region present · 3 exercises, each
+  with a starter, a solution and a test · 6 transcript references, every file
+  present · 24 code files, none over 79 columns · 19 pins agree between
   `preamble.tex` and `code/pyproject.toml`
 - **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
   reader that something was not run
-- 4 Mermaid sources, two per language, all rendering, both placed
-- 9 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 26 labels in each edition,
+- 10 Mermaid sources, five per language, all rendering, all placed
+- 24 computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · 40 labels in each edition,
   0 mismatches
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
@@ -702,6 +704,154 @@ for reasons worth keeping rather than silently dropping:
   general (`\pysettingsver` names `pydantic-settings`, not
   `pysettings`), so the dict is the one place that mapping can live.
 
+### Chapter 2 pass, September 2026 --- the first chapter through the gates
+
+**The scaffold held.** Every gate the review pass built did its job on the
+first real chapter, and exactly one preamble change was needed, below. Parity
+came back clean on its first run, which was not believed until it had been
+watched failing: swapping one `csbox` for a `note` in the Polish edition gives
+`FAIL [C4-structure] ch02-packaging.tex: diverge at token 44`, and restoring
+it goes green again. A gate that has not been watched producing a known answer
+is not evidence, and 92 structural tokens compared is what that green line
+means.
+
+#### The double-dash ligature, which shipped a command the reader cannot type
+
+`\code{uv sync --locked}` sets as `uv sync <en dash>locked`. In T1 the pair
+`--` is a ligature for an en dash in **every** family, the typewriter one
+included, so a flag printed in prose is not the flag. A reader copying it off
+the page gets an unknown-argument error from a command the chapter has just
+told them to run.
+
+It is the `upquote` defect one character over, and it hides the same way: it
+looks like a dash. What makes it worse is that **a `listings` body is already
+safe** --- listings sets characters singly and no ligature forms --- so the
+same text is correct inside a listing and wrong in the sentence above it, in
+the same chapter, on the same page. A packaging chapter is made of flags, so
+this was going to bite here and nowhere earlier.
+
+**And it was already shipping.** Chapter 12's stub prints
+`\code{uv sync --frozen --no-dev}` in its brief, in both editions, so the
+defect was on the page of every build since the scaffold and no gate saw it.
+It was found by reading the finished PDF for something else.
+
+Measured rather than reasoned about, with a standalone probe against this
+preamble, in all three positions before and after:
+
+| | before | after |
+|---|---|---|
+| `\code{uv sync --locked}` | `uv sync <U+2013>locked` | `uv sync --locked` |
+| `\code{pip install -r}` | `pip install -r` | `pip install -r` |
+| a `shellcmd` body | `uv sync --locked` | `uv sync --locked` |
+| prose `\dash{}` | `<U+2014>` | `<U+2014>` |
+| prose range `1--2` | `1<U+2013>2` | `1<U+2013>2` |
+
+The fix is one line, `\DisableLigatures[-]{encoding = T1, family = tt*}`, and
+the `tt*` scope is the whole of why it is safe: prose keeps its own dashes, so
+an em dash is still an em dash and a numeric range is still an en dash. Page
+counts, overfull multiset and every ledger were identical either side of it.
+
+**The generalisable half: a monospace font is not a neutral rendering of the
+characters you typed.** This book already knew that about the apostrophe and
+had not asked the question about anything else. The test that settles it is
+the one the `upquote` trap earned --- extract the text from the finished PDF
+and look at the bytes --- and it is worth running for any character a reader
+is expected to retype.
+
+#### Experiment E2, run, and why a timing script has two modes
+
+Cold and warm `uv sync --locked` against `pip install -r`, the same
+78 distributions exported from this book's own lock, on the
+pinned interpreter, with a private cache per tool emptied before each cold
+trial.
+
+**The headline is not the finding.** That uv is faster than pip surprises
+nobody. What the four cells show is *where the time goes*: a populated cache
+buys uv a factor of nine and buys pip
+essentially nothing (1.1x), because pip's cost is its own work ---
+building the environment, unpacking wheels, copying files --- rather than the
+download. That is a fact somebody can act on: caching the package directory in
+CI is worth doing with uv and close to pointless with pip.
+
+**A timing cannot be re-derived on every machine, and `make numbers` re-runs
+every script in `code/measure/` and then fails on drift.** A script that timed
+something on each run would report drift on every machine it ever ran on and
+the gate would have to be switched off --- which is how a gate goes quiet. So
+the script splits: `--run` performs the benchmark and writes committed raw
+data under `code/measure/data/`, and the default mode, the only one CI runs,
+formats that data and touches neither clock nor network. The experiment is
+reviewed as a diff. This is the first experiment to need the shape and it is
+general; `notes/01-curriculum.md` §4 records it beside the ledger.
+
+**Two honesty items, both on the page.** One uv cold trial stalled
+mid-download for 312 seconds against a median of 2.4; the median is untouched by it, which is why a median rather
+than a mean is reported, and the note in the chapter says so rather than
+quietly dropping the trial. And **every ratio is divided from the PRINTED
+operands rather than from the exact medians**, with an assertion that the two
+agree to within a twentieth --- the exact warm ratio is 99.9 and the printed
+one is 100.7, so reporting the first would have put `100` above two numbers a
+reader divides to `101`. That check is in the script and fails the build.
+
+#### What the brief got wrong, and what verifying changed
+
+- **The brief asked for a shell transcript of `uv init`, `uv add` and
+  `uv run`.** uv's own output carries a resolution timing (`Installed 8
+  packages in 5ms`), so it cannot be a committed transcript, and a typed one
+  would be exactly the fabricated console block this book's lineage keeps
+  finding. What shipped is a `shellcmd` block of the **commands**, and the
+  brief in `tools/chapters.json` now says so.
+- **`uv add` writes a range, not a pin.** Verified: `uv add httpx` puts
+  `"httpx>=0.28.1"` in `pyproject.toml` and the exact version appears only in
+  `uv.lock`. That is trap 7 demonstrated by the tool itself and it is better
+  than the argument the brief expected.
+- **`uv run` and `uv sync --locked` disagree about a stale lock**, which no
+  brief mentioned and which is the most useful thing in the chapter's §2.4.
+  On a `pyproject.toml` edited by hand, `uv sync --locked` exits 1 with *the
+  lockfile needs to be updated*; `uv run` silently re-locks, installs and
+  carries on. Convenient at a desk, wrong in CI. Both exit codes were
+  measured.
+- **`uv init` defaults to a `src/` layout and writes a `[project.scripts]`
+  entry point**, which is the `Program.cs` mapping the brief asked for,
+  already done by the tool rather than needing to be argued for.
+
+#### Two instrument artefacts, neither of them a defect
+
+Recorded because both looked exactly like page defects and cost a diversion
+each, which is this repository's standing class.
+
+- **`pdftotext -layout` reported the measurement table's fourth column
+  empty.** It is not: `9x`, `1.1x`, `13x` and `101x` are all on the page, and
+  a plain `pdftotext` finds all four. The tool's reading order moved them.
+- **An extracted listing appeared to differ from its own transcript by one
+  space.** `pdftotext` collapses runs of spaces inside a verbatim block ---
+  demonstrably, because it does it to the committed transcript too, which is
+  a byte-exact copy of a file. Both listings were extracted from the finished
+  PDF and run: `where_am_i.py` reproduces its transcript, `lockfile.py`
+  reproduces its three numbers when run from where the listing lives, and
+  neither carries a single non-ASCII byte.
+
+#### Also
+
+- Six Mermaid sources, three per language, **measured with `pdfinfo` before
+  the captions were written**, as the scaffold pass's note requires. The first
+  cut rendered 714--740 pt wide and set node text at 6.8--7.0 pt, below the
+  two existing figures; shortening each node's longest line to about twenty
+  characters took all six to 566--618 pt and 8.1--8.9 pt. All six are
+  width-bound with aspect ratios above five, so only the width mattered ---
+  the recorded rule, holding again.
+- The two listings are `code/ch02/where_am_i.py` and `code/ch02/lockfile.py`,
+  and both print structural answers rather than paths on purpose: an absolute
+  path names a machine, and a committed transcript carrying one would report
+  drift on every machine that ever built the book.
+- `pyright` strict rejected the first `lockfile.py`: `isinstance(x, list)`
+  narrows to `list[Unknown]`, not `list[Any]`, so an `assert isinstance`
+  around a parsed TOML value makes things worse rather than better. Typing the
+  boundary `dict[str, Any]` and annotating each extracted value is both what
+  passes and what is honest about what `tomllib` can know --- and Chapter 3
+  now has a worked example waiting for it.
+- Traps 5, 6 and 7 are marked delivered in `notes/02-traps.md` with the
+  section that carries each; all three are elicited before they are named.
+
 ---
 
 ## After each pass
@@ -733,9 +883,10 @@ issues under the `chapter`, `appendix`, `experiment` and `infrastructure`
 labels — **work from the labels, not from a list here**, because a list in
 this file is the class of claim nothing can check. In rough order:
 
-1. **Chapters 1 to 7**, which are v0.1. Suggested order: 1, 2, 3 first,
-   because every later chapter's listings assume the reader trusts the
-   environment; then 4 to 7 in order, each leaning on the last.
+1. **Chapters 1 to 7**, which are v0.1. Chapter 2 is written; 1 and 3 are
+   the rest of Part I and come next, because every later chapter's listings
+   assume the reader trusts the environment. Then 4 to 7 in order, each
+   leaning on the last.
 2. **Chapters 8 to 12** (v0.2), with the trace-assert stage 01 in Chapter 11
    and experiments E4 to E7.
 3. **Chapters 13 and 14 and Appendices A to D** (v1.0). Appendix B is
@@ -747,4 +898,7 @@ this file is the class of claim nothing can check. In rough order:
 5. **The first Pages deployment**, which needs one human click.
 
 **Do not fill a measurement table with plausible numbers.** An empty table
-is load-bearing.
+is load-bearing. And an experiment that measures a *timing* writes its raw
+trials into `code/measure/data/` under a `--run` flag and formats them in a
+second, deterministic mode, because `make numbers` re-runs every measurement
+script and then fails on drift — see the Chapter 2 pass.

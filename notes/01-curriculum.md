@@ -96,7 +96,7 @@ restate a total here or in `CLAUDE.md`** — the math book's ledger said
 | # | Chapter | What | Cost | Status |
 |---|---|---|---|---|
 | E1 | 1 | CPU-bound work, four threads, default build against `python3.14t`, on the pinned interpreter | free; needs the free-threaded build installed by `uv python install 3.14t` | not run |
-| E2 | 2 | Cold `uv sync` against `pip install -r` on the same lockfile | free | not run |
+| E2 | 2 | Cold `uv sync` against `pip install -r` on the same lockfile | free | **run**, Ch. 2 pass, September 2026: `code/measure/e2_install.py`, raw trials committed beside it. The finding is the cache column, not the headline — a warm cache buys uv a factor of nine and buys pip nothing, because pip's time is its own work rather than the download |
 | E3 | 6 | Cost of a `try` against a check, happy path and unhappy path | free | not run |
 | E4 | 8 | One blocking call's degradation, in the TPL-against-asyncio framing | free; the LangChain book's Chapter 3 has the asyncio half already | not run |
 | E5 | 9 | uvicorn workers against concurrency: throughput, p50, p95, mocked upstream, calibrated the way the LangChain book's Chapter 13 recorded | free | not run |
@@ -106,7 +106,12 @@ restate a total here or in `CLAUDE.md`** — the math book's ledger said
 
 Each result goes into `code/measure/<experiment>.py`, which writes
 `figures/values/<experiment>.tex`; the chapter reads it with `\val{}` and
-`make verify` fails when the two drift. The three companion books' rule
+`make verify` fails when the two drift. **A timing cannot be re-derived on
+every machine, so an experiment that measures one splits in two**: a `--run` mode
+that performs the benchmark and writes committed raw data under
+`code/measure/data/`, and a default mode that only formats that data into the
+value file. CI runs the second, which is deterministic; the first is run by hand
+and reviewed as a diff. E2 is the first to need this and the shape is general. The three companion books' rule
 holds here without exception: **a number the reader cannot do in their head
 is computed, never typed**, and a machine-dependent residual is committed as
 a bound, never as a figure.
