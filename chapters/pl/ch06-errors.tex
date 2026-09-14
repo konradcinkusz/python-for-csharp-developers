@@ -1,39 +1,408 @@
-%% ch06 --- Błędy: wyjątki jako sterowanie, EAFP, ExceptionGroup i wzorzec Result
+%% ch06 --- Bledy: wyjatki jako sterowanie, EAFP, ExceptionGroup i wzorzec
+%% Result.
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie zalążkowego bloku (tego, który zaczyna się po
-%% linii \chapter) i zastąpienie go rozdziałem -- po czym ten plik nie jest
-%% już generowany.
+%% Napisane we wrzesniu 2026 na przypietym interpreterze. Kazde twierdzenie o
+%% kodzie bajtowym, lancuchowaniu, grupach i o dwoch bibliotekach na koncu
+%% zostalo zmierzone albo wykonane, a nie zapamietane; trzy transkrypcje sa
+%% generowane. Opis rozdzialu mylil sie w jednym miejscu i CLAUDE.md notuje to
+%% w *Resolved questions*: `raise e` nie obcina w Pythonie tracebacku.
 
 \chapter{Błędy: wyjątki jako sterowanie, EAFP, ExceptionGroup i wzorzec Result}
 \label{ch:errors}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\noindent
+Metoda w C\#, która może się nie udać, zwykle mówi to swoim kształtem.
+\code{TryParse} zwraca \code{bool} i oddaje wynik przez parametr
+\code{out}; \code{FirstOrDefault} oddaje wartość domyślną, zamiast rzucać; typ
+referencyjny dopuszczający wartość pustą jest oznaczony, a kompilator marudzi. Rzucanie
+jest od przypadków wyjątkowych i to słowo stoi w nazwie klasy bazowej.
 
-Argument: Python raises where C\# checks, and the cost model is different
-\dash{} a \code{try} is nearly free, raising is not free, and both are
-normal. EAFP against LBYL; \code{KeyError}, \code{StopIteration} and
-\code{AttributeError} as protocol rather than failure; no checked
-exceptions, and what stands in for them (a docstring, because a type hint
-does NOT carry exceptions); chaining with \code{raise from} against
-\code{InnerException}; \code{try}, \code{except}, \code{else},
-\code{finally}; custom hierarchies; \code{ExceptionGroup} and \code{except*}
-against \code{AggregateException}; \code{contextlib.suppress}; Result and
-Either patterns and when they are un-Pythonic; errors at the boundary,
-\code{ValidationError} from pydantic and \code{HTTPStatusError} from httpx.
-Traps to elicit: a bare \code{except}; catching \code{Exception} to log and
-continue; \code{raise e} losing the traceback; a \code{return} inside
-\code{finally}. Listings: the same failure handled EAFP and LBYL.
-Measurement: experiment E3, the cost of a \code{try} against a check on the
-happy and the unhappy path, free. Four exercises. Overlap rule: the
-LangChain book's chapter 4 owns cancellation and timeouts, and they are not
-here.
+Klasa bazowa w Pythonie też nazywa się \code{Exception} i prawie nic
+poza tym się nie przenosi. Tutaj nietrafione odczytanie ze słownika zgłasza
+wyjątek, pętla \code{for} kończy się zgłoszeniem wyjątku i odczyt
+nieistniejącego atrybutu też. Żadna z tych trzech rzeczy nie jest usterką.
+Kod, który traktuje je jak usterki, obsługuje normalną pracę programu, a
+napisana tak procedura zwykle jest tą, która ukrywa prawdziwą awarię później.
 
-\medskip
-\textbf{Budżet słów:} 3000.\\
-\textbf{Wydanie:} v0.1.\\
-\textbf{Pomiar:} E3.
-}
+Pod różnicą w stylu leży różnica w koszcie i da się ją zmierzyć, zamiast o
+niej dyskutować. Od tego zaczyna się ten rozdział, bo kiedy koszt leży już na
+stole, dalsze rady przestają być radami i stają się arytmetyką.
+
+\begin{note}
+Anulowania i limitów czasu tu nie ma. \code{CancelledError} jest zwykłym
+wyjątkiem dostarczanym zwykłym mechanizmem, ale wszystko, co dotyczy
+\emph{momentu} jego dostarczenia, jest własnością pętli zdarzeń i należy do
+rozdziału~\ref{ch:asyncio} oraz do tomu towarzyszącego o asynchronicznym
+Pythonie.
+\end{note}
+
+% ------------------------------------------------------------------
+\section{Ile kosztuje try, a ile sprawdzenie}
+\label{sec:ch06-cost}
+\index{EAFP}
+\index{LBYL}
+
+Dwa sposoby odczytania wartości, której może nie być. Patrz, zanim skoczysz:
+zapytaj, potem działaj.
+
+\pyregion{code/ch06/eafp_lbyl.py}{lbyl}{Najpierw zapytaj, potem działaj}{lst:ch06-lbyl}
+
+\noindent
+Albo: łatwiej prosić o wybaczenie niż o pozwolenie \dash{} działaj i obsłuż tę
+jedną awarię, której się spodziewasz.
+
+\pyregion{code/ch06/eafp_lbyl.py}{eafp}{Działaj i obsłuż jedną awarię}{lst:ch06-eafp}
+
+\noindent
+Obie zwracają te same odpowiedzi. Nie kosztują tyle samo, a różnica nie leży
+tam, gdzie spodziewa się jej nawyk z C\#. Eksperyment~E3 liczy instrukcje
+kodu bajtowego, które każdy z kształtów naprawdę wykonuje; to liczba dokładna
+i identyczna na każdej maszynie z tym interpreterem, bo kompilator CPythona
+nie zależy od sprzętu.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}Xrr@{}}
+\toprule
+& \textbf{klucz jest} & \textbf{klucza nie ma} \\
+\midrule
+\code{rates[code]}, bez żadnej osłony & \val{e03.plain.happy} & \val{e03.plain.unhappy} \\
+Najpierw pytanie (\code{if code in rates}) & \val{e03.lbyl.happy} & \val{e03.lbyl.unhappy} \\
+Działanie i obsługa (\code{try} / \code{except}) & \val{e03.eafp.happy} & \val{e03.eafp.unhappy} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent
+Pierwszy wiersz czytaj jako podłogę: tyle kosztuje sama praca. Opakowanie jej
+w \code{try} dokłada \val{e03.try.overhead} instrukcję. Zapytanie najpierw
+dokłada \val{e03.lbyl.happy}~$-$~\val{e03.plain.happy}, przy każdym wywołaniu,
+niezależnie od tego, czy klucz jest. Procedury obsługi w ogóle nie ma na
+ścieżce: kompiluje się do tablicy wyjątków o rozmiarze
+\val{e03.exctable}~bajtów obok kodu, i właśnie to znaczy \emph{zero-cost
+exceptions} oraz dlatego \code{try} jest tańszy z tych dwóch, gdy nic się nie
+psuje.
+
+Kiedy coś się psuje, kolejność się odwraca, i to mocniej, niż sugerują
+liczniki instrukcji, bo zgłoszenie buduje jeszcze obiekt wyjątku i traceback.
+Zmierzone na maszynie, która zbudowała tę stronę, zgłoszenie i przechwycenie
+kosztowały kilka razy tyle, co ta sama funkcja kończąca się normalnie. Przy
+każdym budowaniu skrypt sprawdza, że zgłoszenie zostaje powyżej
+\val{e03.raise.floor} razy normalnego powrotu, a \code{try}, który nie
+zadziała, poniżej \val{e03.try.ceiling} razy sprawdzenia, i wypisuje
+nanosekundy własnej maszyny, których tu nie utrwalamy, bo nanosekunda jest
+własnością maszyny.
+
+\begin{csbox}
+\code{TryGetValue} to kształt LBYL z usuniętym drugim odczytem i to jest
+powód, dla którego instynkt z C\# jest w C\# słuszny: tam pytanie jest tanie,
+a rzucanie dość drogie, żeby osłona prawie zawsze się opłacała. W Pythonie
+osłona kosztuje więcej niż \code{try}, a \code{try} kosztuje więcej dopiero,
+gdy zadziała, więc punkt przecięcia leży znacznie bardziej po stronie
+wyjątków, niż pozwala instynkt.
+\end{csbox}
+
+\noindent
+Koszt to nie cały argument, a druga połowa przetrwa nawet szybszy interpreter.
+Sprawdzenie to pytanie zadane w jednej chwili o stan, który w następnej może
+być inny.
+
+\pyregion{code/ch06/eafp_lbyl.py}{race}{Mapa, która zmienia się między pytaniem a działaniem}{lst:ch06-race}
+
+\noindent
+\code{lookup\_lbyl} zgłasza na tej mapie \code{KeyError}. \code{lookup\_eafp}
+zwraca wartość, bo nigdy nie zadał pytania, którego odpowiedź mogła się
+zdezaktualizować. Wroga podklasa \code{dict} to karykatura; pamięć podręczna z
+wątkiem czyszczącym, plik, który inny proces może usunąć, i wiersz, który inna
+transakcja może skasować, karykaturą nie są.
+
+Reguła dotyczy więc częstości awarii i możliwości naprawy, a nie gustu:
+działaj i obsługuj tam, gdzie awaria jest rzadka i umiesz na nią odpowiedzieć,
+pytaj tam, gdzie jest rutynowa, a tam, gdzie nie umiesz jej naprawić, nie rób
+ani jednego, ani drugiego i przepuść ją dalej.
+
+\mermaidfig{err-cost}{Dwa kształty i pytanie, które między nimi wybiera}{EAFP kontra LBYL i koszt każdego z nich}
+
+\begin{exercise}{e06_01_field}{Proś o wybaczenie i powiedz, kto prosi}
+Napisz \code{field\_of} w kształcie EAFP: odczytaj nazwane pole i zamień tę
+jedną spodziewaną awarię na własny błąd tego modułu, z dołączonym
+oryginałem. Test sprawdza \code{\_\_cause\_\_}, więc \code{raise~...~from} nie
+jest tu ozdobą \dash{} sekcja~\ref{sec:ch06-keywords} mówi, po co jest.
+\end{exercise}
+
+% ------------------------------------------------------------------
+\section{Trzy wyjątki, które nie są awariami}
+\label{sec:ch06-protocol}
+\index{exceptions!as protocol}
+
+\code{KeyError}, \code{StopIteration} i \code{AttributeError} nie są stanami
+błędu. Tak trzy protokoły Pythona mówią \emph{nie}, i każdy z nich jest
+normalnie zgłaszany, przechwytywany i wyrzucany piętro wyżej, tak że niczyj
+kod go nie widzi.
+
+Najczystszym przykładem jest pętla. Instrukcja \code{for} nie sprawdza flagi
+\enquote{są jeszcze elementy}, bo takiej flagi nie ma. Woła \code{next},
+dopóki \code{next} nie zgłosi wyjątku.
+
+\pyregion{code/ch06/protocol.py}{forloop}{Do czego kompiluje się pętla for}{lst:ch06-forloop}
+
+\noindent
+\code{dict.get} ma ten sam kształt i ten sam związek z \code{KeyError}, a
+\code{hasattr} to znowu ten sam kształt wokół \code{AttributeError} \dash{}
+sięga po atrybut, przechwytuje i wyrzuca odpowiedź.
+
+\pyregion{code/ch06/protocol.py}{getattr}{hasattr, rozpisane}{lst:ch06-getattr}
+
+\begin{trapbox}
+\textbf{\enquote{\code{KeyError} w logu znaczy, że coś poszło źle.}}
+Znaczy, że odczyt nie trafił, co bywa najzwyklejszą rzeczą w programie.
+Alarmu wart jest \code{KeyError}, który uciekł z funkcji mającej na niego
+odpowiedzieć \dash{} a to inne zapytanie, i da się je napisać dopiero, gdy
+przestaniesz traktować tę klasę jak usterkę.
+\end{trapbox}
+
+\noindent
+Jest drugi nawyk z tej samej rodziny i dotyczy braku wartości, a nie braku
+klucza. C\# ma jedną fałszywość i jest nią \code{false}. Python ma ich kilka:
+pusta lista, pusty łańcuch, zero i \code{None} są w warunku fałszywe.
+
+\pyregion{code/ch06/protocol.py}{truthiness}{Dwa pytania, które nawyk z C\# zlewa w jedno}{lst:ch06-truthiness}
+
+\noindent
+\code{if rows:} pyta, czy jest co robić. \code{if rows is not None:} pyta, czy
+wywołujący w ogóle podał listę. Pusta lista odpowiada na pierwsze
+\enquote{nie}, a na drugie \enquote{tak}, i te dwa pytania najczęściej mylą
+się dokładnie tam, gdzie to boli: w osłonie na początku funkcji, która ma
+właśnie rozstrzygnąć, czy jej wejście jest brakujące, czy tylko puste.
+
+% ------------------------------------------------------------------
+\section{Co funkcja zgłasza i kto ci o tym mówi}
+\label{sec:ch06-contract}
+\index{exceptions!documenting}
+
+Nic w systemie typów nie niesie wyjątków. Sygnatura kończąca się
+\code{-> int} nie mówi nic o tym, co funkcja robi zamiast zwrócenia liczby,
+pyright też ci tego nie powie, a Python nie ma odpowiednika kontrolowanych
+wyjątków z Javy, który byłoby czym sprawdzać. Na ich miejscu stoi docstring,
+a docstring to proza: nic go nie weryfikuje, więc jest dokładnie tak
+prawdziwy, jak zostawiła go ostatnia osoba edytująca funkcję.
+
+\pyregion{code/ch06/boundary.py}{translate}{Kontrakt, w jedynym miejscu, jakie Python na niego ma}{lst:ch06-translate}
+
+\noindent
+To sprawia, że \emph{kształt} tego, co zgłaszasz, waży więcej niż w C\#, bo
+kształt jest tą częścią, którą wywołujący odkryje, nie czytając ciebie. Daj
+modułowi jedną klasę bazową i wyprowadź z niej resztę, żeby ten, kto chce
+wszystkiego, przechwycił jedną nazwę, a ten, kto chce jednej rzeczy,
+przechwycił właśnie ją.
+
+\pyregion{code/ch06/boundary.py}{hierarchy}{Jedna klasa bazowa i powód, dla którego istnieje}{lst:ch06-hierarchy}
+
+\begin{csbox}
+C\# też nie ma kontrolowanych wyjątków, więc to nie jest ta luka, na jaką
+wygląda \dash{} źle przenosi się nawyk wokół narzędzi. Tam znacznik
+\code{<exception cref="..."/>} pojawia się w edytorze, a
+\code{ArgumentNullException} to konwencja, którą framework dzieli z tobą.
+Tutaj konwencją jest klasa bazowa, a ta od nazewnictwa działa w drugą stronę:
+w Pythonie przyrostkiem jest \code{Error}, nie \code{Exception}, i linter
+przypięty w tej książce tego pilnuje \dash{} klasa nazwana
+\code{JobUnavailable} jest zgłaszana, dopóki nie nazwiesz jej
+\code{JobUnavailableError}.
+\end{csbox}
+
+% ------------------------------------------------------------------
+\section{Cztery słowa kluczowe i trzy sposoby na zgubienie awarii}
+\label{sec:ch06-keywords}
+\index{exceptions!chaining}
+
+\code{try} i \code{except} robią to, co \code{try} i \code{catch}.
+\code{finally} robi to, co \code{finally}. Czwarte słowo kluczowe nie ma
+odpowiednika w C\#: \code{else} wykonuje się, gdy blok \code{try}
+\emph{nie} zgłosił wyjątku, przed \code{finally}, i istnieje po to, żeby ciało
+\code{try} dało się zwęzić do tej jednej instrukcji, której awarię chciałeś
+przechwycić. Kod, który należy po ryzykownym wywołaniu, idzie do \code{else},
+gdzie nie chroni go procedura obsługi napisana na coś innego.
+
+Ciekawie robi się, gdy procedura obsługi zgłasza wyjątek ponownie. Stack trace
+w C\# jest doczepiany w miejscu rzucenia, więc \code{throw ex;} go obcina, a
+\code{throw;} nie, i każdy inżynier C\# nauczył się tej różnicy boleśnie.
+Python doczepia traceback do \emph{obiektu} wyjątku i konsekwencja nie jest
+ta, którą nawyk przewiduje.
+
+\pyregion{code/ch06/chaining.py}{shapes}{Cztery sposoby ponownego zgłoszenia}{lst:ch06-shapes}
+
+\noindent
+Uruchomienie tego wypisuje ramki, które niesie każdy wyjątek, i to, co mówi o
+wyjątku, z którego powstał:
+
+\transcript{ch06-chaining}
+
+\begin{trapbox}
+\textbf{\enquote{\code{raise exc} gubi traceback, tak jak \code{throw ex;}.}}
+Nie gubi. Traceback siedzi na obiekcie wyjątku, więc ponowne zgłoszenie tego
+samego obiektu zachowuje pod nim wszystkie ramki i jeszcze \emph{dokłada}
+linię ponownego zgłoszenia \dash{} dlatego \code{raise\_exc} powyżej pokazuje
+własną ramkę dwa razy. Samo \code{raise} to mimo wszystko lepszy nawyk, bo
+zdublowana ramka jest szumem, ale nic nie ginie i żaden stos nie zostaje
+obcięty. Reguła z C\# się nie przenosi, a razem z nią nie przenosi się lęk.
+\end{trapbox}
+
+\noindent
+Zgubić można za to \emph{związek}. \code{wrap\_from} ustawia
+\code{\_\_cause\_\_} i wydrukowana awaria mówi, że pierwszy wyjątek był
+bezpośrednią przyczyną drugiego. \code{wrap\_plain} ustawia tylko
+\code{\_\_context\_\_}, a wydrukowana awaria mówi, że inny wyjątek wystąpił
+podczas obsługi pierwszego \dash{} co czyta się jak wypadek w twojej obsłudze
+błędów, a nie jak świadome tłumaczenie. Różnica ma trzy znaki, a linter o nie
+prosi.
+
+\mermaidfig{err-chaining}{Co każde ponowne zgłoszenie zostawia czytającemu awarię}{raise from kontra zwykłe raise}
+
+\noindent
+Trzy kształty gubią awarię całkowicie. Pierwsze dwa to odruchy z C\#.
+
+\pyregion{code/ch06/swallow.py}{blind}{Awaria staje się liczbą}{lst:ch06-blind}
+
+\begin{trapbox}
+\textbf{\enquote{Przechwyć \code{Exception}, zaloguj, jedź dalej \dash{} na
+wszelki wypadek.}}
+To zamienia awarię w złą odpowiedź. Rejestr powyżej jest w połowie zapisany,
+gdy uruchamia się obsługa, a funkcja i tak zwraca sumę; nic poniżej nie odróżni
+jej od poprawnej. Samo \code{except:} jest jeszcze gorsze, bo łapie również
+\code{KeyboardInterrupt} i \code{SystemExit} \dash{} oba są
+\code{BaseException} i żaden nie jest \code{Exception} \dash{} więc proces
+przestaje dać się zatrzymać.
+\end{trapbox}
+
+\noindent
+Trzeci to \code{return} wewnątrz \code{finally}, który porzuca wyjątek będący
+w locie i wraca tak, jakby nic się nie stało. Na tym interpreterze kompilator
+już to mówi. I dalej to robi.
+
+\transcript{ch06-swallow}
+
+\noindent
+Ta transkrypcja to cały rozdział w czterech liniach. Dwa z trzech kształtów
+łapią narzędzia przypięte w tej książce \dash{} samo \code{except} i
+\code{return} w \code{finally} zgłasza ruff, a ten drugi nazywa po imieniu sam
+kompilator. Przechwycenie \code{Exception} i jechanie dalej nie jest zgłaszane
+przez nic, i dlatego to ono dociera na produkcję. Poprawka jest w każdym
+przypadku ta sama: przechwyć awarię, na którą umiesz odpowiedzieć, odpowiedz
+na nią, a resztę przepuść.
+
+\pyregion{code/ch06/swallow.py}{narrow}{Ta sama pętla, odpowiadająca na jedną awarię, którą umie}{lst:ch06-narrow}
+
+\noindent
+Tam, gdzie naprawdę chcesz awarię zignorować, powiedz to w jednej linii.
+
+\noindent
+\code{contextlib.suppress} to menedżer kontekstu opakowujący dokładnie to
+\code{try} / \code{except} / \code{pass}, które napisałbyś inaczej ręcznie.
+Jego zaletą jest to, że nazywa porzucany wyjątek, a więc nie porzuci
+przypadkiem drugiego.
+
+\begin{exercise}{e06_02_cleanup}{Zamknij na obu ścieżkach i przepuść awarię}
+\code{read\_all} ma zwrócić wszystkie wiersze i zamknąć kursor niezależnie od
+tego, czy odczyt zgłosił wyjątek, nie zamieniając awarii w wartość.
+\code{using} robi w C\# obie połowy za ciebie; tutaj piszesz jedną z nich, a
+oczywisty pierwszy szkic przechodzi test szczęśliwej ścieżki i przecieka
+uchwytem na każdej innej.
+\end{exercise}
+
+\begin{exercise}{e06_04_swallowed}{Przestań połykać}
+\code{total} sumuje wiersze, które przyszły jako tekst. Szkic, który
+zastępujesz, opakowywał całą sumę w \code{except Exception} i odpowiadał
+zerem, więc zła paczka była nie do odróżnienia od pustej i żadne narzędzie z
+łańcucha tej książki nie pisnęło słowa. Napisz wersję, która zamiast tego
+zgłasza wyjątek, nazywa błędny wiersz i niesie oryginał jako przyczynę.
+\end{exercise}
+
+% ------------------------------------------------------------------
+\section{Więcej niż jedna awaria naraz}
+\label{sec:ch06-groups}
+\index{ExceptionGroup@\texttt{ExceptionGroup}}
+
+Procedura obsługi przechwytuje jeden wyjątek. To problem zawsze, gdy praca
+była mnoga: sprawdź rekord kilkoma regułami i zatrzymaj się na pierwszej, a
+wywołujący ją poprawi, uruchomi zadanie ponownie i spotka drugą.
+
+\pyregion{code/ch06/groups.py}{collect}{Uruchom każde sprawdzenie, potem zgłoś raz}{lst:ch06-collect}
+
+\noindent
+\code{ExceptionGroup} jest pojemnikiem, a \code{except*} tym, co czyni go
+czymś więcej niż listą. Wykona się każda klauzula, która dopasuje coś z grupy
+\dash{} nie pierwsza pasująca, tylko każda \dash{} a to, czego nie dopasowała
+żadna, leci dalej, nadal jako grupa.
+
+\pyregion{code/ch06/groups.py}{handle}{Obsłuż to, na co ta warstwa umie odpowiedzieć}{lst:ch06-handle}
+
+\transcript{ch06-groups}
+
+\begin{csbox}
+\code{AggregateException} to pojemnik, który przechwytujesz jako pojedynczy
+wyjątek i rozbierasz sam, zwykle pętlą po \code{InnerExceptions} i ponownym
+rzuceniem tego, czego nie umiałeś obsłużyć. \code{ExceptionGroup} rozbiera
+język, a część, której nie obsłużyłeś, sama leci dalej. Najbliższą
+konstrukcją C\# dla \code{except*} jest \code{catch} z filtrem \code{when} po
+\code{InnerExceptions}, z tą różnicą, że wykonać się może tylko jeden blok
+\code{catch}.
+\end{csbox}
+
+\mermaidfig{err-group}{Jedno zgłoszenie, kilka procedur obsługi i reszta, która leci dalej}{ExceptionGroup i except*}
+
+\begin{exercise}{e06_03_group}{Zgłoś każdą awarię, nie tylko pierwszą}
+Napisz \code{check\_all} tak, żeby uruchamiał każde sprawdzenie na rekordzie i
+zgłaszał raz, niosąc wszystkie awarie w kolejności \dash{} i żeby nie zgłaszał
+niczego, gdy wszystkie sprawdzenia przechodzą.
+\end{exercise}
+
+% ------------------------------------------------------------------
+\section{Na granicy}
+\label{sec:ch06-boundary}
+\index{exceptions!at a boundary}
+
+Dwie biblioteki, na których opiera się serwis w tej książce, zgłaszają awarie
+wyjątkami i obie są warte zdania, bo to ich hierarchie są tym, na czym
+przechwytujesz. \code{ValidationError} z \pkg{pydantic} jest podklasą
+\code{ValueError}, więc procedura napisana na złe wejście przechwytuje go, nie
+wiedząc nawet, że ta biblioteka istnieje, a sam wyjątek niesie listę błędów, a
+nie pierwszy z nich. \pkg{httpx} wkłada \code{HTTPStatusError} i każdą awarię
+transportu pod jedno \code{HTTPError}, więc jedno \code{except} pokrywa i zły
+status, i połączenie, które nigdy się nie otworzyło.
+
+\code{parse\_job} z listingu~\ref{lst:ch06-translate} jest całym wzorcem:
+przechwyć wyjątek biblioteki na brzegu swojego modułu, zgłoś własny przez
+\code{from} i pozwól wywołującemu opierać się na twojej hierarchii, a nie na
+hierarchii \pkg{httpx}. Import kończy się na granicy razem z wyjątkiem.
+
+Zostaje wzorzec, po który sięga tu inżynier C\# ze skłonnością do
+funkcyjności, i uczciwa odpowiedź brzmi: zasługuje na miejsce w jednej
+pozycji, a w drugiej nie. Typ \code{Result} albo \code{Either} wewnątrz
+łańcucha wywołań kosztuje rozgałęzienie w każdym miejscu wywołania i porzuca
+traceback, który nazwałby linię; język ma już mechanizm na \emph{to się
+zepsuło i nie mogę dalej} i jest w tym lepszy. Ale tam, gdzie wywołujący
+naprawdę chce jednej odpowiedzi na element, a nie pierwszej awarii, zwrot w
+kształcie Result jest właściwy \dash{} i w Pythonie nie potrzebuje żadnego
+typu Result.
+
+\pyregion{code/ch06/boundary.py}{batch}{Kształt, po który sięga typ Result}{lst:ch06-batch}
+
+\noindent
+Dwie listy albo grupa zgłoszona raz. Obie mówią to samo: gdy awaria jest
+mnoga, zwróć albo zgłoś ją całą.
+
+\begin{warning}
+Parsowanie powyżej działa na odpowiedzi zbudowanej w teście, a nie na żywej
+usłudze, i właśnie dlatego jest w książce: \code{raise\_for\_status} jest
+czystą funkcją linii statusu, więc listing, który go ćwiczy, nie potrzebuje
+sieci, i twój zestaw testów też nie.
+\end{warning}
+
+\noindent
+Co wraca do zdania, którym rozdział się zaczął. Python zgłasza wyjątek tam,
+gdzie C\# sprawdza, a powodem nie jest to, że Python lekceważy awarie. Powodem
+jest to, że osłona kosztuje więcej niż próba, próba nic nie kosztuje, dopóki
+nie zawiedzie, a awaria niesie więcej informacji, niż kiedykolwiek
+niosło \code{false}. W zamian język prosi cię o część, której żadne narzędzie
+nie sprawdzi: przechwytuj to, na co umiesz odpowiedzieć, nazywaj to, co
+zgłaszasz, i zostaw resztę w spokoju.
