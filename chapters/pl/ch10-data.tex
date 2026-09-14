@@ -204,10 +204,11 @@ przenosi \dash{} i jest to ta, o której był poprzedni podrozdział.
 
 \noindent
 Pod sesją asynchroniczną leniwa relacja nie wysyła po cichu zapytania.
-Zgłasza \code{MissingGreenlet}, bo wysłanie go oznaczałoby zablokowanie
-pętli zdarzeń, a Rozdział~\ref{ch:asyncio} jest właśnie o tym, że nic nie
-może tego zrobić. Opis tego rozdziału miał więc rację w połowie: leniwość
-jest domyślna w obu, a sesja asynchroniczna odmawia jej użycia.
+\code{MissingGreenlet} jest tym, co zgłasza zamiast tego, bo wysłanie
+zapytania oznaczałoby zablokowanie pętli zdarzeń, a
+Rozdział~\ref{ch:asyncio} jest właśnie o tym, że nic nie może tego zrobić.
+Połowa poprzedniego podrozdziału przenosi się bez zmian: leniwość wciąż
+jest domyślna, a sesja asynchroniczna odmawia jej użycia.
 
 Warto zapisać to jako regułę, a nie anegdotę, bo biegnie w drugą stronę niż
 zwykła rada. \textbf{Problem N+1 jest cichy w usłudze synchronicznej i

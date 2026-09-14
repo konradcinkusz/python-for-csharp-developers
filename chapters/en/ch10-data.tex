@@ -200,10 +200,11 @@ does not, and it is the one the previous section was about.
 
 \noindent
 Under the async session a lazy relationship does not quietly issue a query.
-It raises \code{MissingGreenlet}, because issuing one there would mean
-blocking the event loop, and the thing Chapter~\ref{ch:asyncio} is about is
-that nothing may. So the brief for this chapter was half right: lazy is the
-default in both, and the async session declines to act on it.
+\code{MissingGreenlet} is what it raises instead, because issuing one there
+would mean blocking the event loop, and the thing Chapter~\ref{ch:asyncio}
+is about is that nothing may. Half of the previous section survives the
+move: lazy is still the default, and the async session declines to act on
+it.
 
 That is worth stating as a rule rather than an anecdote, because it runs the
 opposite way to the usual advice. \textbf{The N+1 is silent in a synchronous

@@ -535,6 +535,18 @@
 \makeatother
 
 \newcommand{\mermaidfig}[3]{%
+  % \phantomsection is load-bearing and not decoration. \addcontentsline
+  % records hyperref's CURRENT anchor, and here that is whatever preceded
+  % the figure -- for a figure placed after a listing it is the listing's
+  % line-number anchor, and listings has already advanced the counter past
+  % the last line it printed, so the manifest entry linked to a
+  % destination that is never created: "name{lstnumber.10.4.46} has been
+  % referenced but does not exist, replaced by a fixed one". The two
+  % front-matter figures had the same wrong target and were silent about
+  % it, because the lines they named happen to be printed. The exercise
+  % manifest never had the bug, because \begin{exercise} steps a counter
+  % and that is what sets the anchor.
+  \phantomsection%
   \addcontentsline{dgm}{subsection}{\protect\numberline{}\texttt{#1.mmd} --- #3}%
   \IfFileExists{figures/diagrams/\booklang/#1.pdf}{%
     \begin{figure}[htbp]

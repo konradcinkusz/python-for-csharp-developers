@@ -21,7 +21,7 @@ repository's `CLAUDE.md`, and it is not repeated here.
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
 | Chapters | **1 of 14 written: Chapter 10 (Data).** Every other chapter is a brief printed where the chapter will go | thirteen |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapter 10's eight listings and five exercises, the three measurement scripts, and CI runs all of it | every other chapter's listings and exercises; seven of the eight experiments |
+| Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapter 10's nine listings and five exercises, the three measurement scripts, and CI runs all of it | every other chapter's listings and exercises; seven of the eight experiments |
 
 **The scaffold plus one chapter.** The scaffold exists so that the shape of
 the book could be argued with before any chapter was written, and so that
@@ -36,11 +36,19 @@ one.
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
 | `main-en` | 51 | 0 | 0 | 0 | 0 |
-| `main-pl` | 53 | 0 | 0 | 0 | 0 |
+| `main-pl` | 51 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
-to go stale.
+to go stale. **And say which machine measured them**, because there are two
+and they paginate differently: the rows above are from a full TeX Live with
+newtx, inconsolata and TeX Gyre, which is what CI compiles on and therefore
+what `pages.yml` publishes to a reader. A container without those fonts
+sets the same source in Latin Modern, which is narrower, and gave 51 and 53
+for the same tree — so a page count taken on a bare machine is a fact about
+that machine and not about the book. See *Build traps* for how to make a
+bare container into the reference one; it is two `apt-get` lines and it
+turns a guess-and-push loop into a verification loop.
 
 **Debt ledgers, reported by CI on every build** (`make debt`), and printed
 for the reader in Appendix E, which `code/measure/ledgers.py` computes from
@@ -369,6 +377,46 @@ are listed by name and their reasoning is in the companion books.
   an undefined control sequence. So the preamble guesses nothing: CI's full
   TeX Live is the reference, and locally the fix is `apt-get install
   tex-gyre`.
+
+- **This container CAN be made into the reference machine, and until it is,
+  a page-level defect is a guess-and-push loop.** The entry above says CI is
+  the reference and stops there, which reads as though the two metrics
+  cannot be reconciled locally. They can: `texlive-fonts-extra` (newtx,
+  inconsolata) plus `texlive-plain-generic` (`binhex.tex`, which `newtxmath`
+  loads and without which the run dies `File \`binhex.tex' not found` with
+  no PDF) plus `tex-gyre` gives a build that reproduced a CI failure
+  **exactly** — same 22.7 pt box, same source lines, same 51 pages — where
+  the bare container had reported zero overfull boxes on the same commit.
+  Do this before touching a chapter. An over-budget hbox is a hard gate, so
+  without it every attempt at a fix costs a push, a CI run and a cancelled
+  predecessor, and the only evidence you get back is one number.
+  **The cost is that the container stops being the bare one**, whose absence
+  of inconsolata is what makes `upquote` observable — so a change to the
+  listings quoting machinery still wants checking on a machine without it.
+
+- **`\addcontentsline` records hyperref's CURRENT anchor, which after a
+  listing is a line that was never printed.** `\mermaidfig` wrote its
+  manifest entry before opening the `figure`, so the entry linked to
+  whatever preceded the figure. Placed after a `\pyregion` that is what
+  listings last set — and listings has already advanced its counter past the
+  last line it printed, so the destination does not exist: `pdfTeX warning
+  (dest): name{lstnumber.10.4.46} has been referenced but does not exist,
+  replaced by a fixed one`. `\phantomsection` before the `\addcontentsline`
+  fixes it, and was measured layout-neutral (51 and 51 either side).
+
+  **Three things about this are worth more than the fix.** It was in the
+  scaffold from the start: *all three* diagram manifest entries pointed at a
+  listing line, and the two in the front matter were silent only because the
+  lines they named happen to be printed — so the warning is the defect
+  becoming visible, not the defect arriving. The exercise manifest never had
+  it, because `\begin{exercise}` steps a counter and that is what sets the
+  anchor, which is the shape to copy for any future manifest. And it is the
+  one defect in this pass that **`checklog.py` does not fail on** — it is a
+  pdfTeX destination warning rather than an unresolved `\ref`, so `make en`
+  went green with a broken internal link in the PDF. Read the raw log, not
+  only the checker; this file already records that an ignore list is where a
+  defect goes to become permanent, and a warning nothing has been told to
+  look at is the same thing with no list.
 - **A raw `#` in a chapter title poisons the contents file, and the poison
   survives the fix.** `\chapter{The C# to Python cheat sheet}` fails at the
   chapter line with `Illegal parameter number in definition of
@@ -840,6 +888,34 @@ one above the aspect-ratio crossover, so only the width matters — and the
 first cut of `orm-n-plus-one` came out 719 pt in Polish, at the bottom of
 the band, and was shortened to 679. `pdfinfo` is not in this container; the
 MediaBox reads out of the PDF with six lines of Python.
+
+**And then CI failed on a box this container could not see, which is the
+most useful thing the pass produced.** `main-pl` came back 22.7 pt over the
+15 pt budget in a paragraph the local build had reported clean, because CI
+has newtx and the bare container sets the same source in Latin Modern. The
+recorded remedy for that divergence is *do not chase it with prose, the
+metrics are not on this machine* — and the better answer turned out to be to
+**put the metrics on this machine**: two `apt-get` lines reproduced the
+failure exactly, and the fix was then verified locally instead of pushed at.
+See *Build traps*. The page table above moved from 51/53 to 51/51 as a
+result, and it now says which machine it was measured on, which it did not
+before and should always have.
+
+The box itself was the recorded class: `\code{MissingGreenlet}` set
+mid-paragraph in the edition with the longer words. Moving it to the start
+of its sentence is the remedy this file already carries, and the mechanism
+is worth stating because it is not *a sentence space helps* — a rigid
+fifteen-character run that plainly cannot fit beside a sixty-nine character
+sentence **forces** the break after that sentence, so TeX has no bad global
+solution left to prefer.
+
+**Two more things fell out of fixing it, and neither was the box.** The
+sentence carried *the brief for this chapter was half right* — and a brief
+is a thing in `tools/chapters.json` that the reader has never seen and
+cannot see, since it is deleted when the chapter is written. It now names
+the previous section, which is a thing on the page. And the surrounding
+paragraph's rebuild surfaced the `\mermaidfig` anchor defect above, which
+had been in the scaffold from the beginning and which no gate fails on.
 
 ---
 
