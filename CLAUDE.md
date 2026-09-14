@@ -99,7 +99,7 @@ does not:
   and both editions agree about what is written
 - 126 listing references, every file and region present · 27 exercises, each
   with a starter, a solution and a test · 54 transcript references, every
-  file present · 157 code files, none over 79 columns · 19 pins agree between
+  file present · 157 code files, none over 79 columns · 20 pins agree between
   `preamble.tex` and `code/pyproject.toml`
 - **1 `verifybox` block** — Chapter 12's three Dockerfiles, which could not
   be built because no container registry is reachable from the machine that
@@ -115,12 +115,12 @@ does not:
 - Prose words against a budget of 3,000, and `csbox` translation boxes,
   English first: Chapter 3 at 2,915 / 2,516 with 2 boxes, Chapter 6 at
   2,638 / 2,311 with 3, Chapter 7 at 2,581 / 2,242 with 3, Chapter 8 at
-  2,269 / 1,990 with 2, Chapter 10 at 2,386 / 2,069 with 3. These are what
-  `--words` and `--csbox` print and they move with any prose edit, so
-  re-read them from the tool rather than from here. **`reflist.py` reads
-  the `.aux` tree**, so its label count is a fact about the last build
-  rather than about the source: rebuild before quoting it, or it reports
-  the tree you had before your merge.
+  2,269 / 1,990 with 2, Chapter 10 at 2,386 / 2,069 with 3, Chapter 12 at
+  2,765 / 2,388 with 2. These are what `--words` and `--csbox` print and
+  they move with any prose edit, so re-read them from the tool rather than
+  from here. **`reflist.py` reads the `.aux` tree**, so its label count is
+  a fact about the last build rather than about the source: rebuild before
+  quoting it, or it reports the tree you had before your merge.
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
   runs each one; neither that file nor this one states a total, because a
