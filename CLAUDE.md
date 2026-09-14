@@ -1590,6 +1590,20 @@ turned up the same shape in Chapter 3's own prose — *najdroższe
 założenie, jakie inżynier C\# przynosi*, at `ch03-typing.tex:202` — which
 is another pass's file and is recorded here rather than touched.
 
+**And the eighth merge found the sharpest of the merge lessons, which is
+about what a conflict marker does NOT mark.** Two numbers in the ledger —
+the stub count and `main-en`'s page count — sat outside every conflict
+hunk and so came through the merge untouched and stale, because git marks
+only what BOTH sides edited and the other branch happened not to edit those
+two lines. A number the other side did not touch is exactly as wrong as one
+it did, and it arrives without a marker to tell you. **So resolving the
+hunks is not resolving the file**: after every merge, placeholder every
+measured figure in the ledger and the page table, whether or not git marked
+it, and fill them all from `make debt` and the build. That is what the
+placeholder discipline is for, and it is cheaper than deciding, line by
+line, which numbers this particular merge could have invalidated.
+
+
 **And the same rule was being broken on the chapter's own first page, by
 me, while I was enforcing it here.** The opening paragraph read *every one
 of them produces Python that runs, and three of them produce Python that
