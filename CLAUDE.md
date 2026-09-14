@@ -809,6 +809,37 @@ configuration is on the index's side, outside this repository. It is an
 open infrastructure issue, and the chapter states that rather than
 implying the step was completed.
 
+**And then I made the same mistake the brief had made, in my own table.**
+The comparison table's Framework row shipped its first draft with two cells
+nobody had opened: *its own runner* for the TypeScript port, and a bare
+*xUnit* for the .NET one. Both were written from the feel of the projects
+rather than from them. Opened: `judge-worker`'s `package.json` declares
+`"test": "vitest run"`, and `agent-eval-bench`'s test projects reference
+`xunit.v3`. So the TypeScript port took the ordinary choice, and the .NET
+cell named the project without its major — which matters here, because v3
+runs each test project as its own process and that is the sort of thing the
+row is for.
+
+*Its own runner* is the worse of the two, and not because it is more wrong
+— it is wrong **in the direction of the table's own argument**. The
+table exists to show that three ports of one instrument diverge only where
+the language forces them to; a bespoke runner would have been the strongest
+counterexample in the row, and a shared `vitest` is evidence for the
+thesis. **A cell that flatters the argument is the one to open first**, and
+this one was written and then compiled and then read twice before anybody
+opened it. Both editions moved identically, so C4 and C14 stayed in step.
+
+**The other eleven cells were then opened too, which is the half that is
+not optional**: correcting the cell you were caught on and leaving its
+neighbours is how a table keeps one unverified claim per review. All eleven
+hold, and three hold harder than they claim — the TypeScript port parses
+with `zod` at three separate edges (`traceSchema.parse(job.data.trace)` in
+the worker, `traceSchema.parse(parsed)` in the batch loader,
+`envSchema.parse(process.env)` in the config), the .NET evaluator contains
+no `async` or `Task<` at all, and *never published* is enforced rather than
+merely absent: `Directory.Build.props` sets `<IsPackable>false</IsPackable>`
+for the whole repository.
+
 #### Two things measured on the way
 
 **pytest 9's `--collect-only -q` prints a per-FILE count**
