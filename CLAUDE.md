@@ -34,14 +34,22 @@ copied rather than invented. **Each pass note below states the figures its
 own build reported, which are pre-merge**; the tables above are the merged
 tree.
 
-**Two editions, one paper size, both clean.** A4 at 12pt, single-sided, the
+**Two editions, one paper size.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
 one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 53 | 0 | 0 | 0 | 0 |
-| `main-pl` | 56 | 0 | 0 | 0 | 0 |
+| `main-en` | 64 | 0 | 0 | 1 · 7.7 pt | 0 |
+| `main-pl` | 66 | 0 | 0 | 2 · 28.1, 12.1 pt | 0 |
+
+**Measured on the sandbox, which has neither `newtx` nor `inconsolata` and
+therefore typesets in Computer Modern.** That is not the book's font, so
+these widths are not CI's: all three boxes are in Chapter 3's prose, in
+files CI compiled green on `main`, and the 28.1 pt one fails `checklog`
+locally while CI reports none. **CI is the reference installation**, and
+the table has never said which machine it came from until now — see the
+font trap below before reading a box count as a defect.
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -57,17 +65,17 @@ for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **13 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **12 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 16 listing references, every file and region present · 5 exercises, each
-  with a starter, a solution and a test · 12 transcript references, every
-  file present · 34 code files, none over 79 columns · 19 pins agree between
+- 30 listing references, every file and region present · 8 exercises, each
+  with a starter, a solution and a test · 18 transcript references, every
+  file present · 50 code files, none over 79 columns · 19 pins agree between
   `preamble.tex` and `code/pyproject.toml`
 - **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
   reader that something was not run
-- 8 Mermaid sources, four per language, all rendering, all placed
-- 15 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 44 labels in each edition,
+- 12 Mermaid sources, six per language, all rendering, all placed
+- 18 computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · 61 labels in each edition,
   0 mismatches
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
@@ -380,6 +388,36 @@ are listed by name and their reasoning is in the companion books.
   an undefined control sequence. So the preamble guesses nothing: CI's full
   TeX Live is the reference, and locally the fix is `apt-get install
   tex-gyre`.
+- **And the sandbox has neither `newtx` nor `inconsolata` at all, so every
+  local build is set in Computer Modern and its widths are not CI's.**
+  `kpsewhich newtxtext.sty` and `kpsewhich inconsolata.sty` both come back
+  empty here; the preamble probes, degrades, and says nothing, which is
+  what it is supposed to do. The consequence is that **an overfull-box
+  figure or a page count measured locally is not comparable to one measured
+  on CI**, and the page table above has never said which installation it
+  came from. Measured, on the Chapter 3 + Chapter 14 merge: CM reports
+  three overfull boxes in Chapter 3's prose — 7.7 pt in English, 28.1 pt
+  and 12.1 pt in Polish, the 28.1 pt one over the 15 pt budget and so a
+  hard failure — in two files byte-identical to the ones CI compiled green
+  on `main`. Do **not**
+  reword prose to satisfy the local font: that moves the box onto CI, which
+  is the unwinnable loop the companion books record having entered once.
+  **CI is the reference installation; a local red build on a box in a
+  chapter this pass did not touch is a fact about the container.**
+- **Rendering a diagram after a build does not invalidate the build.**
+  `\mermaidfig` typesets the `.mmd` source when the rendered PDF is absent,
+  so that compile's dependency list contains the source and not the PDF
+  that did not exist yet — and the next `make en pl` reports
+  `All targets are up-to-date` and re-prints the **previous** compile's
+  page counts. Measured: `make diagrams` wrote
+  `figures/diagrams/en/ch03-boundary.pdf` at 18:48:26 against a
+  `main-en.pdf` of 18:47:35, and `This is pdfTeX` appeared zero times in
+  the run — so the figures it printed came from the compile before the
+  render, when Chapter 3's diagrams did not exist. That is the
+  recorded *an unchanged page count is a failed build* trap wearing a new
+  coat, and the tell is the same one: the count did not move when it should
+  have. **Render before you build**, and after a render force the rebuild
+  (`make clean`) rather than trusting latexmk.
 - **A raw `#` in a chapter title poisons the contents file, and the poison
   survives the fix.** `\chapter{The C# to Python cheat sheet}` fails at the
   chapter line with `Illegal parameter number in definition of
