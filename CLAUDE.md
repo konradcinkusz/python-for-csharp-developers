@@ -88,7 +88,7 @@ does not:
 - Parity: 23 file pairs, 0 failures, 0 warnings · 179 labels in each edition,
   0 mismatches
 - Prose words against a budget of 3,000, and `csbox` translation boxes,
-  English first: Chapter 3 at 2,915 / 2,516 with 2 boxes, Chapter 5 at 2,536 / 2,253
+  English first: Chapter 3 at 2,915 / 2,516 with 2 boxes, Chapter 5 at 2,540 / 2,258
   with 2, Chapter 6 at 2,638 / 2,311 with 3, Chapter 7 at 2,581 / 2,242
   with 3, Chapter 8 at 2,269 / 1,990 with 2, Chapter 10 at 2,386 / 2,069
   with 3, Chapter 13 at 2,543 / 2,223 with 2. These are what
@@ -1093,6 +1093,23 @@ Note that there are two instruments here and only one belongs in
 BUILD artefact, which is how it was measured here, and the check specified
 above reads the SOURCE — which is the one to write, because the gates that
 read the source run before a build and cost seconds.
+**And the comparative audit the Chapter 3 pass called “the cheapest audit in
+this repository” found two more here, both superlatives.** “The most
+expensive habit a .NET engineer brings to Python” is a ranking over every
+habit such a reader has, which nobody has enumerated let alone measured;
+it is now scoped to the mappings in this chapter, where it is checkable by
+reading. “Agent middleware is the most visible use of this mechanism in
+the Python AI stack” is an unmeasured claim about an ecosystem — FastAPI's
+route decorators are at least as visible — and the note's actual job is
+the overlap pointer, which needs no superlative at all.
+
+**A superlative is the form this class takes once the obvious comparatives
+are gone.** `grep -nE 'faster|slower|cheaper'` catches the Chapter 3 kind
+and misses both of these; `most |least |best |worst ` is the other half of
+the pattern and costs one more grep. Running it over `chapters/pl` as well
+turned up the same shape in Chapter 3's own prose — *najdroższe
+założenie, jakie inżynier C\# przynosi*, at `ch03-typing.tex:202` — which
+is another pass's file and is recorded here rather than touched.
 
 **And the same rule was being broken on the chapter's own first page, by
 me, while I was enforcing it here.** The opening paragraph read *every one

@@ -52,9 +52,9 @@ rodzaju rzeczy.
 \section{Dekorator się wykonuje; atrybut nie}
 \label{sec:ch05-decorators}
 
-To nagłówek rozdziału i najdroższy nawyk, jaki inżynier .NET przynosi do
-Pythona. \code{[Timed]} w C\# to metadane. Kompilator je zapisuje, nic nie
-zmieniają i robią cokolwiek dopiero wtedy, gdy framework odczyta je przez
+To nagłówek rozdziału, a spośród odwzorowań w nim to właśnie ono najdrożej
+kosztuje, gdy zostanie źle odczytane. \code{[Timed]} w C\# to metadane.
+Kompilator je zapisuje, nic nie zmieniają i robią cokolwiek dopiero wtedy, gdy framework odczyta je przez
 refleksję i postanowi zadziałać. Czytanie \code{@timed} w ten sam sposób to
 czytanie go jako czegoś biernego, a bierny nie jest: \code{@timed} to
 wywołanie funkcji, które dzieje się w chwili, gdy kończy się instrukcja
@@ -104,7 +104,7 @@ funkcji \code{cache\_info()}, czyli dokładnie to, co potrafi zrobić tylko
 dekorator, który funkcję \emph{zastępuje}.
 
 \begin{note}
-Middleware agentowe jest najbardziej widocznym zastosowaniem tego mechanizmu
+Middleware agentowe jest jednym z zastosowań tego mechanizmu
 w pythonowym stosie AI i należy do tomu towarzyszącego: \emph{LangChain,
 LangGraph and Async Python} poświęca rozdział kolejności middleware i
 haczykom, które je składają. Ten rozdział ma mechanizm, tamten ma

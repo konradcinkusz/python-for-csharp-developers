@@ -52,9 +52,9 @@ a new kind of thing.
 \section{A decorator runs; an attribute does not}
 \label{sec:ch05-decorators}
 
-This is the chapter's headline and the most expensive habit a .NET engineer
-brings to Python. \code{[Timed]} in C\# is metadata. The compiler records
-it, it changes nothing, and it does something only when a framework
+This is the chapter's headline, and of the mappings in this chapter it is
+the one that costs most to get wrong. \code{[Timed]} in C\# is metadata.
+The compiler records it, it changes nothing, and it does something only when a framework
 reflects over it and decides to act. Reading \code{@timed} the same way is
 reading it as inert, and it is not: \code{@timed} is a function call that
 happens the instant the \code{def} statement finishes.
@@ -102,7 +102,7 @@ argument tuple, which means the arguments must be hashable and a
 decorator that \emph{replaces} the function could do.
 
 \begin{note}
-Agent middleware is the most visible use of this mechanism in the Python AI
+Agent middleware is one use of this mechanism in the Python AI
 stack, and it belongs to the companion volume: \emph{LangChain, LangGraph
 and Async Python} spends a chapter on middleware ordering and the hooks
 that compose it. This chapter owns the mechanism; that one owns the use.
