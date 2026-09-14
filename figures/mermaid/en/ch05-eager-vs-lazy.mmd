@@ -1,0 +1,7 @@
+flowchart LR
+    S["One filter and one<br/>projection over<br/>one source"] --> L["List comprehension:<br/>has already run,<br/>walk it as often<br/>as you like"]
+    S --> G["Generator expression:<br/>has run nothing yet,<br/>and is empty after<br/>the first walk"]
+    S --> E["LINQ IEnumerable:<br/>has run nothing yet,<br/>and runs the whole<br/>pipeline on every walk"]
+    L --> R["The one that has run<br/>is the one you may<br/>hand to somebody else"]
+    G --> R
+    E --> R

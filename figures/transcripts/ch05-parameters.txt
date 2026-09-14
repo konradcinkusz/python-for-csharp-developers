@@ -1,0 +1,9 @@
+  3/4 [bold=yes] [colour=red]
+localhost:8080 t=2.0
+example.internal:8080 t=2.0
+GET /health (retries=2)
+url passed by name -> TypeError
+fetch() got some positional-only arguments passed as keyword arguments: 'url'
+retries passed positionally -> TypeError
+fetch() takes 1 positional argument but 2 were given
+ok [template=ignored]

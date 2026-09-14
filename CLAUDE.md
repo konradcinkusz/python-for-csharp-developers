@@ -19,14 +19,14 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **0 of 14 written.** Every chapter is a brief printed where the chapter will go | all fourteen |
+| Chapters | **1 of 14 written: Chapter 5.** The other thirteen are briefs printed where the chapter will go | thirteen |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: the `trace-assert` skeleton, the first listing, the first exercise, the two measurement scripts, and CI runs all of it | every chapter's listings and exercises; the eight experiments |
+| Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapter 5's eight listings and five exercises, three measurement scripts, and CI runs all of it | the other chapters' listings and exercises; the eight experiments |
 
-**This is the scaffold.** It exists so that the shape of the book can be
-argued with before Chapter 1 is written, and so that the first chapter is
-written into a build that already has every gate. Nothing in it teaches
-Python yet.
+**The scaffold, plus one chapter.** The scaffold exists so that the shape
+of the book could be argued with before any chapter was written, and so
+that the first chapter was written into a build that already had every
+gate. Chapter 5 is that first chapter; the rest still teach nothing.
 
 **Two editions, one paper size, both clean.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
@@ -34,8 +34,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 37 | 0 | 0 | 0 | 0 |
-| `main-pl` | 37 | 0 | 0 | 0 | 0 |
+| `main-en` | 52 | 0 | 0 | 0 | 0 |
+| `main-pl` | 52 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -46,22 +46,26 @@ for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **14 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **13 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 2 listing references, every file and region present · 1 exercise, with a
-  starter, a solution and a test · 2 transcript references, every file
-  present · 14 code files, none over 79 columns · 19 pins agree between
-  `preamble.tex` and `code/pyproject.toml`
+- 36 listing references, every file and region present · 6 exercises, each
+  with a starter, a solution and a test · 14 transcript references, every
+  file present · 39 code files, none over 79 columns · 19 pins agree
+  between `preamble.tex` and `code/pyproject.toml`
 - **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
   reader that something was not run
-- 4 Mermaid sources, two per language, all rendering, both placed
-- 9 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 26 labels in each edition,
+- 10 Mermaid sources, five per language, all rendering, all placed
+- 16 computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · 57 labels in each edition,
   0 mismatches
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
   runs each one; neither that file nor this one states a total, because a
-  count of how many have run is the class of claim that decays silently
+  count of how many have run is the class of claim that decays silently.
+  **A chapter may also carry a measurement that is not one of the eight**
+  — Chapter 5's `code/measure/ch05_concat.py` is the first — and such a
+  measurement does not belong in that table and must not be counted into
+  it
 
 ---
 
@@ -446,6 +450,27 @@ are listed by name and their reasoning is in the companion books.
   ``Font shape `T1/zi4/m/it' undefined`` on every build, substituted with
   upright, and `Font shape` was in `checklog.py`'s ignore list. The comment
   style is colour only, and the warning is hard now.
+- **`\code{}` inside `\emph{}` asks inconsolata for an italic it has not
+  got.** The recorded form of this trap is `commentstyle=\itshape` inside
+  the listing style, and the preamble has not done that since the review
+  pass. Chapter 5 found the second way in: a tool's message quoted in
+  running prose as `\emph{... \code{-> Iterator[Foo]} ...}` puts `\texttt`
+  inside an italic context, `T1/zi4/m/it` is substituted silently, and
+  `checklog.py` is hard on it, so the build fails on a line of prose rather
+  than on the style. `\enquote{}` round a quoted message rather than
+  `\emph{}`; it is what the Polish edition owes anyway.
+- **A long `\api{}` in running prose overflows, and rewording it is the
+  wrong instinct.** `\api{contextlib.ExitStack}` beside
+  `\api{contextlib.suppress}` in one paragraph gave 13.2 pt; splitting the
+  sentence so each name started one made it **42.6 pt**, because a 20-column
+  unbreakable run at the head of a short clause leaves TeX nothing at all.
+  The inherited remedy is the one that works: move the names into a
+  displayed `itemize`, which also shortens them, and the box goes to zero.
+- **A local build needs `texlive-plain-generic` as well as `tex-gyre`.**
+  Without it `newtxmath` dies on `Missing input file 'binhex.tex'`, which
+  names neither the font package nor the reason. CI uses a full TeX Live
+  image and never sees it; this is a sandbox-setup fact, recorded because
+  it cost a build.
 - **`babel` with a missing language is fatal; `fancyhdr` overwrites
   `\chaptermark` at `\pagestyle{fancy}`; `amssymb` beside `newtxmath` is a
   fatal clash invisible on a bare machine; `\IfFileExists` branches need
@@ -702,6 +727,112 @@ for reasons worth keeping rather than silently dropping:
   general (`\pysettingsver` names `pydantic-settings`, not
   `pysettings`), so the dict is the one place that mapping can live.
 
+### Chapter 5, September 2026 --- the first written chapter
+
+Written out of the suggested order, against issue #11. Everything below
+was settled against the installed interpreter, pyright's own bundled
+typeshed or a measurement, never from memory; the brief was right about its
+argument and wrong or incomplete about four things.
+
+**The trap catalogue was wrong, and the measurement is what said so.**
+`notes/02-traps.md` entry 23 read *`s += piece` in a loop is quadratic;
+`"".join(pieces)` is linear*. On CPython the first half is **false for the
+case people actually write**. The interpreter carries a specialisation for
+exactly that shape and names itself when asked: disassemble a warmed-up
+loop with `dis.get_instructions(fn, adaptive=True)` and the opcode is
+`BINARY_OP_INPLACE_ADD_UNICODE`. With no other reference to the left-hand
+string it is resized in place and the loop is linear --- measured at a
+doubling ratio of about 2. Hold one more reference to it, by appending it
+to a list, and the same loop doubles by about 4. So the trap is not *`+=`
+is slow*; it is **`+=` is fast until an unrelated line elsewhere makes it
+slow, with nothing at the call site changed**, which is a better trap than
+the one the catalogue had. Entry 23 now says so and is marked corrected
+rather than merely delivered.
+
+**A timing measurement is not reproducible, so what is committed is a
+bound** --- the rule `notes/01-curriculum.md` §4 already sets for a
+machine-dependent residual, and this is the first pass to need it. The
+value file carries the two bounds and the four sizes, all of them
+decisions, so `make verify` is stable; the ratios themselves never reach
+the page.
+
+**And the first version of that measurement failed, which is the finding
+worth keeping.** It timed runs of about a sixth of a millisecond and took
+the minimum over five trials. Run beside a LaTeX build it reported the
+*linear* loop doubling by a factor of 3.92 and failed its own assertion ---
+correctly, and for a reason that had nothing to do with strings. Two
+changes fixed it, and both generalise to any timing this book adds later:
+size each variant so one run takes tens of milliseconds rather than tenths,
+and **interleave the small and the large run inside one trial, take the
+ratio per trial and the median over trials**, so a contention episode lands
+on both halves of one ratio instead of on one side of a minimum. Verified
+by re-running it under eight busy loops on four cores: the per-trial spread
+went as wide as x22 and all three medians still cleared their bounds, three
+runs out of three. The linear and quadratic variants are timed at different
+sizes on purpose, and saying why is itself the point --- the quadratic loop
+at the linear one's size runs for minutes.
+
+**The brief said a generator expression "IS deferred" and stopped
+one clause short.** It is deferred *and single-pass*, where a LINQ
+`IEnumerable` is deferred *and re-runnable*: the second walk over a
+generator expression is empty, with no error and no warning. That is the
+half that bites a .NET engineer, because a deferred pipeline is not a
+drop-in for an `IEnumerable` they were going to hand to somebody else. The
+brief in `tools/chapters.json` is left as written --- it is not wrong ---
+and §5.5 carries the sharper statement.
+
+**The `match` capture trap is milder than the folklore, and Python says
+so.** `case ACTIVE:` really does bind rather than compare, but the compiler
+**refuses** it when another case follows: `SyntaxError: name capture
+'ACTIVE' makes remaining patterns unreachable`. It compiles in silence only
+as the last case, which is where it survives review, and that is what the
+chapter says rather than the unqualified version.
+
+**Two things about the pinned toolchain that no tutorial has caught up
+with.** `@contextmanager` with `-> Iterator[T]` is **deprecated**: the
+typeshed pyright 1.1.414 bundles marks that overload
+`@deprecated` with the message *annotating the return type as
+`-> Iterator[Foo]` with `@contextmanager` is deprecated. Use
+`-> Generator[Foo]` instead.* Every listing here writes `Generator`. And
+`functools.Placeholder`, new in 3.14, **runs and is not modelled by the
+stubs** --- typeshed declares `Placeholder` and `partial`'s overloads
+accept nothing of its type --- so `ch05/parameters.py` carries two
+suppressions and says that is what using a run-time feature ahead of its
+stubs looks like.
+
+**ruff catches one of the chapter's five traps.** `B023`, *function
+definition does not bind loop variable*, refuses the late-binding listing,
+which has to silence the rule to print the bug at all. Worth knowing
+because it is the only one of the five the toolchain finds: the other four
+are all code that lints, type-checks and runs.
+
+**The brief's third decorator would have broken the drift gate, and the
+way round it is worth copying.** It asks for "a decorator that is
+middleware, timing and retrying a call". A timing decorator that *prints* a
+duration puts a machine-dependent number inside a committed transcript, and
+`make verify` would then fail on every run. `ch05/decorators.py` has the
+timing decorator, records the elapsed times, and prints **how many were
+measured** rather than what they were. A listing whose output is quoted may
+compute anything; it may only print what is reproducible.
+
+**Two figures were drawn below the aspect-ratio crossover.** Both
+comparisons started as two-rank fan-outs and came out at ratios of 0.94 and
+1.17, where the height cap binds and the node text sets at 10.1 and
+11.8 pt --- the hazard the math book records. The recorded fix applied
+unchanged: **add a rank**. A joining node took them to 1.48 and 1.78, width
+binding, node text 8.5 to 9.6 pt, which is the band the rest of the book
+sits in. Measured from each PDF's own MediaBox, because `pdfinfo` is not
+installed in this sandbox and the box is four numbers in the file.
+
+**An exercise's key ordinal must match its position in the chapter, and
+nothing checks it.** `\theexercise` counts in document order, so an
+exercise keyed `e05_03_...` sitting second prints as *Exercise 5.2* and
+disagrees with the filename the box prints directly underneath it. Two keys
+were renamed for this. `check_structure.py --exercises` checks the chapter
+prefix and not the ordinal; adding that is a one-line change and was not
+made here, because this is the first chapter with more than one exercise
+and one instance is not yet a class.
+
 ---
 
 ## After each pass
@@ -728,14 +859,18 @@ Tag from a local clone.
 
 ## What is left
 
-Nothing in the book is written. The outstanding work is tracked as GitHub
-issues under the `chapter`, `appendix`, `experiment` and `infrastructure`
-labels — **work from the labels, not from a list here**, because a list in
-this file is the class of claim nothing can check. In rough order:
+Chapter 5 is written; nothing else is. The outstanding work is tracked as
+GitHub issues under the `chapter`, `appendix`, `experiment` and
+`infrastructure` labels — **work from the labels, not from a list here**,
+because a list in this file is the class of claim nothing can check. In
+rough order:
 
-1. **Chapters 1 to 7**, which are v0.1. Suggested order: 1, 2, 3 first,
-   because every later chapter's listings assume the reader trusts the
-   environment; then 4 to 7 in order, each leaning on the last.
+1. **Chapters 1 to 4, 6 and 7**, which are the rest of v0.1. The suggested
+   order was 1, 2, 3 first, because every later chapter's listings assume
+   the reader trusts the environment; Chapter 5 was written first anyway,
+   out of that order, and the only thing it cost was that its two
+   references forward to Chapters 2 and 3 are promises those chapters have
+   to keep.
 2. **Chapters 8 to 12** (v0.2), with the trace-assert stage 01 in Chapter 11
    and experiments E4 to E7.
 3. **Chapters 13 and 14 and Appendices A to D** (v1.0). Appendix B is

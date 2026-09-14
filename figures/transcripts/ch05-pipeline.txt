@@ -1,0 +1,7 @@
+comprehension: scanned ['test', 'lint', 'deploy'] before it returned
+  pass 1: ['test (310s)', 'deploy (91s)']
+  pass 2: ['test (310s)', 'deploy (91s)']
+generator:     scanned [] before it returned
+  pass 1: ['test (310s)', 'lint (4s)'] having scanned ['test', 'lint']
+  pass 2: []
+  report: test (310s), deploy (91s)
