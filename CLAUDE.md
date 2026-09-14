@@ -1085,6 +1085,15 @@ itself. Name the rule, open the chapters if you need the roll call, and
 beside `check_exercises`, and it retires this paragraph along with all
 three findings.
 
+**Measured at the sixth merge: all 32 exercises in the book, every written
+chapter, have an ordinal matching their key.** So whoever writes the check
+starts from a clean tree and any failure it reports afterwards is new.
+Note that there are two instruments here and only one belongs in
+`check_structure.py`: reading `main-en.exr` answers the question from a
+BUILD artefact, which is how it was measured here, and the check specified
+above reads the SOURCE — which is the one to write, because the gates that
+read the source run before a build and cost seconds.
+
 **And the same rule was being broken on the chapter's own first page, by
 me, while I was enforcing it here.** The opening paragraph read *every one
 of them produces Python that runs, and three of them produce Python that
