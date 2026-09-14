@@ -25,6 +25,8 @@ __all__ = ["Event", "Recorder", "Trace"]
 # thing that has to change first every time a caller learns a new verb.
 TOOL_CALL = "tool_call"
 TOOL_RESULT = "tool_result"
+MODEL_CALL = "model_call"
+MODEL_RESULT = "model_result"
 
 
 def _empty_payload() -> dict[str, object]:
@@ -39,8 +41,9 @@ class Event:
 
     `kind` is what happened -- `tool_call`, `tool_result`, `model_call`,
     `model_result` -- and `name` is what it happened to. Everything else is
-    in `payload`, which is deliberately untyped at this stage: chapter 13
-    decides what a model call records.
+    in `payload`, which stays untyped: a payload is evidence, and evidence
+    from two different sources does not have one shape. What a MODEL call
+    puts in it is settled by `Recorder` below, in chapter 13.
     """
 
     kind: str
@@ -93,6 +96,15 @@ class Recorder:
     This is what the `trace` fixture hands a test. The code under test calls
     `tool_call`, and the assertions read `recorder.trace`, which is a fresh
     immutable snapshot every time it is asked for.
+
+    Chapter 13 adds the model pair, and it is a PAIR on purpose: a call that
+    never came back is the case worth being able to assert on, and a single
+    event written after the reply cannot represent it. Their payload carries
+    only what a deterministic assertion can use -- the token counts the
+    provider reported, and whether the reply parsed into the type that was
+    asked for. It does NOT carry the prompt or the completion. A trace is
+    kept, shipped and read by people who were not in the room, and the first
+    layer of this instrument is the one that must be safe to keep.
     """
 
     def __init__(self) -> None:
@@ -111,6 +123,27 @@ class Recorder:
     def tool_result(self, name: str, **payload: object) -> None:
         """Append the result of a tool call."""
         self.record(TOOL_RESULT, name, **payload)
+
+    def model_call(self, model: str, *, output_type: str) -> None:
+        """A request left for `model`, asking to be answered as a type."""
+        self.record(MODEL_CALL, model, output_type=output_type)
+
+    def model_result(
+        self,
+        model: str,
+        *,
+        input_tokens: int,
+        output_tokens: int,
+        parsed: bool,
+    ) -> None:
+        """A reply arrived, and either did or did not parse."""
+        self.record(
+            MODEL_RESULT,
+            model,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            parsed=parsed,
+        )
 
     @property
     def trace(self) -> Trace:

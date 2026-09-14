@@ -26,9 +26,9 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 | 2 | 3.14 is free-threaded now, so the GIL is gone | The free-threaded build is a separate binary, `python3.14t`, opt-in; the default build still has the lock | Ch. 1 |
 | 3 | Python has no compile step, so there is nothing like IL | Source is compiled to bytecode and cached in `__pycache__`; `python -m dis` shows it. There is no JIT you can count on by default | Ch. 1 |
 | 4 | `if __name__ == "__main__"` is boilerplate | It is the difference between a module that runs when imported and one that runs when executed — the reason a listing can be both importable and runnable | Ch. 1 |
-| 5 | `pip install` puts the package on the machine, like a global tool | An environment is a directory; a global install is the one thing every later chapter's listings cannot survive | Ch. 2 |
-| 6 | I activate the environment and then run things | `uv run` resolves the environment per invocation; activation is the habit that ships the wrong interpreter to CI | Ch. 2 |
-| 7 | `requirements.txt` is the lockfile | It is a wish list with ranges; `uv.lock` is the lockfile, it is committed, and `uv sync --locked` refuses to drift from it | Ch. 2 |
+| 5 | `pip install` puts the package on the machine, like a global tool | An environment is a directory; a global install is the one thing every later chapter's listings cannot survive | Ch. 2 §2.2, delivered |
+| 6 | I activate the environment and then run things | `uv run` resolves the environment per invocation; activation is the habit that ships the wrong interpreter to CI | Ch. 2 §2.4, delivered |
+| 7 | `requirements.txt` is the lockfile | It is a wish list with ranges; `uv.lock` is the lockfile, it is committed, and `uv sync --locked` refuses to drift from it | Ch. 2 §2.3, delivered |
 | 8 | A type hint is a type | It is a claim the runtime never checks; `str` can be `None` at run time and nothing says so. A checker is a second compiler you have to invite | Ch. 3 §3.1, delivered |
 | 9 | `List[int]`, `Optional[str]`, `Dict[str, Any]` | 2019 spellings; `list[int]`, `str | None` and `dict[str, Any]` on the pinned interpreter, and PEP 695 for generics | Ch. 3 §3.2, delivered |
 | 10 | `@dataclass` validates its fields, like a record with a constructor | It generates `__init__`, `__eq__` and `__repr__` and checks nothing; validation at a boundary is pydantic's job | Ch. 3 §3.3, delivered |
@@ -99,9 +99,10 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 
 | # | The habit, in the reader's voice | What Python does | Owner |
 |---|---|---|---|
-| 56 | The SDK is magic | Every AI SDK is a pydantic model, an httpx client and a streaming iterator; read the installed, pinned package | Ch. 13 |
-| 57 | `model_validate_json` is `JsonSerializer.Deserialize` | Lax mode coerces where `System.Text.Json` refuses; strict mode is what a C# engineer expects, and E8 prices both | Ch. 13 |
-| 58 | A notebook is where Python happens | A notebook is a REPL with a memory of every cell you ran in any order; nothing in this book is one, and Chapter 13 says when one is right | Ch. 13 |
+| 56 | The SDK is magic | Every AI SDK is a pydantic model, an httpx client and a streaming iterator; read the installed, pinned package | Ch. 13, **delivered** §13.1 and §13.5 |
+| 57 | `model_validate_json` is `JsonSerializer.Deserialize` | Lax mode coerces where `System.Text.Json` refuses; strict mode is what a C# engineer expects, and E8 prices both | Ch. 13, **delivered** §13.3, priced §13.4 |
+| 58 | A notebook is where Python happens | A notebook is a REPL with a memory of every cell you ran in any order; nothing in this book is one, and Chapter 13 says when one is right | Ch. 13, **delivered** §13.7 |
+| 60 | The SDK uses the `httpx` I pinned | Both SDKs depend on the `httpx2` distribution, not `httpx`: `isinstance(c._client, httpx.Client)` is False, and of the two SDKs one refuses a mismatched client and the other accepts it | Ch. 13, **delivered** §13.5 |
 | 59 | A trace assertion needs a model to evaluate | The first layer of agent-eval-bench is deterministic; it runs with no model, which is why it can run in CI | Ch. 14 |
 | 60 | A test report is a test report; the same failure prints the same thing everywhere | pytest reports differently on a build server on purpose: `running_on_ci()` is true when `CI` or `BUILD_NUMBER` is set, and a sequence diff is then printed in full and long output is not truncated. A transcript, a golden file or a screenshot of a failure is a claim about one of the two | Ch. 11 — **delivered**, §11.1 |
 

@@ -10,7 +10,10 @@ Stage 01 is three modules and this one. `model` is what a run leaves behind,
 `assertions` is what a test says about it, and `plugin` is the one fixture
 that hands a test a place to record. Everything a reader imports is
 re-exported here, so the package's surface is one import line and its layout
-is free to change under it.
+is free to change under it — which it did: chapter 13's stage 02 was written
+while the scaffold still had the whole model in THIS file, and its model
+call pair now sits in `model` beside the tool pair, with every importer
+unchanged because they all came through here.
 
 Every public name is a claim about the finished package, so the surface is
 kept as small as the chapters have earned. The remaining assertion types are

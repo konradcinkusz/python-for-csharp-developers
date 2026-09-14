@@ -14,6 +14,7 @@
 #      uv run ruff check .       # lint, 79 columns, because the page is
 #      uv run pyright            # the checker the book pins first
 # ============================================================
+# --8<-- [start:project]
 [project]
 name = "python-for-dotnet-engineers"
 version = "0.1.0.dev0"
@@ -36,7 +37,9 @@ dependencies = [
     "anthropic==1.5.0",
     "openai==3.13.0",
 ]
+# --8<-- [end:project]
 
+# --8<-- [start:groups]
 [dependency-groups]
 dev = [
     "pytest==9.1.1",
@@ -48,6 +51,7 @@ dev = [
     "mypy==2.3.1",
     "pip-audit==2.10.1",
 ]
+# --8<-- [end:groups]
 
 [build-system]
 requires = ["uv_build>=0.8,<0.13"]
@@ -105,10 +109,11 @@ extraPaths = ["ch11"]
 # gets. pyright searches the file's own directory, so that resolves inside
 # ch10/ and not from measure/. This names the chapter directories the
 # measurement scripts reach into; add one when a chapter's measurement
-# does.
+# does -- ch13 is here because E8 times the corpus that ch13's
+# what_survives.py prints, rather than carrying a second copy of it.
 [[tool.pyright.executionEnvironments]]
 root = "measure"
-extraPaths = ["ch10"]
+extraPaths = ["ch10", "ch13"]
 
 [[tool.pyright.executionEnvironments]]
 root = "."

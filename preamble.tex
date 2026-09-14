@@ -73,6 +73,23 @@
 % meant to be pasted into an editor, this line is load-bearing.
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 
+% And upquote's twin, for the same reason one character over. In T1 the pair
+% -- is a ligature for an en dash, in EVERY family including the typewriter
+% one, so \code{uv sync --locked} sets as "uv sync <en dash>locked" and a
+% reader who copies it off the page gets an unknown-argument error from a
+% command the chapter told them to run. It is invisible in review because it
+% looks like a dash, and it bites exactly the flags a packaging chapter is
+% made of. A `listings` body is already safe -- listings sets characters
+% singly and no ligature forms -- which is what makes the defect so easy to
+% miss: the same text is right inside a listing and wrong in the sentence
+% above it.
+%
+% Scoped to tt* on purpose, and measured rather than assumed: prose keeps its
+% own dashes, so \dash{} still sets an em dash and a range like 1--2 still
+% sets an en dash. Probed against this preamble in all three positions before
+% it was believed.
+\DisableLigatures[-]{encoding = T1, family = tt*}
+
 % ---------- Language ----------
 % Loading babel with a language whose .ldf is absent is a *fatal* error, not
 % a warning, so both the package and each language file are probed before

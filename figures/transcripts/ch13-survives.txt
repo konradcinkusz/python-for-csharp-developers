@@ -1,0 +1,9 @@
+what is wrong with it         lax  strict   plain
+severity as a string       LET IN  reject  LET IN
+needs_human as a string    LET IN  reject  LET IN
+severity missing           reject  reject  reject
+severity null              reject  reject  LET IN
+summary as a number        reject  reject  LET IN
+severity 2.5               reject  reject  LET IN
+an extra field             LET IN  LET IN  reject
+rejected of 7                   4       6       2

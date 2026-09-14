@@ -1,0 +1,5 @@
+prefix differs from base_prefix: True
+the interpreter is inside it:    True
+pydantic is inside it:           True
+  ...at:                         lib/python3.14/site-packages/pydantic
+the standard library is:         False
