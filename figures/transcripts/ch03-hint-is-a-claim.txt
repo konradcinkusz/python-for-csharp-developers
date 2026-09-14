@@ -1,0 +1,4 @@
+shout(7)      -> '7!'
+port_of(...)  -> '8080' which is a str
+annotations   -> {'word': <class 'str'>, 'return': <class 'str'>}
+after editing -> {'word': 'anything at all', 'return': <class 'str'>}
