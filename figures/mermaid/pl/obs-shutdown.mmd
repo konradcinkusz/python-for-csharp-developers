@@ -1,0 +1,5 @@
+flowchart LR
+    A["Przychodzi SIGTERM:<br/>readiness przestaje przechodzic,<br/>liveness zostaje true"]
+    B["Balancer przestaje kierowac ruch;<br/>uvicorn zamyka gniazdo<br/>nasluchujace i drenuje"]
+    C["Trwajace zadania koncza sie,<br/>potem shutdown z lifespan,<br/>potem wyjscie"]
+    A --> B --> C

@@ -1,0 +1,5 @@
+serving                            live=True ready=True
+SIGTERM: readiness withdrawn       live=True ready=False
+draining                           live=True ready=False
+request finished                   live=True ready=False
+lifespan shutdown runs now         live=True ready=False
