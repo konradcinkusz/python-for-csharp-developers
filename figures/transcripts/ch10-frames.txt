@@ -1,0 +1,4 @@
+before collect: LazyFrame
+after collect:  DataFrame
+filter pushed into the scan: True
+report: [('db', 58), ('api', 54), ('auth', 31), ('queue', 25)]

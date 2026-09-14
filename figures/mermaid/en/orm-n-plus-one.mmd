@@ -1,0 +1,6 @@
+flowchart LR
+    A["<b>the loop</b><br/>for each service,<br/>read service.incidents"]
+    B["<b>lazy, the default</b><br/>1 + N statements: one for<br/>the services, one per service"]
+    C["<b>selectinload</b><br/>2 statements, whatever N is:<br/>parents, then children"]
+    A --> B
+    B -->|".options(...)"| C
