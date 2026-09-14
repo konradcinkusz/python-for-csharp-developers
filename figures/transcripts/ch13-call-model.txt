@@ -1,0 +1,10 @@
+type          Answer
+severity      2
+needs_human   False
+
+model_call    fake-provider
+                output_type    'Answer'
+model_result  fake-provider
+                input_tokens   41
+                output_tokens  17
+                parsed         True
