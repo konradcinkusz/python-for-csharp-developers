@@ -988,14 +988,21 @@ prefix and not the ordinal; adding that was left out of this pass because
 one instance is not yet a class.
 
 **It is a class now, and the merges said so rather than any argument.**
-Chapter 6's pass hit the identical defect independently, found it the same
-way — by reading the finished PDF rather than by any gate — and renamed
-its files for the same reason; its note is below. Chapter 3's four keys
-happened to be in document order already, so nothing was caught there by
-accident. Two of the four written chapters needed the renaming and the
-difference between them is only whether somebody thought to look, which is
-what a gate is for. The check is specified in Chapter 6's note and is
-still unwritten; whoever writes it closes both findings at once.
+Chapters 6 and 8 each hit the identical defect independently, each found it
+the same way — by reading the finished PDF rather than by any gate — and
+each renamed its files for the same reason; both notes are below. Chapters
+3 and 7 wrote their keys in document order and so had nothing to catch. So
+three of the five written chapters needed the renaming, three separate
+passes each rediscovered it from the page, and what separates them from the
+other two is which order somebody happened to write the files in — which
+is what a gate is for.
+
+**Do not update this paragraph again; write the check.** It has been
+corrected twice, once per merge, and each correction was a count that went
+stale the moment another pass landed — which is this file's own rule about
+a tally, demonstrated on the note that argues for the gate. The check is
+specified in Chapter 6's note, it is a few lines beside `check_exercises`,
+and writing it closes all three findings and retires this paragraph.
 
 ### Chapter 6 pass, September 2026
 
@@ -1447,15 +1454,16 @@ Tag from a local clone.
 
 ## What is left
 
-Four chapters of fourteen are written. The outstanding work is tracked as
+Five chapters of fourteen are written. The outstanding work is tracked as
 GitHub issues under the `chapter`, `appendix`, `experiment` and
 `infrastructure` labels — **work from the labels, not from a list here**,
 because a list in this file is the class of claim nothing can check. In
 rough order:
 
 1. **Chapters 1, 2 and 4**, which with the written Chapters 3, 5, 6 and 7
-   complete v0.1. The suggested order was 1, 2, 3 first, because every later
-   chapter's listings assume the reader trusts the environment — and four
+   complete v0.1 (Chapter 8 is written too, and is v0.2's). The suggested
+   order was 1, 2, 3 first, because every later
+   chapter's listings assume the reader trusts the environment — and five
    chapters written out of that order did not suffer for it, because each
    names what it borrows and borrows almost nothing. Treat the ordering as a
    preference rather than a constraint. The one debt it left is Chapter 5's
