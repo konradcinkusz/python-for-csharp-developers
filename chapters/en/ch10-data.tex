@@ -12,8 +12,8 @@ A SQLAlchemy \code{Session} is a unit of work in the sense a \code{DbContext}
 is one: it tracks the objects you put in it, works out what changed, and
 writes the lot in one transaction. Almost everything you know transfers. What
 does not transfer is a short list, every item on it produces code that runs
-and is wrong, and three of the items have a number attached, which is what
-the rest of this chapter is for.
+and is wrong, and the ones that cost the most are measured here rather than
+asserted \dash{} which is what the rest of this chapter is for.
 
 The model in every listing here is two tables \dash{} a service, and the
 incidents raised against it, \val{e06.services} rows of the first and

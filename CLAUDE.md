@@ -59,7 +59,7 @@ does not:
 - 20 computed value keys, every one produced and every one used
 - Parity: 23 file pairs, 0 failures, 0 warnings · 53 labels in each edition,
   0 mismatches
-- Chapter 10 carries 3 `csbox` translation boxes and 2,381 / 2,062 prose
+- Chapter 10 carries 3 `csbox` translation boxes and 2,385 / 2,066 prose
   words against a budget of 3,000
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
