@@ -1305,7 +1305,7 @@ order:
 
 1. **Chapters 1, 2, 4 and 5**, which with the written Chapters 3, 6 and 7
    complete v0.1. The suggested order was 1, 2, 3 first, because every later
-   chapter's listings assume the reader trusts the environment — and three
+   chapter's listings assume the reader trusts the environment — and four
    chapters written out of that order did not suffer for it, because each
    names what it borrows and borrows almost nothing. Treat the ordering as a
    preference rather than a constraint. Two things that cost Chapter 6 a
