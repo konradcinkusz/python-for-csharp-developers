@@ -1,0 +1,124 @@
+name: Release
+
+# Builds both editions and attaches the PDFs to a GitHub Release.
+# Triggered by pushing a version tag:
+#
+#   git tag -a v0.1.0 -m "Parts I and II"
+#   git push origin v0.1.0
+#
+# The book ships in three: v0.1 is Parts I and II, v0.2 adds III and IV,
+# v1.0 adds Part V and the appendices.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to build a release for'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Compile ${{ matrix.lang }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      matrix:
+        include:
+          - lang: en
+            pdf: Python-for-dotNET-Engineers
+          - lang: pl
+            pdf: Python-dla-inzynierow-dotNET
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.13"
+
+      - name: Run every listing and refuse to release on a failure or on drift
+        run: |
+          cd code
+          uv sync --locked
+          uv run ruff check .
+          PYBOOK_SOLUTIONS=1 uv run pytest
+          for f in measure/*.py; do uv run python "$f"; done
+          cd ..
+          drift=$(git diff --name-only -- figures/values figures/transcripts)
+          new=$(git ls-files --others --exclude-standard -- figures/values figures/transcripts)
+          if [ -n "$drift" ] || [ -n "$new" ]; then
+            echo "::error::Refusing to release: a printed number differs from its script."
+            [ -n "$drift" ] && git diff -- figures/values figures/transcripts
+            [ -n "$new" ] && echo "$new"
+            exit 1
+          fi
+          { echo '% Generated in CI --- do not edit.';
+            for v in figures/values/*.tex; do
+              case "$v" in */all.tex) continue;; esac
+              echo "\\input{${v%.tex}}"
+            done; } > figures/values/all.tex
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Render diagrams
+        run: |
+          shopt -s nullglob
+          SRC=(figures/mermaid/*/*.mmd)
+          [ ${#SRC[@]} -eq 0 ] && exit 0
+          printf '{"args":["--no-sandbox","--disable-dev-shm-usage"]}\n' > .puppeteer.json
+          npm install -g @mermaid-js/mermaid-cli@11
+          for f in "${SRC[@]}"; do
+            lang=$(basename "$(dirname "$f")"); key=$(basename "$f" .mmd)
+            mkdir -p "figures/diagrams/$lang"
+            timeout 180 mmdc \
+              -i "$f" -o "figures/diagrams/$lang/$key.pdf" \
+              -p .puppeteer.json -c figures/mermaid/config.json \
+              -b transparent --pdfFit
+          done
+
+      - name: Compile with latexmk
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: main-${{ matrix.lang }}.tex
+          args: -pdf -interaction=nonstopmode -halt-on-error -file-line-error
+
+      - name: Refuse to release a build that only looked like it worked
+        run: python3 tools/checklog.py main-${{ matrix.lang }}.log
+
+      - name: Name the artefact after the tag
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          mv main-${{ matrix.lang }}.pdf "${{ matrix.pdf }}-${TAG}.pdf"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.lang }}
+          path: '*.pdf'
+
+  release:
+    name: Publish release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+    permissions:
+      contents: write        # scoped to this job only, not the whole workflow
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: release-*
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: '*.pdf'
+          generate_release_notes: true
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}

@@ -1,0 +1,326 @@
+{
+  "parts": [
+    {
+      "en": "Runtime and toolchain",
+      "pl": "Środowisko uruchomieniowe i narzędzia",
+      "release": "v0.1",
+      "ids": [
+        "1",
+        "2",
+        "3"
+      ]
+    },
+    {
+      "en": "The language, mapped",
+      "pl": "Język, zmapowany",
+      "release": "v0.1",
+      "ids": [
+        "4",
+        "5",
+        "6",
+        "7"
+      ]
+    },
+    {
+      "en": "Concurrency",
+      "pl": "Współbieżność",
+      "release": "v0.2",
+      "ids": [
+        "8"
+      ]
+    },
+    {
+      "en": "Shipping",
+      "pl": "Wdrażanie",
+      "release": "v0.2",
+      "ids": [
+        "9",
+        "10",
+        "11",
+        "12"
+      ]
+    },
+    {
+      "en": "Python for AI work",
+      "pl": "Python do pracy z AI",
+      "release": "v1.0",
+      "ids": [
+        "13",
+        "14"
+      ]
+    }
+  ],
+  "chapters": [
+    {
+      "id": "1",
+      "key": "ch01",
+      "file": "ch01-runtime",
+      "label": "ch:runtime",
+      "en": "CPython, the GIL and the free-threaded build",
+      "pl": "CPython, GIL i wersja free-threaded",
+      "words": 3000,
+      "release": "v0.1",
+      "deps": [],
+      "experiment": "E1",
+      "brief": "Argument: the assumptions a CLR engineer carries about the runtime stop holding one at a time, and each one has a name. There is no JIT you can count on by default (the one in 3.14 is experimental and off); one process is one interpreter with one global interpreter lock that serialises Python bytecode across threads; and the free-threaded build (PEP 703, officially supported since 3.14 under PEP 779) is a separate binary, `python3.14t`, rather than a flag. Bytecode and `__pycache__` against IL and the JIT; `python -m` against `dotnet run`; a module against an assembly; `sys.path` against assembly probing; what `if __name__ == \"__main__\"` is actually for. Payoff: the reader can say which of four workloads the GIL hurts and measure it -- experiment E1, CPU-bound work on the default and the free-threaded build, four threads, on the pinned interpreter. Traps to elicit: \"threads are useless in Python\" (false for I/O), \"the free-threaded build is the default now\" (false), \"Python has no compile step\" (bytecode is compiled and cached). Listings: `python -m dis` on a five-line function; a thread pool on CPU-bound and on I/O-bound work, timed; detecting the free-threaded build from `sys`. Three exercises. Overlap rule: the LangChain book's chapter 3 covers the GIL in the context of an event loop; this chapter owns the runtime model and points there, in one sentence, for the async consequence."
+    },
+    {
+      "id": "2",
+      "key": "ch02",
+      "file": "ch02-packaging",
+      "label": "ch:packaging",
+      "en": "Environments and packaging: uv, pyproject and the lockfile",
+      "pl": "Środowiska i pakowanie: uv, pyproject i plik blokady",
+      "words": 3000,
+      "release": "v0.1",
+      "deps": [
+        "1"
+      ],
+      "experiment": "E2",
+      "brief": "Argument: a Python environment is a directory, not a machine setting, and the reason .NET engineers get burned is that nothing in Python enforces that. The map: uv and venv against NuGet and `dotnet restore`; `pyproject.toml` against `.csproj`; `uv.lock` against `packages.lock.json`; the `src/` layout against project folders; ruff against analysers plus `dotnet format`; pre-commit against nothing, because .NET has no equivalent. The `[project]` table, dependency groups, `uv run`, `uv sync --locked`, `uvx`, entry points against `Program.cs`. Payoff: a repository skeleton the reader can copy -- this book's own `code/` directory is that skeleton and is what CI runs on every push, so the skeleton is verified by construction. Traps to elicit: a global `pip install`; activating the environment instead of `uv run`; no lockfile committed; a `requirements.txt` treated as a lockfile. Listings: the book's own `pyproject.toml` pulled in by region; a shell transcript of `uv init`, `uv add` and `uv run`. Measurement: experiment E2, cold `uv sync` against `pip install -r` on the same lockfile, free. Overlap rule: the LangChain book's chapter 2 has a half-page toolchain table; this is the full treatment, and that book should point back here once this ships."
+    },
+    {
+      "id": "3",
+      "key": "ch03",
+      "file": "ch03-typing",
+      "label": "ch:typing",
+      "en": "Typing: hints, checkers and where the checker lies",
+      "pl": "Typowanie: adnotacje, checkery i gdzie checker kłamie",
+      "words": 3000,
+      "release": "v0.1",
+      "deps": [
+        "1",
+        "2"
+      ],
+      "experiment": null,
+      "brief": "Argument: a type hint is a claim the runtime never checks, and a checker is a second compiler you have to invite. The map: hints against the C# type system (gradual against static, structural against nominal); `Protocol` against an interface; `dataclass`, `TypedDict`, `NamedTuple` and a pydantic model against a record, a DTO and a POCO; `T | None` against nullable reference types; generics in the PEP 695 syntax against C# generics, variance included; `Literal` and `Enum`; `TypeGuard` and `TypeIs`; `Any` against `dynamic` and `object`. Where the checker lies: `Any` propagation, untyped third-party packages, `cast`, `type: ignore`, and JSON arriving at a boundary -- which is why pydantic exists, and where the LangChain book's chapter 2 stops. pyright against mypy: which to run in CI and why this book pins both. Payoff: a strictness configuration the reader can copy, and one rule -- validate at the boundary, trust inside. Traps to elicit: nullable-reference-type thinking (`str` can be `None` at run time and nothing will say so); `List[int]` from a 2019 tutorial; assuming `@dataclass` validates; a mutable default argument. Listings: the same DTO four ways; a `Protocol` satisfied by a class that has never heard of it; a checker false negative reproduced on the pinned checker. Four exercises. Deferred: pydantic in depth belongs to chapters 9 and 13."
+    },
+    {
+      "id": "4",
+      "key": "ch04",
+      "file": "ch04-objects",
+      "label": "ch:objects",
+      "en": "Objects and data: dunder methods, equality, hashing, records",
+      "pl": "Obiekty i dane: metody dunder, równość, hashowanie, rekordy",
+      "words": 3000,
+      "release": "v0.1",
+      "deps": [
+        "3"
+      ],
+      "experiment": null,
+      "brief": "Argument: everything a C# engineer does with operator overloading, `Equals` and `GetHashCode`, `record`, `IComparable`, `ToString`, `IDisposable`, properties and indexers is a dunder method, and the protocol is duck-typed. `__eq__` without `__hash__` makes the object unhashable, and that is the chapter's headline trap; `__repr__` against `__str__` against `ToString()`; `@property` against properties; `__slots__`; a `frozen=True` dataclass against a record, with `dataclasses.replace` against `with`; `Enum`, `StrEnum` and `Flag` against an enum; `__getitem__`, `__len__` and `__iter__` against indexers and `IEnumerable`. Class attributes against instance attributes, and the shared-mutable trap that follows. Payoff: read any library's class and name the C# feature it is imitating. Listings: a Money type written both ways; the `__eq__` and `__hash__` breakage reproduced and then fixed. No measurement; every claim here is about semantics and is checked by a test rather than timed. Four exercises."
+    },
+    {
+      "id": "5",
+      "key": "ch05",
+      "file": "ch05-functions",
+      "label": "ch:functions",
+      "en": "Functions and control flow: decorators, comprehensions, generators, context managers",
+      "pl": "Funkcje i sterowanie: dekoratory, składanie list, generatory, menedżery kontekstu",
+      "words": 3000,
+      "release": "v0.1",
+      "deps": [
+        "4"
+      ],
+      "experiment": null,
+      "brief": "Argument: Python's control-flow vocabulary maps onto C# feature for feature, and the mapping is where the idioms live. A decorator against an attribute AND against middleware -- a decorator runs, an attribute is metadata, and confusing the two is the chapter's headline; `*args` and `**kwargs` against `params`, optional and named arguments; keyword-only and positional-only parameters; closures and late binding; comprehensions against LINQ (eager, where `IEnumerable` is deferred -- and a generator expression IS deferred); generators against `yield return`, and `send()`; `with` against `using`, and `contextlib`; `match` against switch expressions and pattern matching; first-class functions against delegates and `Func<>`; `functools.partial` and `lru_cache`. Payoff: rewrite a LINQ pipeline as a comprehension and know when to reach for `itertools` instead. Listings: the same pipeline in LINQ and as comprehensions; a decorator that is middleware, timing and retrying a call. Five exercises. Overlap rule: the LangChain book's chapter 7 uses decorators for agent middleware; this chapter owns the mechanism and that one owns the use."
+    },
+    {
+      "id": "6",
+      "key": "ch06",
+      "file": "ch06-errors",
+      "label": "ch:errors",
+      "en": "Errors: exceptions as control flow, EAFP, ExceptionGroup and the Result pattern",
+      "pl": "Błędy: wyjątki jako sterowanie, EAFP, ExceptionGroup i wzorzec Result",
+      "words": 3000,
+      "release": "v0.1",
+      "deps": [
+        "5"
+      ],
+      "experiment": "E3",
+      "brief": "Argument: Python raises where C# checks, and the cost model is different -- a `try` is nearly free, raising is not free, and both are normal. EAFP against LBYL; `KeyError`, `StopIteration` and `AttributeError` as protocol rather than failure; no checked exceptions, and what stands in for them (a docstring, because a type hint does NOT carry exceptions); chaining with `raise from` against `InnerException`; `try`, `except`, `else`, `finally`; custom hierarchies; `ExceptionGroup` and `except*` against `AggregateException`; `contextlib.suppress`; Result and Either patterns and when they are un-Pythonic; errors at the boundary, `ValidationError` from pydantic and `HTTPStatusError` from httpx. Traps to elicit: a bare `except`; catching `Exception` to log and continue; `raise e` losing the traceback; a `return` inside `finally`. Listings: the same failure handled EAFP and LBYL. Measurement: experiment E3, the cost of a `try` against a check on the happy and the unhappy path, free. Four exercises. Overlap rule: the LangChain book's chapter 4 owns cancellation and timeouts, and they are not here."
+    },
+    {
+      "id": "7",
+      "key": "ch07",
+      "file": "ch07-imports-di",
+      "label": "ch:imports",
+      "en": "Imports and dependency injection: modules, cycles and the composition root",
+      "pl": "Importy i wstrzykiwanie zależności: moduły, cykle i korzeń kompozycji",
+      "words": 3000,
+      "release": "v0.1",
+      "deps": [
+        "2",
+        "5"
+      ],
+      "experiment": null,
+      "brief": "Argument: a module is an object that runs once, and most import pain is a consequence of that one sentence. The import system against namespaces and assemblies: `sys.modules`, packages, `__init__.py`, relative against absolute imports, `importlib`, side effects at import time, circular imports and the three ways out; `python -m` and the `src/` layout seen again from this side. Dependency injection: the composition root without a container (plain functions, `functools.partial`, a `Protocol`) and with one -- which library, if any, verified against what is maintained on the day of writing rather than remembered -- against `Microsoft.Extensions.DependencyInjection`: singleton, scoped and transient lifetimes and what Python does instead; FastAPI's `Depends` previewed as the one container most readers will meet, and handed to chapter 9. Payoff: a package structured so that nothing global is mutated at import and a test can substitute anything. Listings: a circular import reproduced and fixed three ways; a composition root in thirty lines. Four exercises."
+    },
+    {
+      "id": "8",
+      "key": "ch08",
+      "file": "ch08-asyncio",
+      "label": "ch:asyncio",
+      "en": "asyncio for people who know Task",
+      "pl": "asyncio dla tych, którzy znają Task",
+      "words": 3000,
+      "release": "v0.2",
+      "deps": [
+        "1",
+        "5",
+        "6"
+      ],
+      "experiment": "E4",
+      "brief": "Argument: the reader already has the mental model and most of it transfers; the part that does not is where the incidents come from. The map: a coroutine against a `Task` (cold against hot -- a coroutine does nothing until it is scheduled, a C# `Task` is already running); an event loop with no `SynchronizationContext` (no `ConfigureAwait`, no deadlock by `.Result`, but one blocking call freezes everything); `TaskGroup` against `Task.WhenAll`, and `gather` with its orphaning semantics; `CancellationToken` against `Task.cancel()` and `CancelledError` (cancellation is an exception delivered at an `await`, not a flag you poll); `asyncio.timeout` against `CancelAfter`; threads against processes under the GIL, and where `to_thread` and a process pool belong; `httpx.AsyncClient` against `HttpClient` (lifetime, pooling, and a default timeout that exists); the sync boundary, `asyncio.run`, and the absence of an `async Main`. Payoff: a translation table from the TPL to asyncio, and the three incidents -- a blocking call, an orphaned task, a swallowed `CancelledError`. Measurement: experiment E4, the one-blocking-call degradation reproduced in the TPL-against-asyncio framing, free. Five exercises, one of them porting a C# `WhenAll` plus `CancellationToken` snippet. Overlap rule, and it is the strictest in the book: the LangChain book's chapters 3 and 4 own the event loop, cancellation and the measurements in depth. This chapter is the translation view. It points there in one sentence and never repeats a section."
+    },
+    {
+      "id": "9",
+      "key": "ch09",
+      "file": "ch09-services",
+      "label": "ch:services",
+      "en": "Services: FastAPI and pydantic for people who know Minimal APIs",
+      "pl": "Serwisy: FastAPI i pydantic dla tych, którzy znają Minimal API",
+      "words": 3000,
+      "release": "v0.2",
+      "deps": [
+        "3",
+        "7",
+        "8"
+      ],
+      "experiment": "E5",
+      "brief": "Argument: FastAPI is Minimal APIs with the DI container replaced by function signatures, and pydantic is the model binder and validator you used to configure. Routing and path operations against `MapGet`; `Depends` against DI, with per-request lifetime by default and `yield` dependencies against a disposable scope; request models, validation errors and the 422 against `ProblemDetails`; response models and serialisation, `model_dump` and aliases against `JsonPropertyName`; the generated OpenAPI against Swashbuckle; middleware against ASP.NET middleware, and its order; `pydantic-settings` against `IOptions` and configuration providers; uvicorn against Kestrel, workers against threads, and the reverse proxy in front; lifespan against `IHostedService`; background tasks; testing with `TestClient` and `ASGITransport`. Payoff: a service skeleton the reader can copy, and the mapping table. Measurement: experiment E5, uvicorn workers against concurrency, throughput and p50 and p95 with a mocked upstream, calibrated the way the LangChain book's chapter 13 recorded, free. Five exercises. Overlap rule: the LangChain book's chapter 13 serves agents over SSE; this chapter owns the framework mapping and hands streaming there."
+    },
+    {
+      "id": "10",
+      "key": "ch10",
+      "file": "ch10-data",
+      "label": "ch:data",
+      "en": "Data: SQLAlchemy 2.0 for people who know EF Core, and polars for the LINQ reflex",
+      "pl": "Dane: SQLAlchemy 2.0 dla tych, którzy znają EF Core, i polars dla odruchu LINQ",
+      "words": 3000,
+      "release": "v0.2",
+      "deps": [
+        "4",
+        "8"
+      ],
+      "experiment": "E6",
+      "brief": "Argument: a SQLAlchemy 2.0 `Session` is a unit of work exactly as a `DbContext` is, and the places it differs are the places EF habits break. Declarative models with `Mapped` and `mapped_column` against entity classes and fluent configuration; `select()` against LINQ to Entities; the identity map, flush against commit, `expire_on_commit`; relationships and the N+1 problem (lazy by default in both, `selectinload` against `Include`); async sessions against async EF; transactions and `begin()`; Alembic against EF migrations, where autogenerate is a diff and not a truth; connection pooling; SQLite for tests against the real engine. polars for the LINQ-over-a-table reflex: lazy frames against `IQueryable`, expressions against lambdas, and when pandas instead, which for this reader is rarely. Payoff: a data layer with no repository pattern, and why that pattern is usually a mistake here, plus a migration workflow. Measurement: experiment E6, the N+1 reproduced and counted from the engine's own echo, before and after `selectinload`, on SQLite, free. Five exercises."
+    },
+    {
+      "id": "11",
+      "key": "ch11",
+      "file": "ch11-testing",
+      "label": "ch:testing",
+      "en": "Testing: pytest for people who know xUnit, and the trace-assert skeleton",
+      "pl": "Testy: pytest dla tych, którzy znają xUnit, i szkielet trace-assert",
+      "words": 3000,
+      "release": "v0.2",
+      "deps": [
+        "5",
+        "7",
+        "8"
+      ],
+      "experiment": null,
+      "stage": "trace-assert stage 01: the trace model and the first two assertions",
+      "brief": "Argument: pytest is xUnit with the class removed and the fixture graph made explicit. Discovery against attributes; a plain `assert` with assertion rewriting against `Assert.Equal`; fixtures against a constructor, `IClassFixture` and `IAsyncLifetime`, with function, class, module and session scopes; `parametrize` against `Theory` and `InlineData`; `conftest.py`; `monkeypatch` and `unittest.mock` against Moq and NSubstitute, and the trap of patching where a name is defined rather than where it is looked up; `tmp_path`, `caplog` and `capsys`; markers and `-k`; async tests; hypothesis against FsCheck; coverage. The trace-assert skeleton: a `Trace` of `Event` records, a `trace` fixture, the first two assertions, and the package layout under `code/src/trace_assert/` -- which is what this book's own CI has been running since chapter 1. Payoff: a suite that runs with no network, no database server and no model, and the first stage of the guiding project. Five exercises."
+    },
+    {
+      "id": "12",
+      "key": "ch12",
+      "file": "ch12-observability",
+      "label": "ch:observability",
+      "en": "Observability and operations: structlog, OpenTelemetry, containers and audits",
+      "pl": "Obserwowalność i operacje: structlog, OpenTelemetry, kontenery i audyty",
+      "words": 3000,
+      "release": "v0.2",
+      "deps": [
+        "9",
+        "11"
+      ],
+      "experiment": "E7",
+      "brief": "Argument: the .NET engineer's operational reflexes are right, and the Python tools that satisfy them exist; the gap is their names and their defaults. The standard `logging` module against `ILogger`, its configuration model and why people replace it; structlog against structured `ILogger` scopes; correlation identifiers through `contextvars` against `AsyncLocal`; OpenTelemetry in Python against .NET -- auto-instrumentation, exporters, resource attributes; container images built with uv (multi-stage, `uv sync --frozen --no-dev`, a non-root user, the two environment variables everybody sets); `pip-audit` against `dotnet list package --vulnerable`; health and readiness checks; graceful shutdown through signals and the lifespan; secrets through `pydantic-settings` again. Payoff: a Dockerfile and a logging-and-tracing bootstrap the reader can copy. Measurement: experiment E7, image size and cold start of three Dockerfile shapes, free. Four exercises."
+    },
+    {
+      "id": "13",
+      "key": "ch13",
+      "file": "ch13-ai-toolkit",
+      "label": "ch:aitoolkit",
+      "en": "The AI engineer's kit: pydantic, httpx and the shape of an SDK",
+      "pl": "Zestaw inżyniera AI: pydantic, httpx i kształt SDK",
+      "words": 3000,
+      "release": "v1.0",
+      "deps": [
+        "3",
+        "8",
+        "9"
+      ],
+      "experiment": "E8",
+      "stage": "trace-assert stage 02: recording a model call as trace events",
+      "brief": "Argument: every AI SDK in Python is the same three things -- a pydantic model, an httpx client and a streaming iterator -- and knowing that makes the SDKs readable rather than magical. pydantic for structured outputs: a JSON schema from a model, `model_validate_json`, strict against lax; httpx clients for model APIs: timeouts, retries, streaming responses, and the `AsyncClient` lifetime from chapter 8; the shape of the Anthropic and OpenAI SDKs -- client, then messages or responses, then typed results, then streaming -- read from the installed, pinned package and never from memory; notebooks against scripts, when a notebook is right and why nothing in this book is one; tokens and cost as first-class quantities. Pointer, never duplication: agents, tools, middleware and graphs belong to the LangChain book, and this chapter stops at one model call and one structured output. Payoff: a `call_model` function with typed input and typed output the reader can drop into the chapter 9 service. Measurement: experiment E8, validation cost of one structured output across pydantic strict, pydantic lax and a dataclass over `json`, free. Four exercises."
+    },
+    {
+      "id": "14",
+      "key": "ch14",
+      "file": "ch14-trace-assert",
+      "label": "ch:traceassert",
+      "en": "trace-assert, complete: the same instrument in three languages",
+      "pl": "trace-assert w całości: ten sam instrument w trzech językach",
+      "words": 3000,
+      "release": "v1.0",
+      "deps": [
+        "11",
+        "13"
+      ],
+      "experiment": null,
+      "stage": "trace-assert final: the full assertion set, packaged and published",
+      "brief": "Argument: a deterministic assertion over an execution trace is the cheapest evaluation an agent can have, and the reader can now build it in Python as well as they could in C#. The assertion types of agent-eval-bench's first layer, ported to pytest -- and the list is that project's own: it must be copied from its specification when this chapter is written, never reconstructed from memory, and the count printed here is whatever that specification says. Each assertion as a fixture-backed function whose failure message names the offending event; trace capture from the chapter 13 client; the comparison table across .NET, TypeScript and Python -- what each port needed in types, async, test framework and packaging; and publishing `trace-assert` with `uv build` and trusted publishing as the book's last exercise. Payoff: the artefact is a package, a blog post and an interview answer at once. No new measurement; the suite's own run time is reported. Three exercises. Every listing here is the real package under `code/src/trace_assert`, pulled in by region."
+    }
+  ],
+  "appendices": [
+    {
+      "id": "A",
+      "key": "appA",
+      "file": "appA-cheatsheet",
+      "label": "app:cheatsheet",
+      "en": "The C# to Python cheat sheet",
+      "pl": "Ściągawka C# do Pythona",
+      "brief": "One table per part of the book, C# on the left and Python on the right, and every row names the chapter that teaches it -- so a row can be checked against the book and a row nothing teaches is a defect. It is written by hand and it is therefore a claim about the book on every line; the ledger that checks its chapter references against the chapters is owed before v1.0."
+    },
+    {
+      "id": "B",
+      "key": "appB",
+      "file": "appB-traps",
+      "label": "app:traps",
+      "en": "Traps for people arriving from C#",
+      "pl": "Pułapki dla ludzi przychodzących z C#",
+      "brief": "The catalogue of habits that compile in the reader's head and fail in Python, each elicited before it is named: a mutable default argument, a late-binding closure, `is` against `==`, truthiness, `__eq__` without `__hash__`, side effects at import, integer caching under `is`, string building in a loop, a bare `except`, a shadowed builtin, `[[]] * n` aliasing, floating-point equality, `/` against `//`, and the rest of notes/02-traps.md. Every entry names the chapter that owns it, and an entry no chapter owns is a defect in the catalogue rather than a fact about the book."
+    },
+    {
+      "id": "C",
+      "key": "appC",
+      "file": "appC-tools",
+      "label": "app:tools",
+      "en": "The tool matrix",
+      "pl": "Macierz narzędzi",
+      "brief": "A .NET tool on the left, the Python tool this book uses on the right, the version it was verified against in the middle -- printed from the pinned-version macros in the preamble and never typed -- and the chapter that introduces it. The table is the one place a reader can see every pin at once."
+    },
+    {
+      "id": "D",
+      "key": "appD",
+      "file": "appD-interview",
+      "label": "app:interview",
+      "en": "Twenty interview problems, solved in both languages",
+      "pl": "Dwadzieścia zadań rekrutacyjnych, rozwiązanych w obu językach",
+      "brief": "Twenty problems of the kind a Python interview actually asks, each solved in C# and in Python side by side, so the reader can see which habits carry across and which do not. Every Python solution is a listing file under `code/` with a test that CI runs; every C# solution is a listing too, and whether CI compiles those is an open decision recorded in CLAUDE.md."
+    },
+    {
+      "id": "E",
+      "key": "appE",
+      "file": "appE-manifest",
+      "label": "app:manifest",
+      "en": "Manifest",
+      "pl": "Manifest",
+      "brief": "Generated, never written: the diagram manifest, the exercise manifest and the outstanding-work ledgers, printed for a reader who cannot run `make debt`. Every number in it is computed from the tree by `code/measure/ledgers.py` and reaches the page through a value file, so `make verify` fails when a ledger moves and the appendix does not."
+    }
+  ]
+}

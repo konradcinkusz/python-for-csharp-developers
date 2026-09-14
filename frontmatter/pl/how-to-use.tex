@@ -1,0 +1,163 @@
+\chapter*{\lblHowToUse}
+\phantomsection
+\addcontentsline{toc}{chapter}{\lblHowToUse}
+\markboth{\lblHowToUse}{\lblHowToUse}
+
+\noindent
+Ta książka jest złożona pod ekran, nie pod półkę. Strona ma format A4,
+dokument jest jednostronny, a każda decyzja projektowa poniżej zakłada ten sam
+obraz: \textbf{PDF otwarty na jednej połowie ekranu, edytor otwarty na
+drugiej}, a gdzieś pod edytorem terminal. Jeśli czytasz ją w pociągu bez
+laptopa, dostaniesz argument i ominiesz sedno, bo sednem jest to, co dzieje
+się w edytorze.
+
+\section*{Pętla}
+
+Każdy rozdział czyta się tak samo, a pętla jest na tyle krótka, że po trzech
+rozdziałach staje się nawykiem:
+
+\begin{enumerate}[leftmargin=1.6em, itemsep=3pt]
+  \item Przeczytaj sekcję. Kończy się listingiem, a listing jest
+        \emph{plikiem}: jego ścieżka jest wydrukowana nad nim, względem
+        katalogu głównego repozytorium, i to ten plik otwierasz w edytorze.
+  \item Uruchom plik. Każdy listing w tej książce działa tak, jak go
+        wydrukowano, na wersjach ze strony tytułowej, a build repozytorium
+        uruchamia go ponownie przy każdej zmianie. Jeśli u ciebie nie działa,
+        jedno z was ma złą wersję, a strona tytułowa mówi które.
+  \item Zrób ćwiczenie. Ćwiczenie to plik startowy i test obok niego. Spraw,
+        żeby test przeszedł, a potem przeczytaj, co test sprawdzał i dlaczego.
+  \item Idź dalej. Następna sekcja zakłada, że zrobiłeś poprzednie trzy kroki.
+\end{enumerate}
+
+\noindent
+\mermaidfig{reading-loop}{Pętla: przeczytaj sekcję w PDF-ie, otwórz i uruchom jej listing w edytorze, spraw, żeby test ćwiczenia przeszedł, idź dalej}{pętla czytania}
+
+Oto cała pętla, raz, zanim będzie się czego z niej uczyć. Listing poniżej
+jest plikiem; otwórz go.
+
+\pyfile{code/ch00/loop.py}{Pierwszy listing i kształt każdego następnego}{lst:ch00-loop}
+
+\noindent
+Uruchomiony z katalogu głównego repozytorium drukuje to, co poniżej \dash{}
+również wygenerowane, a nie przepisane: ta linia jest tym, co przypięty
+interpreter wydrukował przy ostatnim buildzie książki:
+
+\transcript{ch00-loop}
+
+\noindent
+A oto ćwiczenie, które do niego należy. Ma numer 0.1, bo ten rozdział nie
+jest rozdziałem; pierwsze prawdziwe to Ćwiczenie~1.1.
+
+\exercise{e00_01_hello}{Spraw, żeby pierwszy test przeszedł}{%
+Otwórz plik startowy. Zawiera jedną funkcję, która rzuca
+\code{NotImplementedError}, a test obok niej nie przechodzi, dopóki funkcja
+nie zwróci tego, czego test oczekuje. Spraw, żeby przeszedł. Potem uruchom
+test ponownie z \code{-v} i przeczytaj, co wydrukował pytest, bo sposób, w
+jaki pytest raportuje niepowodzenie, to pierwsza rzecz w tej książce, która
+nie ma odpowiednika w .NET wartego nazwania.}
+
+\noindent
+Każde ćwiczenie w książce drukuje te trzy linie: plik, który otwierasz, plik,
+który decyduje, czy skończyłeś, i jedno polecenie, które go uruchamia. Plik
+startowy każdego ćwiczenia celowo nie przechodzi swojego testu, a build
+repozytorium sprawdza, że tak jest \dash{} ćwiczenie, którego plik startowy
+już przechodzi, nie jest ćwiczeniem.
+
+\section*{Czym jest rozdział}
+
+Czternaście rozdziałów, a każdy trzyma się tego samego kontraktu:
+
+\begin{itemize}[leftmargin=1.4em, itemsep=2pt]
+  \item \textbf{Jeden argument}, postawiony w pierwszym akapicie i spłacony w
+        ostatnim. Rozdział jest tezą o tym, gdzie nawyk z C\# przestaje
+        działać i co go zastępuje, a nie wycieczką po bibliotece.
+  \item \textbf{Poniżej trzech tysięcy słów} prozy, listingów nie licząc.
+        Build je liczy i odrzuca rozdział, który ma za dużo. Trzy tysiące
+        słów to jedno posiedzenie; książka to czternaście posiedzeń.
+  \item \textbf{Tabela mapowania}, C\# po lewej i Python po prawej, bo
+        czytelnik ma już pojęcie i potrzebuje nazwy.
+  \item \textbf{Listingi, które są plikami}, każdy uruchomiony na przypiętych
+        wersjach, zanim został wydrukowany. Tam, gdzie listing nie został
+        uruchomiony, mówi o tym w ramce, a build liczy ramki.
+  \item \textbf{Pułapki}, wywoływane, zanim zostaną nazwane. Tam, gdzie nawyk
+        z C\# daje Pythona, który działa i jest zły, rozdział pozwala ci go
+        najpierw napisać. Dodatek~\ref{app:traps} jest katalogiem.
+  \item \textbf{Ćwiczenia} z plikiem startowym i testem, jak wyżej.
+  \item \textbf{Niezależność.} Rozdział nazywa to, co zakłada z wcześniejszych,
+        i daje się czytać osobno; każdy napisano tak, żeby dało się go
+        opublikować osobno.
+\end{itemize}
+
+\section*{Ramki}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{\lblNote} & Coś wartego wiedzy, czego argument nie potrzebuje. \\
+\textbf{\lblWarning} & Coś, co będzie cię kosztować popołudnie. \\
+\textbf{\lblCsharp} & Tłumaczenie. Strona C\# zdania, które właśnie
+  przeczytałeś, i nic więcej; czytelnik bez .NET za sobą może pominąć każdą z
+  tych ramek i nie stracić treści. \\
+\textbf{\lblTrap} & Błędne przekonanie, nazwane po tym, jak w nie wszedłeś.
+  Każde jest w Dodatku~\ref{app:traps}. \\
+\textbf{\lblVersion} & Wersja zapoznawcza, eksperymentalna albo taka, która
+  może się zmienić. Rzadkie w książce o języku; częste w jej dwóch ostatnich
+  rozdziałach. \\
+\textbf{\lblVerify} & Listing, którego nie uruchomiono na przypiętych
+  wersjach. Nic nie trafia do czytelnika z taką ramką. \\
+\textbf{\lblExercise} & Plik startowy i test. \\
+\textbf{\lblProject} & Etap \code{trace-assert}, który buduje ta sekcja.
+  Zobacz Wprowadzenie. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section*{Dwie zasady, których ta książka się trzyma}
+
+\begin{note}
+\textbf{Każdy listing został uruchomiony albo mówi, że nie został.} Kod w
+katalogu \code{code/} jest osobnym projektem z plikiem blokady, a build
+repozytorium instaluje dokładnie wersje ze strony tytułowej i uruchamia każdy
+listing i każdy test ćwiczenia przy każdej zmianie. Listing, który przez to
+nie przeszedł, nosi ramkę \emph{\lblVerify}, a build drukuje, ile ich jest.
+Kiedy ta liczba wynosi zero, książka ma prawo do swojej strony tytułowej.
+\end{note}
+
+\begin{note}
+\textbf{To, czego nie zmierzono, jest oznaczone jako osąd.} Tam, gdzie
+książka mówi, że jedno jest szybsze od drugiego, jest skrypt w katalogu
+\code{code/measure/}, który wyprodukował liczbę, a liczba trafia na stronę
+mechanicznie, a nie przez przepisanie. Tam, gdzie żaden skrypt jeszcze nie
+został uruchomiony, zdanie to mówi, a tabela, która miałaby zawierać liczby,
+zostaje pusta. Puste tabele nie są przeoczeniem; są mechanizmem.
+\end{note}
+
+\section*{Trzy wydania}
+
+Książka ukazuje się w trzech częściach, a każda jest kompletna sama w sobie.
+Wersja~0.1 to części~I i~II \dash{} środowisko uruchomieniowe, narzędzia i
+język. Wersja~0.2 dodaje części~III i~IV \dash{} współbieżność i wdrażanie.
+Wersja~1.0 dodaje część~V i dodatki. Rozdział, którego jeszcze nie
+napisano, drukuje czerwoną ramkę, która o tym mówi, a build je również
+liczy.
+
+\section*{Jeśli już piszesz w Pythonie}
+
+Przeczytaj najpierw Dodatek~\ref{app:traps} i bądź szczery co do wpisów,
+których nie znałeś. Potem i tak przeczytaj Rozdziały~\ref{ch:asyncio}
+i~\ref{ch:testing}, bo to tam zaplecze C\# produkuje Pythona, który działa i
+jest zły, a rok pisania w Pythonie nie zawsze wystarcza, żeby to zauważyć.
+
+\section*{Dwa języki, jedno źródło}
+
+Ta książka istnieje po angielsku i po polsku, budowana z jednego
+repozytorium. Oba wydania dzielą rozdziały, listingi, ćwiczenia i numerację;
+różni się tylko proza. Sprawdzenie przy każdym buildzie dowodzi, że oba mają
+tę samą strukturę i te same liczby, więc poprawka naniesiona w jednym wydaniu
+nie może po cichu ominąć drugiego. Angielski jest pierwszym językiem książki:
+kod, identyfikatory i każdy komentarz w listingu są po angielsku w obu
+wydaniach, bo czytelnik jest uczony czytania angielskiego kodu. Tam,
+gdzie polski termin nie ma ustalonej formy w realnym użyciu, wydanie
+polskie zachowuje angielskie słowo i odmienia je, i mówi o tym w tym
+miejscu.

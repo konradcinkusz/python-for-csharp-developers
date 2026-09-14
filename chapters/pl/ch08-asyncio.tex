@@ -1,0 +1,43 @@
+%% ch08 --- asyncio dla tych, którzy znają Task
+%%
+%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
+%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
+%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
+%% rozdziału oznacza usunięcie bloku \chapterstub{} i zastąpienie go
+%% rozdziałem -- po czym ten plik nie jest już generowany.
+
+\chapter{asyncio dla tych, którzy znają Task}
+\label{ch:asyncio}
+
+\chapterstub{%
+\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+
+Argument: the reader already has the mental model and most of it transfers;
+the part that does not is where the incidents come from. The map: a
+coroutine against a \code{Task} (cold against hot \dash{} a coroutine does
+nothing until it is scheduled, a C\# \code{Task} is already running); an
+event loop with no \code{SynchronizationContext} (no \code{ConfigureAwait},
+no deadlock by \code{.Result}, but one blocking call freezes everything);
+\code{TaskGroup} against \code{Task.WhenAll}, and \code{gather} with its
+orphaning semantics; \code{CancellationToken} against \code{Task.cancel()}
+and \code{CancelledError} (cancellation is an exception delivered at an
+\code{await}, not a flag you poll); \code{asyncio.timeout} against
+\code{CancelAfter}; threads against processes under the GIL, and where
+\code{to\_thread} and a process pool belong; \code{httpx.AsyncClient}
+against \code{HttpClient} (lifetime, pooling, and a default timeout that
+exists); the sync boundary, \code{asyncio.run}, and the absence of an
+\code{async Main}. Payoff: a translation table from the TPL to asyncio, and
+the three incidents \dash{} a blocking call, an orphaned task, a swallowed
+\code{CancelledError}. Measurement: experiment E4, the one-blocking-call
+degradation reproduced in the TPL-against-asyncio framing, free. Five
+exercises, one of them porting a C\# \code{WhenAll} plus
+\code{CancellationToken} snippet. Overlap rule, and it is the strictest in
+the book: the LangChain book's chapters 3 and 4 own the event loop,
+cancellation and the measurements in depth. This chapter is the translation
+view. It points there in one sentence and never repeats a section.
+
+\medskip
+\textbf{Budżet słów:} 3000.\\
+\textbf{Wydanie:} v0.2.\\
+\textbf{Pomiar:} E4.
+}

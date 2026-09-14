@@ -1,0 +1,37 @@
+name: Erratum
+description: Something in the book is wrong, out of date, or does not run.
+title: "[erratum] "
+labels: ["erratum"]
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Where
+      description: Chapter and section, listing label, or exercise key.
+      placeholder: "Chapter 5, lst:decorators-timing"
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - Listing does not run on the pinned versions
+        - The C# comparison is wrong
+        - A library or the interpreter has changed since publication
+        - Factually incorrect
+        - A trap the book should catch and does not
+        - Typo, translation, or formatting
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions you are running
+      placeholder: "Python 3.14.7, uv 0.12.13, pydantic 2.13.5"
+  - type: textarea
+    id: detail
+    attributes:
+      label: What the book says, and what is actually true
+    validations:
+      required: true

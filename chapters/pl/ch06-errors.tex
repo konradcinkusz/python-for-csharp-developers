@@ -1,0 +1,38 @@
+%% ch06 --- Błędy: wyjątki jako sterowanie, EAFP, ExceptionGroup i wzorzec Result
+%%
+%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
+%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
+%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
+%% rozdziału oznacza usunięcie bloku \chapterstub{} i zastąpienie go
+%% rozdziałem -- po czym ten plik nie jest już generowany.
+
+\chapter{Błędy: wyjątki jako sterowanie, EAFP, ExceptionGroup i wzorzec Result}
+\label{ch:errors}
+
+\chapterstub{%
+\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+
+Argument: Python raises where C\# checks, and the cost model is different
+\dash{} a \code{try} is nearly free, raising is not free, and both are
+normal. EAFP against LBYL; \code{KeyError}, \code{StopIteration} and
+\code{AttributeError} as protocol rather than failure; no checked
+exceptions, and what stands in for them (a docstring, because a type hint
+does NOT carry exceptions); chaining with \code{raise from} against
+\code{InnerException}; \code{try}, \code{except}, \code{else},
+\code{finally}; custom hierarchies; \code{ExceptionGroup} and \code{except*}
+against \code{AggregateException}; \code{contextlib.suppress}; Result and
+Either patterns and when they are un-Pythonic; errors at the boundary,
+\code{ValidationError} from pydantic and \code{HTTPStatusError} from httpx.
+Traps to elicit: a bare \code{except}; catching \code{Exception} to log and
+continue; \code{raise e} losing the traceback; a \code{return} inside
+\code{finally}. Listings: the same failure handled EAFP and LBYL.
+Measurement: experiment E3, the cost of a \code{try} against a check on the
+happy and the unhappy path, free. Four exercises. Overlap rule: the
+LangChain book's chapter 4 owns cancellation and timeouts, and they are not
+here.
+
+\medskip
+\textbf{Budżet słów:} 3000.\\
+\textbf{Wydanie:} v0.1.\\
+\textbf{Pomiar:} E3.
+}

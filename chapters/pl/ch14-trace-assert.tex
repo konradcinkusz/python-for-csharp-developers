@@ -1,0 +1,35 @@
+%% ch14 --- trace-assert w całości: ten sam instrument w trzech językach
+%%
+%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
+%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
+%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
+%% rozdziału oznacza usunięcie bloku \chapterstub{} i zastąpienie go
+%% rozdziałem -- po czym ten plik nie jest już generowany.
+
+\chapter{trace-assert w całości: ten sam instrument w trzech językach}
+\label{ch:traceassert}
+
+\chapterstub{%
+\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+
+Argument: a deterministic assertion over an execution trace is the cheapest
+evaluation an agent can have, and the reader can now build it in Python as
+well as they could in C\#. The assertion types of agent-eval-bench's first
+layer, ported to pytest \dash{} and the list is that project's own: it must
+be copied from its specification when this chapter is written, never
+reconstructed from memory, and the count printed here is whatever that
+specification says. Each assertion as a fixture-backed function whose
+failure message names the offending event; trace capture from the chapter 13
+client; the comparison table across .NET, TypeScript and Python \dash{} what
+each port needed in types, async, test framework and packaging; and
+publishing \code{trace-assert} with \code{uv build} and trusted publishing
+as the book's last exercise. Payoff: the artefact is a package, a blog post
+and an interview answer at once. No new measurement; the suite's own run
+time is reported. Three exercises. Every listing here is the real package
+under \code{code/src/trace\_assert}, pulled in by region.
+
+\medskip
+\textbf{Budżet słów:} 3000.\\
+\textbf{Wydanie:} v1.0.\\
+\textbf{Projekt przewodni:} trace-assert final: the full assertion set, packaged and published.
+}

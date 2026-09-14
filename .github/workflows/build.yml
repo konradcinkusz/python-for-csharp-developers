@@ -1,0 +1,354 @@
+name: Build
+
+# Validates the code and both editions on every push and pull request. The
+# release workflow only runs on tags and is therefore too late to catch a
+# broken pull request; this is the one that gives contributors feedback.
+#
+# Lineage: the shape is the math book's build.yml -- numbers first, parity as a
+# hard gate, then a compile matrix, then a cross-reference comparison -- with
+# one job added at the front: the code. This book's promise is that every
+# listing runs on the pinned versions, and a job that does not run them is a
+# promise nobody is keeping.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # -------------------------------------------------------------------------
+  # The code comes first and gates everything. Every listing, every exercise
+  # solution and every measurement runs here on exactly the versions the
+  # title page names: uv installs the pinned interpreter from
+  # code/.python-version and the pinned packages from code/uv.lock, and
+  # refuses to proceed if the lock is stale.
+  # -------------------------------------------------------------------------
+  code:
+    name: Run every listing on the pinned versions
+    runs-on: ubuntu-latest
+    # A hung job with no timeout reports nothing for six hours. Every job in
+    # every workflow here carries one, sized against its own measured cost.
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: code
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.13"
+          enable-cache: true
+          cache-dependency-glob: "code/uv.lock"
+      - name: Install the pinned interpreter and the locked environment
+        run: uv sync --locked
+      - name: Lint at 79 columns
+        run: uv run ruff check .
+      - name: Type-check, strictly
+        run: uv run pyright
+      - name: Every listing runs, and every exercise SOLUTION passes
+        run: PYBOOK_SOLUTIONS=1 uv run pytest
+      - name: Every exercise STARTER still fails
+        # An exercise whose starter already passes is not an exercise.
+        # conftest.py marks every exercise test as a strict expected failure
+        # under this variable, so an unexpected pass fails the job.
+        run: PYBOOK_STARTERS=fail uv run pytest exercises
+      - name: Regenerate every number and transcript the book prints
+        run: |
+          for f in measure/*.py; do echo "== $f"; uv run python "$f"; done
+      - name: Fail if any committed value or transcript has drifted
+        working-directory: .
+        run: |
+          # TWO failures, and `git diff` alone can only see the first: drift
+          # in a tracked file, and a file git has NEVER SEEN -- which is the
+          # state every new value file is in, so it would otherwise pass this
+          # gate by being invisible to it.
+          drift=$(git diff --name-only -- figures/values figures/transcripts)
+          new=$(git ls-files --others --exclude-standard -- figures/values figures/transcripts)
+          if [ -n "$drift" ] || [ -n "$new" ]; then
+            echo "::error::A computed value or transcript differs from what code/measure now produces, or a file there has never been committed."
+            [ -n "$drift" ] && git diff -- figures/values figures/transcripts
+            [ -n "$new" ] && { echo "Untracked, never compared to anything:"; echo "$new"; }
+            exit 1
+          fi
+          echo "Every computed value and transcript matches its script."
+      # Both directories, so the compile jobs get the transcripts as well as
+      # the values. With two paths the artefact is rooted at figures/.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: values
+          path: |
+            figures/values
+            figures/transcripts
+          retention-days: 14
+          if-no-files-found: ignore
+
+  # -------------------------------------------------------------------------
+  # Parity is a hard gate. A bilingual book fails by having a correction
+  # applied to one edition and missed in the other; this is what stops that.
+  # Every check here reads the SOURCE and needs no PDF.
+  # -------------------------------------------------------------------------
+  parity:
+    name: Polish and English in step
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: The manifest and the tree agree
+        run: python3 tools/gen_stubs.py --check
+      - name: Compare the two editions
+        run: python3 tools/parity.py
+      - name: Every listing the book prints is a file that exists
+        run: python3 tools/check_structure.py --listings
+      - name: Every exercise has a starter, a solution and a test
+        run: python3 tools/check_structure.py --exercises
+      - name: Every transcript is on the page
+        run: python3 tools/check_structure.py --transcripts
+      - name: No listing line is wider than the page
+        run: python3 tools/check_structure.py --lines
+      - name: The preamble's pins and pyproject's pins agree
+        run: python3 tools/check_structure.py --pins
+      - name: Every written chapter is inside its word budget
+        run: python3 tools/check_structure.py --words
+
+  diagrams:
+    name: Render diagrams
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Render every Mermaid source to PDF
+        run: |
+          shopt -s nullglob
+          SRC=(figures/mermaid/*/*.mmd)
+          if [ ${#SRC[@]} -eq 0 ]; then
+            echo "No Mermaid sources yet."
+            mkdir -p figures/diagrams
+            exit 0
+          fi
+          # mermaid-cli bundles its own Chromium; --no-sandbox is required in a
+          # container running as root. Installed once rather than resolved per
+          # diagram, and each render carries its own timeout so a wedged
+          # headless Chromium names the diagram rather than the job.
+          printf '{"args":["--no-sandbox","--disable-dev-shm-usage"]}\n' > .puppeteer.json
+          npm install -g @mermaid-js/mermaid-cli@11
+          FAILED=0
+          for f in "${SRC[@]}"; do
+            lang=$(basename "$(dirname "$f")")
+            key=$(basename "$f" .mmd)
+            mkdir -p "figures/diagrams/$lang"
+            echo "::group::$lang/$key"
+            if ! timeout 180 mmdc \
+                 -i "$f" -o "figures/diagrams/$lang/$key.pdf" \
+                 -p .puppeteer.json -c figures/mermaid/config.json \
+                 -b transparent --pdfFit; then
+              rc=$?
+              if [ $rc -eq 124 ]; then
+                echo "::error file=$f::Mermaid TIMED OUT rendering $lang/$key"
+              else
+                echo "::error file=$f::Mermaid failed to render $lang/$key"
+              fi
+              FAILED=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $FAILED
+      - name: Both languages must carry the same diagram keys
+        run: |
+          a=$(cd figures/mermaid/en 2>/dev/null && ls *.mmd 2>/dev/null | sort || true)
+          b=$(cd figures/mermaid/pl 2>/dev/null && ls *.mmd 2>/dev/null | sort || true)
+          if [ "$a" != "$b" ]; then
+            echo "::error::The two editions have different diagram sets."
+            diff <(echo "$a") <(echo "$b") || true
+            exit 1
+          fi
+          echo "Diagram keys match across both editions."
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diagrams
+          path: figures/diagrams
+          retention-days: 14
+          if-no-files-found: ignore
+
+  build:
+    name: Compile ${{ matrix.lang }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [code, diagrams]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - lang: en
+            pdf: Python-for-dotNET-Engineers
+          - lang: pl
+            pdf: Python-dla-inzynierow-dotNET
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v5
+        continue-on-error: true
+        with:
+          name: values
+          path: figures
+
+      - uses: actions/download-artifact@v5
+        continue-on-error: true
+        with:
+          name: diagrams
+          path: figures/diagrams
+
+      # figures/values/all.tex is what the preamble \inputs; the values job
+      # uploads the value files and this rebuilds the index of them.
+      - name: Index the value files
+        run: |
+          mkdir -p figures/values
+          { echo '% Generated in CI --- do not edit.';
+            for v in figures/values/*.tex; do
+              case "$v" in */all.tex) continue;; esac
+              [ -f "$v" ] && echo "\\input{${v%.tex}}"
+            done; } > figures/values/all.tex
+          cat figures/values/all.tex
+
+      - name: Compile with latexmk
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: main-${{ matrix.lang }}.tex
+          latexmk_use_lualatex: false
+          # pdflatex is sufficient; the preamble degrades gracefully when the
+          # optional font packages are missing.
+          args: -pdf -interaction=nonstopmode -halt-on-error -file-line-error
+
+      # Not `grep '^!' main.log`. With -file-line-error an error line begins
+      # with a path, and -interaction=nonstopmode writes a PDF over the top of
+      # it, so both the exit code and the PDF say "fine".
+      - name: Check the log properly
+        run: python3 tools/checklog.py main-${{ matrix.lang }}.log
+
+      - name: Report the build
+        if: always()
+        continue-on-error: true
+        run: |
+          LOG="main-${{ matrix.lang }}.log"
+          if [ ! -f "$LOG" ]; then
+            echo "### \`${{ matrix.lang }}\` edition" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "_No log: the compile did not run to completion._" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          {
+            echo "### \`${{ matrix.lang }}\` edition"
+            echo ""
+            echo '```'
+            python3 tools/checklog.py "$LOG" || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # The log, and it must be if: always(), because the only run whose log
+      # anybody wants is the one that failed.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: log-${{ matrix.lang }}
+          path: main-${{ matrix.lang }}.log
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Rename artefact
+        run: mv main-${{ matrix.lang }}.pdf "${{ matrix.pdf }}.pdf"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: book-${{ matrix.lang }}
+          path: ${{ matrix.pdf }}.pdf
+          retention-days: 14
+
+      # The WHOLE aux tree, not just the main file. reflist.py follows the
+      # \@input{} chain into the per-chapter aux files, and given only the
+      # main one it finds no labels and reports "0 mismatches" -- a check
+      # passing because it read nothing.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: aux-${{ matrix.lang }}
+          path: |
+            main-${{ matrix.lang }}.aux
+            chapters/${{ matrix.lang }}/*.aux
+            appendices/${{ matrix.lang }}/*.aux
+          retention-days: 3
+
+  # A \label may resolve to chapter 8 in one edition and 9 in the other the
+  # moment a numbered thing exists in one and not the other. Both builds stay
+  # internally consistent and neither warns, so this compares the resolved
+  # numbers out of the two .aux trees after the fact.
+  crossrefs:
+    name: Cross-references resolve the same
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: aux-*
+          merge-multiple: true
+      - run: python3 tools/reflist.py main-en.aux main-pl.aux
+
+  ledgers:
+    name: Outstanding work
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Advisory. These are counted on every build so the debt is visible rather
+    # than quietly carried, but a draft is allowed to carry debt.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Print every ledger
+        run: |
+          {
+            echo "## Outstanding work"
+            echo ""
+            echo '```'
+            make -s debt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  versions:
+    name: Check pinned versions against PyPI
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Advisory only. The book pins deliberately; this job exists so drift is
+    # visible on every build rather than discovered by a reader.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Compare preamble pins to the current release on PyPI
+        run: python3 tools/check_versions.py >> "$GITHUB_STEP_SUMMARY"

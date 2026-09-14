@@ -1,0 +1,65 @@
+%% appE-manifest --- Manifest
+%%
+%% Generowany, nigdy nie pisany. Trzy rzeczy: manifest diagramów, manifest
+%% ćwiczeń i rejestry zaległej pracy, drukowane zamiast tylko liczone przez
+%% build, bo czytelnik z PDF-em nie uruchomi `make debt`.
+%%
+%% KAŻDA LICZBA NA TYCH STRONACH JEST OBLICZONA. code/measure/ledgers.py
+%% zlicza je z drzewa i zapisuje figures/values/ledgers.tex, więc `make
+%% verify` przerywa build, gdy rejestr się zmienia, a dodatek nie.
+
+\chapter{Manifest}
+\label{app:manifest}
+
+\noindent
+\emph{Co ta książka jest ci jeszcze winna?}
+
+Każda liczba poniżej jest zliczona ze źródeł przez skrypt i trafia na stronę
+mechanicznie, dokładnie tak jak każda zmierzona liczba w tej książce. To nie
+porządek dla porządku: dodatek z ręcznie wpisanymi liczbami dezaktualizuje się
+w tygodnie i nic tego nie widzi.
+
+\section{Rozdziały}
+\label{sec:E-chapters}
+
+Z \val{ledger.chapters.total} rozdziałów \val{ledger.chapters.written} jest
+napisanych, a \val{ledger.chapters.stubs} nadal drukuje czerwoną ramkę
+\emph{\lblNotWritten} w miejscu tekstu. Z \val{ledger.appendices.total}
+dodatków \val{ledger.appendices.stubs} to zalążki. Zalążek niesie kontrakt
+rozdziału \dash{} co ma uzasadnić i czego nie ma powtarzać \dash{} więc jest
+umową, a nie zapchajdziurą.
+
+\section{Listingi i ćwiczenia}
+\label{sec:E-listings}
+
+W katalogu \code{code/} jest \val{ledger.listings} plików z listingami i
+\val{ledger.exercises} ćwiczeń, każde z plikiem startowym i testem. Każdy z
+nich jest uruchamiany przez build repozytorium przy każdej zmianie, na
+wersjach ze strony tytułowej. \val{ledger.verifybox} listingów nosi ramkę
+\emph{\lblVerify}, co znaczy, że przez ten bieg nie przeszły; liczba jest tu
+wydrukowana po to, żeby nie dało się jej po cichu nieść dalej.
+
+\listofexercises
+
+\section{Diagramy}
+\label{sec:E-diagrams}
+
+W tym wydaniu jest \val{ledger.diagrams} diagramów, każdy narysowany osobno w
+każdym języku, bo diagram z angielskimi etykietami w polskim wydaniu to ten
+rodzaj półprzekładu, przez który dwujęzyczna książka wygląda na zrobioną
+maszynowo. Źródłem prawdy jest plik tekstowy, wersjonowany, więc zmiana jest
+widoczna jako diff. Listę poniżej pisze makro figury w miejscu, w którym
+figura jest umieszczona, więc diagram nie może być w książce i brakować na
+liście.
+
+\listofdiagrams
+
+\section{Pomiary}
+\label{sec:E-measurements}
+
+W rozdziałach wyspecyfikowano osiem pomiarów, wszystkie darmowe i kończące
+się na laptopie. Każdy rozdział, który ma swój pomiar, nazywa go w swoim
+kontrakcie, a zdanie, które pomiar miałby wspierać, jest oznaczone jako osąd,
+dopóki skrypt nie został uruchomiony. Nie drukuje się tu sumy, ile z nich
+uruchomiono, celowo: taka liczba jest twierdzeniem o książce, którego nic nie
+wyprowadza z niczego, i dezaktualizuje się po cichu.

@@ -1,0 +1,4 @@
+flowchart LR
+    R["Przeczytaj sekcje<br/>w PDF-ie"] --> O["Otworz jej listing<br/>w edytorze i uruchom:<br/>uv run python ..."]
+    O --> E["Otworz plik startowy cwiczenia,<br/>spraw, zeby test przeszedl:<br/>uv run pytest -k ..."]
+    E -->|"nastepna sekcja"| R

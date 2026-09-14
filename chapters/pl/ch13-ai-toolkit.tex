@@ -1,0 +1,38 @@
+%% ch13 --- Zestaw inżyniera AI: pydantic, httpx i kształt SDK
+%%
+%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
+%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
+%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
+%% rozdziału oznacza usunięcie bloku \chapterstub{} i zastąpienie go
+%% rozdziałem -- po czym ten plik nie jest już generowany.
+
+\chapter{Zestaw inżyniera AI: pydantic, httpx i kształt SDK}
+\label{ch:aitoolkit}
+
+\chapterstub{%
+\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+
+Argument: every AI SDK in Python is the same three things \dash{} a pydantic
+model, an httpx client and a streaming iterator \dash{} and knowing that
+makes the SDKs readable rather than magical. pydantic for structured
+outputs: a JSON schema from a model, \code{model\_validate\_json}, strict
+against lax; httpx clients for model APIs: timeouts, retries, streaming
+responses, and the \code{AsyncClient} lifetime from chapter 8; the shape of
+the Anthropic and OpenAI SDKs \dash{} client, then messages or responses,
+then typed results, then streaming \dash{} read from the installed, pinned
+package and never from memory; notebooks against scripts, when a notebook is
+right and why nothing in this book is one; tokens and cost as first-class
+quantities. Pointer, never duplication: agents, tools, middleware and graphs
+belong to the LangChain book, and this chapter stops at one model call and
+one structured output. Payoff: a \code{call\_model} function with typed
+input and typed output the reader can drop into the chapter 9 service.
+Measurement: experiment E8, validation cost of one structured output across
+pydantic strict, pydantic lax and a dataclass over \code{json}, free. Four
+exercises.
+
+\medskip
+\textbf{Budżet słów:} 3000.\\
+\textbf{Wydanie:} v1.0.\\
+\textbf{Pomiar:} E8.\\
+\textbf{Projekt przewodni:} trace-assert stage 02: recording a model call as trace events.
+}

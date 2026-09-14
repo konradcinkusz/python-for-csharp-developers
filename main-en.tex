@@ -1,0 +1,29 @@
+% ============================================================
+%  Python for .NET Engineers
+%  Reading, writing and shipping Python when C# is your first language
+%  Konrad Cinkusz
+%
+%  ENGLISH edition. A4, 12pt, one-sided: this book is read on a screen with
+%  an editor open beside it, and is not laid out for print.
+%
+%  Two main files exist, one per language. They differ only in the two lines
+%  below -- \booklang and the PDF title. Everything else, including the whole
+%  document body, is shared, so a chapter cannot go missing from one of them.
+%
+%  Build:  latexmk -pdf main-en.tex        (or: make en)
+%          make            -- both editions, then the gates
+%          make debt       -- every outstanding-work ledger
+%
+%  To work on one chapter only, uncomment \includeonly.
+% ============================================================
+
+\documentclass[12pt,oneside,openany]{book}
+
+\def\booklang{en}
+\input{preamble}
+
+\hypersetup{pdftitle={Python for .NET Engineers}}
+
+% \includeonly{chapters/en/ch01-runtime}
+
+\input{body}

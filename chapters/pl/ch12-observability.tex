@@ -1,0 +1,34 @@
+%% ch12 --- Obserwowalność i operacje: structlog, OpenTelemetry, kontenery i audyty
+%%
+%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
+%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
+%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
+%% rozdziału oznacza usunięcie bloku \chapterstub{} i zastąpienie go
+%% rozdziałem -- po czym ten plik nie jest już generowany.
+
+\chapter{Obserwowalność i operacje: structlog, OpenTelemetry, kontenery i audyty}
+\label{ch:observability}
+
+\chapterstub{%
+\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+
+Argument: the .NET engineer's operational reflexes are right, and the Python
+tools that satisfy them exist; the gap is their names and their defaults.
+The standard \code{logging} module against \code{ILogger}, its configuration
+model and why people replace it; structlog against structured \code{ILogger}
+scopes; correlation identifiers through \code{contextvars} against
+\code{AsyncLocal}; OpenTelemetry in Python against .NET \dash{} auto-
+instrumentation, exporters, resource attributes; container images built with
+uv (multi-stage, \code{uv sync --frozen --no-dev}, a non-root user, the two
+environment variables everybody sets); \code{pip-audit} against \code{dotnet
+list package --vulnerable}; health and readiness checks; graceful shutdown
+through signals and the lifespan; secrets through \code{pydantic-settings}
+again. Payoff: a Dockerfile and a logging-and-tracing bootstrap the reader
+can copy. Measurement: experiment E7, image size and cold start of three
+Dockerfile shapes, free. Four exercises.
+
+\medskip
+\textbf{Budżet słów:} 3000.\\
+\textbf{Wydanie:} v0.2.\\
+\textbf{Pomiar:} E7.
+}

@@ -1,0 +1,146 @@
+\chapter*{\lblIntroduction}
+\phantomsection
+\addcontentsline{toc}{chapter}{\lblIntroduction}
+\markboth{\lblIntroduction}{\lblIntroduction}
+
+\section*{Dla kogo jest ta książka}
+
+Wdrażałeś serwisy w C\#. Wiesz, po co jest pula połączeń, dlaczego
+idempotencja ma znaczenie przy ponowionym żądaniu, co robi token anulowania
+i mniej więcej na co spojrzałbyś najpierw, gdy serwis dławi się pod
+obciążeniem. Poproszono cię \dash{} ogłoszenie o pracę, zespół, do którego
+dołączyłeś, fakt, że ciekawe narzędzia w twojej dziedzinie są teraz pisane w
+nim \dash{} żebyś robił to samo w Pythonie. I odkryłeś, że dwa tygodnie
+wystarczą, żeby być produktywnym, i wcale nie wystarczą, żeby przestać pisać
+Pythona, którego recenzent po cichu przepisuje.
+
+Ta książka jest na te dwa tygodnie i na rok po nich. Zakłada, że jesteś
+doświadczonym inżynierem, i nie zakłada, że znasz Pythona. Jest słownikiem
+tłumaczeniowym z C\# na Pythona i podręcznikiem polowym wdrażania Pythona na
+produkcję, napisanym przez kogoś, kto robi to zawodowo.
+
+\section*{Czym ta książka nie jest}
+
+\begin{itemize}[leftmargin=1.4em]
+  \item Nie jest kursem Pythona od zera. Nigdy nie tłumaczy, czym jest pętla,
+        a swoje strony wydaje na miejsca, w których dekada C\# daje Pythona,
+        który działa i źle się czyta.
+  \item Nie jest katalogiem bibliotek. Wybiera jedno narzędzie do każdego
+        zadania \dash{} \pkg{uv}, \pkg{ruff}, \pkg{pydantic}, \pkg{FastAPI},
+        \pkg{SQLAlchemy}, \pkg{pytest} \dash{} przypina wersję i mówi
+        dlaczego. Alternatywy dostają jedno zdanie.
+  \item Nie jest kolejną książką o AI. Część~V jest krótka i zatrzymuje się
+        na jednym wywołaniu modelu i jednym ustrukturyzowanym wyniku.
+  \item Nie jest książką o LangChain. Tamta książka, \emph{LangChain, LangGraph
+        and Async Python}, jest już napisana dla inżyniera przychodzącego z
+        .NET, a ta jest jej tomem zerowym: język, narzędzia, idiomy i nawyki
+        produkcyjne, które tamta zakłada. Frameworki agentowe zostają tam.
+        Microsoft Agent Framework zostaje w trzecim tomie. Razem te trzy mają
+        być czytane jako jeden kurs i żadna nie powtarza sekcji innej.
+\end{itemize}
+
+\mermaidfig{book-map}{Gdzie jest ta książka: tom zerowy trylogii, z tym samym czytelnikiem na obu stosach}{trylogia}
+
+\section*{Dlaczego teraz}
+
+Trzy rzeczy zmieniły się w ciągu dwóch lat przed napisaniem tej książki i
+każda odebrała jedną wymówkę.
+
+Python~\pyver{} uczynił wersję free-threaded oficjalnie wspieranym sposobem
+uruchamiania interpretera, a nie eksperymentem, co znaczy, że jedno zdanie,
+które każdy inżynier .NET zna o Pythonie \dash{} \enquote{ma globalną blokadę
+interpretera} \dash{} potrzebuje teraz drugiego zdania, a
+Rozdział~\ref{ch:runtime} je dostarcza i mierzy.
+
+Narzędzia się zbiegły. Przez większość historii Pythona uczciwą odpowiedzią na
+\enquote{co jest odpowiednikiem \code{dotnet restore}} było wzruszenie ramion i
+lista; odpowiedzią jest teraz \pkg{uv}, a Rozdział~\ref{ch:packaging} jest
+napisany tak, jakby to było rozstrzygnięte, bo jest.
+
+A historia typowania dojrzała do punktu, w którym instynkty inżyniera C\# są
+atutem, a nie obciążeniem, pod warunkiem że nauczy się dokładnie, gdzie
+checker się zatrzymuje. To Rozdział~\ref{ch:typing} i to dla niego ta książka
+została zaczęta.
+
+\section*{Jak zorganizowana jest książka}
+
+Pięć części, czternaście rozdziałów, każdy poniżej trzech tysięcy słów.
+
+\textbf{Część~I \dash{} \lblPartI} (Rozdziały~\ref{ch:runtime}
+do~\ref{ch:typing}) to miejsce, w którym inżynierowie .NET przewracają się
+pierwsi: środowisko uruchomieniowe, środowisko projektu, pakowanie, typowanie.
+Nic z tego nie jest trudne i wszystko jest inne, a zrobienie tego źle daje
+półroczny projekt, którego nikt nie umie zainstalować.
+
+\textbf{Część~II \dash{} \lblPartII} (Rozdziały~\ref{ch:objects}
+do~\ref{ch:imports}) to słownik właściwy: obiekty, funkcje, błędy, importy.
+Każdy rozdział to tabela mapowania i powody, dla których mapowanie nie jest
+jeden do jednego.
+
+\textbf{Część~III \dash{} \lblPartIII} (Rozdział~\ref{ch:asyncio}) to jeden
+rozdział, celowo, bo książka o LangChain spędza już dwa na pętli zdarzeń dla
+obciążenia agentowego. Ten jest tłumaczeniem z Task Parallel Library i jest
+rozdziałem, o którym inżynierowie .NET myślą, że go nie potrzebują.
+
+\textbf{Część~IV \dash{} \lblPartIV} (Rozdziały~\ref{ch:services}
+do~\ref{ch:observability}) to produkcja: serwis, baza danych, zestaw testów i
+powierzchnia operacyjna \dash{} logi, ślady, kontenery, audyty \dash{} każde
+zmapowane z odpowiedników w ASP.NET Core i EF Core.
+
+\textbf{Część~V \dash{} \lblPartV} (Rozdziały~\ref{ch:aitoolkit}
+i~\ref{ch:traceassert}) to zestaw inżyniera AI \dash{} trzy rzeczy, z których
+zbudowany jest każdy SDK w tej dziedzinie \dash{} i ukończenie projektu
+przewodniego.
+
+Rozdziały są na tyle niezależne, że po części~I można je czytać w dowolnej
+kolejności, z dwoma wyjątkami: Rozdział~\ref{ch:testing} zakłada
+Rozdział~\ref{ch:functions}, a Rozdział~\ref{ch:traceassert} zakłada
+wszystko.
+
+\section*{Projekt przewodni}
+
+Książka buduje przez całą swoją długość jedną rzecz:
+\textbf{\code{trace-assert}}, port na Pythona pierwszej warstwy
+\code{agent-eval-bench} \dash{} deterministycznych asercji nad śladem
+wykonania agenta, napisanych jako testy \pkg{pytest}. \emph{Czy agent wywołał
+narzędzie, które miał wywołać? W tej kolejności, w której miał? Z argumentami,
+które przechodzą walidację? Nie wywołując niczego, czego mu zabroniono?} To
+pytania, na które test odpowie bez modelu, bez budżetu i bez osądu, i są
+najtańszą ewaluacją, jaką agent może mieć.
+
+Przychodzi w trzech etapach. Rozdział~\ref{ch:testing} kładzie szkielet
+\dash{} model śladu, fixture i dwie pierwsze asercje.
+Rozdział~\ref{ch:aitoolkit} zapisuje prawdziwe wywołanie modelu jako
+zdarzenia śladu. Rozdział~\ref{ch:traceassert} domyka zestaw asercji, pakuje
+go i kończy tabelą porównującą, ile ten sam instrument kosztował w .NET, w
+TypeScripcie i w Pythonie.
+
+Projekt nie jest zabawką wybraną do nauczania. Jest rzeczą, której autor
+potrzebował, a czytelnik kończy książkę z pakietem, wpisem na blog i
+odpowiedzią na rozmowie rekrutacyjnej, co jest uczciwym powodem, żeby w ogóle
+wybierać jakiś projekt.
+
+\section*{Zasady, których ta książka się trzyma}
+
+\begin{note}
+\textbf{Każdy listing jest plikiem, a każdy plik jest uruchamiany.} Kod
+mieszka w katalogu \code{code/} jako osobny projekt, zablokowany na wersjach
+ze strony tytułowej, a build repozytorium uruchamia każdy listing i każdy test
+ćwiczenia przy każdej zmianie. Listing, który przez to nie przeszedł, mówi o
+tym w ramce.
+\end{note}
+
+\begin{note}
+\textbf{Pomiary ponad twierdzenia.} Twierdzenie o tym, co jest szybsze,
+tańsze albo bezpieczniejsze, przychodzi ze skryptem i liczbą albo jest
+oznaczone jako osąd. Osiem pomiarów jest wyspecyfikowanych w rozdziałach,
+wszystkie darmowe i kończące się na laptopie; dopóki ten za twierdzeniem nie
+został uruchomiony, twierdzenie o tym mówi.
+\end{note}
+
+\begin{note}
+\textbf{Twarde ramy.} Czternaście rozdziałów, żaden powyżej trzech tysięcy
+słów, każdy publikowalny osobno, w trzech wydaniach. Ramy istnieją, bo inne
+projekty autora nauczyły go, czym staje się książka bez granic, a build je
+egzekwuje, zamiast ufać, że ktokolwiek będzie pamiętał.
+\end{note}

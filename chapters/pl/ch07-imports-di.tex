@@ -1,0 +1,35 @@
+%% ch07 --- Importy i wstrzykiwanie zależności: moduły, cykle i korzeń kompozycji
+%%
+%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
+%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
+%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
+%% rozdziału oznacza usunięcie bloku \chapterstub{} i zastąpienie go
+%% rozdziałem -- po czym ten plik nie jest już generowany.
+
+\chapter{Importy i wstrzykiwanie zależności: moduły, cykle i korzeń kompozycji}
+\label{ch:imports}
+
+\chapterstub{%
+\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+
+Argument: a module is an object that runs once, and most import pain is a
+consequence of that one sentence. The import system against namespaces and
+assemblies: \code{sys.modules}, packages, \code{\_\_init\_\_.py}, relative
+against absolute imports, \code{importlib}, side effects at import time,
+circular imports and the three ways out; \code{python -m} and the
+\code{src/} layout seen again from this side. Dependency injection: the
+composition root without a container (plain functions,
+\code{functools.partial}, a \code{Protocol}) and with one \dash{} which
+library, if any, verified against what is maintained on the day of writing
+rather than remembered \dash{} against
+\code{Microsoft.Extensions.DependencyInjection}: singleton, scoped and
+transient lifetimes and what Python does instead; FastAPI's \code{Depends}
+previewed as the one container most readers will meet, and handed to chapter
+9. Payoff: a package structured so that nothing global is mutated at import
+and a test can substitute anything. Listings: a circular import reproduced
+and fixed three ways; a composition root in thirty lines. Four exercises.
+
+\medskip
+\textbf{Budżet słów:} 3000.\\
+\textbf{Wydanie:} v0.1.
+}
