@@ -83,8 +83,11 @@ does not:
 - 26 computed value keys, every one produced and every one used
 - Parity: 23 file pairs, 0 failures, 0 warnings · 89 labels in each edition,
   0 mismatches
-- Chapter 10 carries 3 `csbox` translation boxes and 2,385 / 2,066 prose
-  words against a budget of 3,000
+- Prose words against a budget of 3,000, and `csbox` translation boxes:
+  Chapter 3 at 2,915 / 2,516 with 2 boxes, Chapter 7 at 2,581 / 2,242 with
+  3, Chapter 10 at 2,386 / 2,069 with 3 — English first. These are the
+  figures `--words` and `--csbox` print, and they move with any prose edit,
+  so re-read them from the tool rather than from here
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
   runs each one; neither that file nor this one states a total, because a
