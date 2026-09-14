@@ -106,6 +106,8 @@ class Command:
 # run that listing themselves.
 TRANSCRIPTS: dict[str, Listing | Command] = {
     "ch00-loop": Listing("ch00/loop.py"),
+    "ch01-bytecode": Listing("ch01/bytecode.py"),
+    "ch01-interpreter": Listing("ch01/interpreter.py"),
     "ch02-lockfile": Listing("ch02/lockfile.py"),
     "ch02-where-am-i": Listing("ch02/where_am_i.py"),
     "ch03-defaults": Listing("ch03/defaults.py"),

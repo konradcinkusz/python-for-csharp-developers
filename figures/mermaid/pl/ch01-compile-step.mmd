@@ -1,0 +1,5 @@
+flowchart LR
+    P1["widget.py<br/>plik, ktory edytujesz"] --> P2["kompilowany do bajtkodu<br/>przy pierwszym imporcie<br/>i zapisany w __pycache__"]
+    P2 --> P3["petla ewaluacyjna<br/>wykonuje bajtkod"]
+    C1["Widget.cs<br/>plik, ktory edytujesz"] --> C2["kompilowany do IL<br/>przy budowaniu<br/>i wysylany w asemblacie"]
+    C2 --> C3["JIT generuje<br/>kod maszynowy przy<br/>pierwszym wywolaniu"]

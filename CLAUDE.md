@@ -19,13 +19,13 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **8 of 14 written: Chapter 2 *Environments and packaging*, Chapter 3 *Typing*, Chapter 6 *Errors*, Chapter 7 *Imports and dependency injection*, Chapter 8 *asyncio*, Chapter 10 *Data*, Chapter 11 *Testing* and Chapter 13 *The AI engineer's kit* — both editions** | 1, 4, 5, 9, 12, 14 |
+| Chapters | **9 of 14 written: Chapter 1 *CPython and the GIL*, Chapter 2 *Environments and packaging*, Chapter 3 *Typing*, Chapter 6 *Errors*, Chapter 7 *Imports and dependency injection*, Chapter 8 *asyncio*, Chapter 10 *Data*, Chapter 11 *Testing* and Chapter 13 *The AI engineer's kit* — both editions** | 4, 5, 9, 12, 14 |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: `trace-assert` at stages 01 and 02, Chapters 2, 3, 6, 7, 8, 10, 11 and 13's listings and exercises, E2, E3, E4, E6 and E8, and the measurement, ledger and transcript scripts, and CI runs all of it | every other chapter's listings and exercises; every experiment the manifest's Status column still marks *not run* |
+| Code | `code/` is a locked uv project: `trace-assert` at stages 01 and 02, Chapters 1, 2, 3, 6, 7, 8, 10, 11 and 13's listings and exercises, E1, E2, E3, E4, E6 and E8, and the measurement, ledger and transcript scripts, and CI runs all of it | every other chapter's listings and exercises; every experiment the manifest's Status column still marks *not run* |
 
-**The scaffold plus eight chapters.** The scaffold existed so that the shape of
+**The scaffold plus nine chapters.** The scaffold existed so that the shape of
 the book could be argued with before any chapter was written, and so that the
-first one was written into a build that already had every gate. Those eight
+first one was written into a build that already had every gate. Those nine
 were written in parallel, by separate passes that could not see each other,
 each against the issue that came up first rather than against the reading
 order — which is possible because a chapter names what it borrows and borrows
@@ -38,7 +38,8 @@ to the preamble, by the Chapter 2 pass, whose own subject exposed it — see
 written”**, and each was right from where it stood, because no pass could
 see another. That is the clearest evidence in this file of what parallel
 passes cost: every session re-measured every ledger, and two of them merged
-`main` five times, because four of those merges were overtaken before their
+`main` five times, because almost every one of those merges was overtaken
+before its
 own CI had finished. The openers name merge positions now rather than
 claiming a first — a contradiction is not evidence once it is sitting in one
 file, and the cost is recorded here instead, where it cannot come apart from
@@ -55,16 +56,18 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 146 | 0 | 0 | 0 | 0 |
-| `main-pl` | 147 | 0 | 0 | 0 | 0 |
+| `main-en` | 154 | 0 | 0 | 0 | 0 |
+| `main-pl` | 156 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
 to go stale. **And say which build**, which is the Chapter 3 pass's rule and
-is why these two rows are not comparable with the ones it recorded: they are
+which the Chapter 1, Chapter 7, Chapter 8 and Chapter 10 passes then each
+paid for independently: these two rows are
 from an installation that HAS `newtx`, `inconsolata` and `tex-gyre`
 (`texlive-fonts-extra` plus `tex-gyre` and `texlive-plain-generic`), where
-Chapter 3's 53 and 56 were from a bare one that degrades to `lmodern`
+the scaffold's 37 and 37 and Chapter 3's 53 and 56 were from a bare one that
+degrades to `lmodern`
 through the preamble's `\IfFileExists` probes. Different fonts, different
 line breaks, different pagination. CI compiles on a full TeX Live; that is
 the inherited two-machines rule and it is not a defect. Record which
@@ -82,25 +85,26 @@ for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **6 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **5 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 168 listing references, every file and region present · 34 exercises, each
-  with a starter, a solution and a test · 64 transcript references, every
-  file present · 197 code files, none over 79 columns · 21 pins agree between
+- 178 listing references, every file and region present · 37 exercises, each
+  with a starter, a solution and a test · 68 transcript references, every
+  file present · 211 code files, none over 79 columns · 21 pins agree between
   `preamble.tex` and `code/pyproject.toml`
 - **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
   reader that something was not run
-- 50 Mermaid sources, twenty-five per language, all rendering, all placed
-- 70 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 190 labels in each edition,
+- 56 Mermaid sources, twenty-eight per language, all rendering, all placed
+- 105 computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · 204 labels in each edition,
   0 mismatches
 - Prose words against a budget of 3,000, and `csbox` translation boxes:
   every written chapter is inside both, and the per-chapter figures are what
   `--words` and `--csbox` print. They move with any prose edit, so re-read
-  them from the tool rather than from here. **`reflist.py` reads the `.aux`
-  tree**, so its label count is a fact about the last build rather than
-  about the source: rebuild before quoting it, or it reports the tree you
-  had before your merge.
+  them from the tool rather than from here — nine chapters is eighteen
+  numbers, and a list of them here has gone stale on every merge so far.
+  **`reflist.py` reads the `.aux` tree**, so its label count is a fact about
+  the last build rather than about the source: rebuild before quoting it, or
+  it reports the tree you had before your merge.
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
   runs each one; neither that file nor this one states a total, because a
@@ -125,12 +129,25 @@ of authority:
 3. The project's documentation, written for the happy path.
 4. PyPI release metadata, for dates.
 
-> **Network note.** In the Claude Code web sandbox `pypi.org`,
-> `files.pythonhosted.org` and `archive.ubuntu.com` are reachable; Ubuntu
-> PPAs answer 403 through the proxy and `api.github.com` needs `add_repo`.
-> `tools/check_versions.py` compares every pin against PyPI; run it before
-> starting a chapter, and resolve a pin that has drifted far rather than
-> writing against a version nobody will install.
+> **Network note**, extended by the Chapter 1 pass, which needed all of it.
+> Reachable: `pypi.org`, `files.pythonhosted.org`, `archive.ubuntu.com`, and
+> **`raw.githubusercontent.com`**. Blocked by the proxy: Ubuntu PPAs,
+> `astral.sh`, `peps.python.org` and `docs.python.org`; `api.github.com`
+> needs `add_repo`. Two consequences worth knowing before you start:
+>
+> - **uv is installed from PyPI, not from `astral.sh`.** The sandbox ships
+>   uv 0.8, which knows 3.14 only as a release candidate. `python3 -m pip
+>   install --target <dir> uv==0.12.13` and put its `bin/uv` on `PATH`; the
+>   Makefile's `UV ?= uv` then picks it up, and `uv python install 3.14.7`
+>   and `3.14.7+freethreaded` both work.
+> - **A PEP number is verified from CPython's repository, not from
+>   `peps.python.org`.** `Doc/whatsnew/<minor>.rst` at the tag matching the
+>   pin is the primary source this sandbox can actually reach, it is the
+>   authority level this list already prescribes, and it carries more than
+>   the PEP number: Chapter 1's citations for PEP 703, 779 and 744, for
+>   free-threaded builds not supporting the JIT, and for CPython's own
+>   five-to-ten-per-cent single-thread figure all came out of one fetch of
+>   `v3.14.7/Doc/whatsnew/3.14.rst`.
 
 **Run listings, or mark them.** Every listing is a file under `code/`,
 pulled in with `\pyfile{}` or `\pyregion{}`, and `code/tests/test_listings.py`
@@ -489,6 +506,23 @@ are listed by name and their reasoning is in the companion books.
   0.12.13 installs 3.14.7. The Makefile takes `UV ?= uv`, so a newer binary
   on `PATH` is enough, and CI pins the uv version in `setup-uv`.
 - **`siunitx` is in `texlive-science` on Debian**, not in `texlive-latex-extra`.
+- **`binhex.tex` is in `texlive-plain-generic`**, and `newtxmath` needs it.
+  With the font packages installed but not that one the run dies on
+  `! LaTeX Error: File 'binhex.tex' not found.` after the preamble has
+  already loaded newtx, so the message names a file nobody wrote and no
+  package this book asks for. The full local set is `latexmk`,
+  `texlive-latex-base`, `-latex-recommended`, `-latex-extra`,
+  `-fonts-recommended`, `-fonts-extra`, `-science`, `-lang-polish`,
+  `-lang-english`, `-plain-generic` and `tex-gyre`.
+- **A `\pyvaltext` body reaches the page as LaTeX, so the script that
+  writes one owes it the same escaping a chapter owes.** `platform.machine()`
+  on the commonest architecture in the world returns `x86_64`, the
+  underscore is a maths subscript, and Chapter 1's first build died on four
+  `Missing $ inserted` errors and two overfull boxes of 98.8 and 74.7 pt — the second of which is a paragraph typeset in maths mode with its
+  spaces gone, which is what an unclosed `$` does. `code/measure/e01_gil.py`
+  carries a `tex()` helper; any script emitting a text value needs one.
+  `\pyval` needs none of it, because a number has no special characters in
+  it.
 - **A background `make ... > log 2>&1; echo "MAKE_EXIT $?"` is reported as
   exit 0 whatever make did** (inherited). Read the log's own `MAKE_EXIT`
   line, and treat an unchanged page count as a failed build.
@@ -630,7 +664,8 @@ overfull line is 90 characters, at 4.5 pt, and each further column costs
 the ten spare columns are the slack that keeps a listing off the margin
 under any metric.
 
-**Two decisions left open, deliberately:**
+**Two decisions left open, deliberately** — one of which the Chapter 1
+pass has since settled:
 
 - **Whether CI compiles the C# side of Appendix D.** Every Python solution
   has a test CI runs. The C# solutions are listings too, and compiling them
@@ -638,6 +673,10 @@ under any metric.
 - **Where the free-threaded interpreter runs for E1.** `uv python install
   3.14t` gives `python3.14t`; whether the `code` job installs two
   interpreters or E1 runs in a job of its own is undecided.
+  **Settled in the Chapter 1 pass: neither, and CI installs one
+  interpreter** — a timing is recorded once into a committed JSON and CI
+  only re-derives the value file from it, so nothing in CI ever needs the
+  free-threaded build. See that pass below.
 
 ### The review pass, September 2026
 
@@ -1427,6 +1466,186 @@ paying, and the thing that makes it survivable is that every number in this
 file has a command that regenerates it. **Re-measure after the merge, not
 before it**, and say which installation.
 
+### The Chapter 1 pass, September 2026
+
+**Chapter 1 is written in both editions, experiment E1 has run, and the four
+Part I traps it owns are marked delivered in `notes/02-traps.md` with the
+section that carries each.** Three listings under `code/ch01/`, three
+exercises, three figures per edition, two transcripts. What is worth reading
+below is not the chapter but what the gates refused: every defect they caught
+was in work that already looked finished, and each is listed rather than
+counted, because a tally here is the class of claim this file forbids.
+
+#### A TIMING cannot pass the drift gate, so E1 has two modes
+
+Every other script under `measure/` is deterministic: it counts the tree, or
+it runs a listing whose output is fixed. A wall time is not, and CI re-runs
+every script there on every push and fails the build when a committed value
+moves. A timing script that measured on each run could therefore never be
+green on two machines — and a wall time rounded until it could would
+say nothing.
+
+So `code/measure/e01_gil.py --record` measures and writes
+`code/measure/data/e01.json`, committed, with the machine and both
+interpreters recorded beside the numbers; the default mode derives
+`figures/values/e01.tex` from that file and is what `make numbers` runs. The
+gate then asks a question it can answer — does the page agree with the
+measurement that was taken? — and re-recording is a deliberate act that
+reviews as a diff of the data rather than of the prose. **This is the shape
+every later timing experiment needs**, and `notes/01-curriculum.md` §4 says
+so where the next person will look.
+
+It also settles the second of the scaffold's two open decisions. **CI installs
+one interpreter.** Only `--record` needs `python3.14t`, and nothing in CI
+records; proved by hiding the binary from `PATH` and watching the emit mode
+exit 0 and `--record` exit 1 with the install command in its message. A
+second interpreter in CI would buy a re-measurement on a shared runner, which
+is the one machine whose timings nobody should trust.
+
+#### Three guards fired, each written for a defect that had not yet happened
+
+- **The reproduce-from-the-page guard, on its first real run.** The page
+  would have carried 0.097, 0.398 and 4.09, and the first two divide to 4.10.
+  This is the defect both sibling books record paying for repeatedly, caught
+  here by three lines of code before it reached a page. The ratios print to
+  one decimal now.
+- **A ratio under 1.0.** At a tenth of the present workload size the
+  free-threaded four-thread run came out FASTER than the one-thread run, and
+  would have printed `0.9` — four threads beating one at the same work
+  each, which is not a finding but a measurement smaller than the machine's
+  own noise. `emit()` now refuses a sub-unity ratio and says to raise the
+  workload; `ch01/workloads.py` is sized so one unit takes about a fifth of a
+  second, with few trials, and the harness repeats the whole file instead so
+  a reader's own run stays about five seconds.
+- **`PYBOOK_STARTERS=fail` refused an exercise test of mine.** Exercise 1.3's
+  first draft had a test asserting that importing the module runs nothing —
+  which is true of the untouched starter, so it passed, and a strict
+  xfail reports a pass as a failure. That is the mechanism working exactly as
+  designed: **every test in an exercise's file must exercise the thing the
+  reader has not written yet.** A precondition belongs inside a test that
+  goes on to fail, not beside it. Folded into the test that then calls
+  `main()`.
+
+#### What E1 measured, and the one number it refuses to conclude anything from
+
+Four threads, three workloads, two builds, seven repeats of the whole
+listing, on four cores. Pure-Python work takes **4.1x** as long on four
+threads as on one under the default build and **1.0x** under
+`python3.14t`; a socket read and a `hashlib` digest are **1.0x** on both,
+because neither holds the lock. The wall-clock gain on the one workload the
+lock touches is **3.8x**.
+
+**The number everyone asks for is the one this experiment cannot give.** What
+does free-threading cost a single thread? Across recordings on this machine
+the two one-thread columns have differed by one, seven and eleven per cent,
+against a run-to-run spread of twelve per cent in the ratios themselves. The
+value is emitted — as a *difference*, computed so a reader dividing the
+two printed columns gets the same answer — and the chapter quotes
+CPython's own five-to-ten-per-cent estimate beside it and says plainly that
+the agreement is worth nothing, because a seven-per-cent difference inside a
+twelve-per-cent spread is not a measurement. An earlier recording at a tenth
+of this workload said eleven per cent, which is the same non-answer wearing a
+confident face.
+
+#### The brief was right about the mathematics and wrong about one listing
+
+**`python -m dis` cannot be a committed transcript.** Its output carries a
+code object's memory address — `<code object total_due at 0x7f09...>` —
+which changes on every run, so `make verify` could never be green on it,
+and it disassembles the module-level code as well, which is noise around
+the four lines the section is about. `dis.dis` on a function object prints
+neither. The listing is `dis.dis(total_due)`; the brief in
+`tools/chapters.json` now says so and says why, which is the one amendment
+this pass made to it.
+
+Two other things the brief called for turned out to be verifiable in a
+stronger form than it asked:
+
+- It says *a thread pool on CPU-bound and on I/O-bound work*. The
+  chapter times **three** workloads, because the third is the one nobody
+  predicts: `hashlib` over a large buffer releases the lock and scales like
+  I/O. Two rows say *threads are fine* for two different reasons, and
+  the brief's own payoff — which of four workloads the lock hurts
+  — is the three plus the same CPU row on the free-threaded build.
+- Its PEP numbers are right. They were verified out of CPython's own
+  `Doc/whatsnew/3.14.rst` at tag `v3.14.7`, which was the only primary source
+  this sandbox could reach, and the same fetch supplied three more things the
+  chapter now cites: that free-threaded builds do not support JIT compilation
+  (which the measurement had already shown, `sys._jit.is_available()` being
+  `False` under `python3.14t`), that the JIT is PEP 744 and not recommended
+  for production, and the five-to-ten-per-cent figure above.
+
+#### Also
+
+- **A starter cannot carry an import its unwritten code would use.** Exercise
+  1.3's starter imported `sys` for the `sys.exit` the reader has to write,
+  and ruff called it F401 on an otherwise untouched file. The import is gone
+  and the trailing comment says it is missing on purpose, which is a better
+  instruction anyway.
+- **pyright strict rejects JSON.** Every value read back out of
+  `json.loads` is `Unknown` to it, and the measurement script traffics in
+  nothing else. Four `TypedDict`s and one `cast` at the boundary fixed it,
+  and the driver was changed to emit a mapping of name to `[one, many]`
+  rather than the listing's own mixed tuples, because a list of mixed types
+  is a list of `Unknown`. This is the `dict[Unknown, Unknown]` class the
+  scaffold's own pass flagged as Chapter 3 material, met for real.
+- **The diagram manifest column overflows at about 70 visible characters**
+  on this layout — key plus `.mmd` plus ` --- ` plus the third
+  argument. Measured: 67 fits and 70 does not. That is the sibling books'
+  recurring defect with a local number attached; the six entries here are 42
+  to 59, and the rule is the one they record — the third argument is
+  manifest copy, not a caption.
+- **The figures were measured before the captions were written**, which is
+  the recorded rule. All six renders land between 9.08 and 10.28 pt of node
+  text against the formula `12.57 x min(400/W, 287/H)`, with every aspect
+  ratio above the 1.4 crossover. The first draft of `ch01-compile-step` was
+  four nodes per row at 801 pt and 6.28 pt of type; three nodes per row
+  brought it to 514 pt.
+- **`\pyregion` and its markers work as the preamble documents them**, on
+  six regions across three files, printing the file's own line numbers.
+- Chapter 1 is the first file in the book to use `\index`. The entries are
+  Polish in the Polish edition, which parity allows: C14 counts `\index`
+  and compares nothing inside it.
+- **The page counts in the Status table above changed provenance under
+  this pass**, and the Chapter 7 pass reached the same conclusion from its
+  own container independently. The Chapter 3 pass measured on a bare TeX
+  Live and said so, correctly, in the sentence it added; this pass installed
+  the full font set to get past `binhex.tex` (the trap above), and Chapter 7
+  installed it too. So the rows in the Status table are a *full*
+  installation's and are not comparable with either the scaffold's 37 and 37
+  or Chapter 3's own 53 and 56. Nothing is wrong with any of the three
+  measurements and the rule that separates them was already written down.
+  **Several sessions measuring one book on two kinds of installation is now
+  something that has happened here rather than an inherited caution** — so a
+  page count in this file needs its installation named beside it, and that
+  row is the first thing a later pass should re-measure rather than trust.
+  The two rows also stopped being equal somewhere in this run of parallel
+  passes, and **the gap is not stable in size or in sign**: this pass
+  measured 75 against 76 on a three-chapter tree, 88 against 87 on a
+  four-chapter one, 102 against 102 and 115 against 115 on trees of five and
+  six, 129 against 130 on one of seven and 140 against 141 on one of eight.
+  Polish prose
+  is longer, but which edition happens to need one more leaf is a property
+  of where the breaks fall, not a rule. No pass should read a one-page gap,
+  in either direction, as a defect — nor read equality as confirmation of
+  anything.
+- **The exercise-key ordinal bit here too, which makes it four passes out of
+  eight.** The first draft had `\begin{exercise}{e01_02_...}` third in the
+  chapter, so the page read *Exercise 1.3* over a starter called
+  `e01_02_which_pool.py`; the three files were renamed by hand. Chapters 6
+  and 8 each diagnose it in full above and each sketch the same check, and
+  the Chapter 3 pass renumbered its keys for the same reason — **four
+  independent sessions, none of which knew about the others, made the
+  identical mistake on a first draft.** That is the argument for writing the
+  gate rather than restating the discipline: a convention four careful
+  passes broke is not one a ninth will keep. The Chapter 2, Chapter 7,
+  Chapter 10 and Chapter 13 notes do not mention it, so whether those passes avoided it or
+  merely never wrote an exercise out of order is not established here. It is
+  still not written here, for the reason all three notes give — `tools/` is
+  shared with whatever chapter is in flight — so it belongs to an
+  infrastructure issue, and this is the fourth data point that issue should
+  carry.
+
 ---
 
 ### Chapter 7 pass, September 2026
@@ -2109,19 +2328,18 @@ Tag from a local clone.
 
 ## What is left
 
-Eight chapters of fourteen are written: 2, 3, 6, 7, 8, 10, 11 and 13. The
+Nine chapters of fourteen are written: 1, 2, 3, 6, 7, 8, 10, 11 and 13. The
 outstanding work is tracked as GitHub issues under the `chapter`, `appendix`,
 `experiment` and `infrastructure` labels — **work from the labels, not from
 a list here**, because a list in this file is the class of claim nothing can
 check. In rough order:
 
-1. **Chapters 1, 4 and 5**, which with the written Chapters 2, 3, 6 and 7
+1. **Chapters 4 and 5**, which with the written Chapters 1, 2, 3, 6 and 7
    complete v0.1. The suggested order was 1, 2, 3 first, because every later
    chapter's listings assume the reader trusts the environment — and every
    chapter written out of that order so far has not suffered for it, because
-   each names what it borrows and borrows almost nothing. Treat the
-   ordering as a
-   preference rather than a constraint. Two things that cost Chapter 6 a
+   each names what it borrows and borrows almost nothing. Treat the ordering
+   as a preference rather than a constraint. Two things that cost Chapter 6 a
    round are under *Resolved questions* and are worth reading first — the
    exercise-harness paragraph before writing an exercise, and the note on
    dumping the English token stream with `parity.py`'s own tokeniser before
