@@ -23,7 +23,7 @@ repository's `CLAUDE.md`, and it is not repeated here.
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
 | Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapters 1, 3, 6, 7, 8 and 10's listings and exercises, E1, E3, E4 and E6, and the measurement, ledger and transcript scripts, and CI runs all of it | every other chapter's listings and exercises; four of the eight experiments |
 
-**The scaffold plus five chapters.** The scaffold existed so that the shape of
+**The scaffold plus six chapters.** The scaffold existed so that the shape of
 the book could be argued with before any chapter was written, and so that the
 first one was written into a build that already had every gate. Chapters 1, 3,
 6, 7, 8 and 10 were written in parallel, by separate passes, each against the
