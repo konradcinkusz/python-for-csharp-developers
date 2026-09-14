@@ -19,14 +19,15 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **0 of 14 written.** Every chapter is a brief printed where the chapter will go | all fourteen |
+| Chapters | **1 of 14 written: Chapter 3, both editions.** The other thirteen are briefs printed where the chapter will go | 1, 2 and 4 to 14 |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: the `trace-assert` skeleton, the first listing, the first exercise, the two measurement scripts, and CI runs all of it | every chapter's listings and exercises; the eight experiments |
+| Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapter 3's seven listings, five exercises, three measurement scripts, and CI runs all of it | every other chapter's listings and exercises; the eight experiments |
 
-**This is the scaffold.** It exists so that the shape of the book can be
-argued with before Chapter 1 is written, and so that the first chapter is
-written into a build that already has every gate. Nothing in it teaches
-Python yet.
+**The scaffold plus one chapter.** The scaffold existed so that the shape of
+the book could be argued with before Chapter 1 was written, and so that the
+first chapter was written into a build that already had every gate. Chapter 3
+is the first chapter written into it, and the gates earned their keep on the
+first pass — see *The Chapter 3 pass* below.
 
 **Two editions, one paper size, both clean.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
@@ -34,29 +35,34 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 37 | 0 | 0 | 0 | 0 |
-| `main-pl` | 37 | 0 | 0 | 0 | 0 |
+| `main-en` | 53 | 0 | 0 | 0 | 0 |
+| `main-pl` | 56 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
-to go stale.
+to go stale. **And say which build**: the two rows above are from a bare TeX
+Live — `lmodern`, no `newtx` and no `inconsolata`, which is what the
+preamble's `\IfFileExists` probes degrade to — so they are comparable with
+the scaffold's 37 and 37 and are *not* comparable with a full installation's.
+CI compiles on a full TeX Live and will paginate differently; that is the
+inherited two-machines rule and it is not a defect.
 
 **Debt ledgers, reported by CI on every build** (`make debt`), and printed
 for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **14 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **13 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 2 listing references, every file and region present · 1 exercise, with a
-  starter, a solution and a test · 2 transcript references, every file
-  present · 14 code files, none over 79 columns · 19 pins agree between
+- 16 listing references, every file and region present · 5 exercises, each
+  with a starter, a solution and a test · 12 transcript references, every
+  file present · 34 code files, none over 79 columns · 19 pins agree between
   `preamble.tex` and `code/pyproject.toml`
 - **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
   reader that something was not run
-- 4 Mermaid sources, two per language, all rendering, both placed
-- 9 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 26 labels in each edition,
+- 8 Mermaid sources, four per language, all rendering, all placed
+- 15 computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · 44 labels in each edition,
   0 mismatches
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
@@ -702,6 +708,122 @@ for reasons worth keeping rather than silently dropping:
   general (`\pysettingsver` names `pydantic-settings`, not
   `pysettings`), so the dict is the one place that mapping can live.
 
+### The Chapter 3 pass, September 2026
+
+The first chapter written into the scaffold, and the gates caught five things
+on the way. Every claim below was measured on the pinned versions rather than
+recalled, and the scripts that measured them are in the tree.
+
+**The brief asked why the book pins two checkers; the answer is now a
+number rather than a sentence.** `code/ch03/where_it_lies.py` holds four
+functions, each declaring `-> int` and each returning a `str` at run time:
+two where `Any` arrives from `json.loads` and nobody decided anything, and
+two where the author told the checker to stop looking (`cast`,
+`type: ignore`). Measured by `code/measure/checkers.py`, which runs both
+tools over that file and writes what each said:
+
+| | pyright 1.1.414, strict | mypy 2.3.1, `--strict` |
+|---|---|---|
+| errors on four wrong functions | **0** | **2**, both `no-any-return` |
+
+Neither tool is at fault. pyright is applying the type system, in which `Any`
+is compatible with everything; mypy's strict profile adds an opinion the type
+system does not have. **The instrument was watched producing a known answer
+before the zero was believed**, which is the inherited rule and it mattered
+here: a zero from a checker is exactly what a mis-configured checker also
+prints. A two-line file with an untyped parameter drew four strict-only
+diagnostics (`reportUnknownParameterType`, `reportMissingParameterType`),
+which is how the strict mode was proved to be in effect.
+
+A second measurement, on `code/ch03/defaults.py` — one mutable default
+argument, correctly annotated — went **pyright 0, mypy 0, ruff 1** (`B006`).
+So the chapter can say, with evidence, that a type checker answers questions
+about types and that a good deal of what goes wrong in Python is not one.
+ruff is run there with `--ignore-noqa`, because the listing carries a `noqa`
+so that `make code` stays green; without the flag the script would have
+measured the comment rather than the code.
+
+**`check_structure.py --lines` caught a line `ruff check` let through, and
+the disagreement is by design in ruff.** An 88-column line whose overlong
+part is a trailing `# pyright: ignore[...]` pragma passes ruff's `E501` and
+fails the book's own gate. Reproduced both ways on a two-line probe: a plain
+86-column line is flagged, an 89-column line ending in a pragma is not. So
+**ruff alone does not hold this book to 79 columns**; `--lines` is what
+enforces the page width, and it is not redundant with the linter.
+
+**`TypeIs` requires consistency, and `list` is invariant — which rewrote an
+exercise.** The obvious signature for a list predicate,
+`list[object] -> TypeIs[list[str]]`, is *rejected*: pyright says the narrowed
+type is "not consistent with" the parameter type, because `list[str]` is not
+assignable to `list[object]`. `TypeGuard[list[str]]` over the same parameter
+is accepted, since `TypeGuard` has no such requirement — which is the same
+fact as `TypeGuard` narrowing only the positive branch, seen from the other
+side. Exercise 3.1 takes a `Sequence` for that reason, `Sequence` being
+covariant, and §3.2 now carries the finding because it ties the chapter's
+variance material to its narrowing material.
+
+**Writing the chapter's own measurement script ran straight into the
+chapter's own §3.5.** `isinstance(value, dict)` narrows to
+`dict[Unknown, Unknown]` under strict pyright, so parsing pyright's JSON
+output drew thirteen `reportUnknown*` errors. The fix is one documented
+`cast` in one helper — which is one of the four holes the chapter lists,
+used deliberately and in one place. That is the same complaint the scaffold
+met on `default_factory=dict`, and the chapter's `projectbox` now points at
+both instances.
+
+**`make starters` caught two exercises whose tests passed on the unfinished
+starter**, and both were real. Exercise 3.1's starter carried the `TypeIs`
+annotation the exercise exists to teach, so the test checking for it passed
+before the reader had done anything; the starter now carries `-> bool` and
+the annotation is half the work. Exercise 3.3's second test called through
+the shared default only once, and **one call through a mutable default is not
+enough to show that it is shared** — the test now calls twice. `conftest.py`
+marks *every* collected test strict-xfail, so an exercise whose starter fails
+only some of its tests is a build failure, and that is the gate working.
+
+**Two decisions, both recorded rather than taken quietly.** There is no .NET
+SDK in this sandbox, so nothing in the chapter compiles C#: every C# claim it
+makes is a language-level fact a reader can check in their own IDE, it uses
+no `csharp` listing environment at all, and the C# side lives in two `csbox`
+blocks of prose. And the exercise keys were renumbered once during the pass
+so that the printed numbers follow the sections — the counter numbers
+exercises by order of appearance, so `e03_01_` must be the one that appears
+first, and a key whose number disagrees with its position is confusing on the
+page and invisible to every gate.
+
+**Two unmeasured comparatives got into the prose and were caught on a
+re-read rather than by a gate.** Neither was a headline claim; both were
+connective tissue — *pydantic is the only one that costs anything to
+construct*, and *pyright is fast, mypy is slower*. The first is now a
+statement about behaviour (it is the only one that does anything beyond
+assigning the fields), which is checkable by reading. The second split: *the
+older of the two* is verified from PyPI release metadata (mypy's earliest
+release is 2009, pyright's 2021), and the speed half is **gone**, replaced by
+a sentence saying the book has not measured it and neither has whoever told
+you otherwise. The class is worth naming because a gate cannot see it: a
+comparative that arrives as a subordinate clause reads like prose rather than
+like a claim, and `grep -nE 'faster|slower|cheaper'` over a finished chapter
+is the cheapest audit in this repository.
+
+**Nothing in the brief turned out to be wrong.** All five of the trap
+catalogue's Chapter 3 entries are delivered and marked in `notes/02-traps.md`
+with the section that elicits each; the brief names four of them in its
+*traps* clause and the fifth, `Any` propagation, in its body.
+
+**The figures, measured with `pdfinfo` before the captions were written**,
+using the inherited formula `12.57 pt x min(400/W, 287/H)`:
+
+| | W x H (en) | W x H (pl) | binds | en | pl |
+|---|---|---|---|---|---|
+| `ch03-two-compilers` | 522 x 216 | 538 x 250 | width | 9.63 pt | 9.34 pt |
+| `ch03-boundary` | 708 x 110 | 750 x 110 | width | 7.10 pt | 6.70 pt |
+
+Both are above the aspect-ratio crossover, so only the width matters, and
+trimming the Polish `boundary` nodes took two attempts because **the node I
+trimmed first was not the widest one** — mermaid sizes a chain by the sum of
+its nodes' longest lines, so the render has to be measured again rather than
+reasoned about.
+
 ---
 
 ## After each pass
@@ -728,14 +850,19 @@ Tag from a local clone.
 
 ## What is left
 
-Nothing in the book is written. The outstanding work is tracked as GitHub
-issues under the `chapter`, `appendix`, `experiment` and `infrastructure`
-labels — **work from the labels, not from a list here**, because a list in
-this file is the class of claim nothing can check. In rough order:
+One chapter of fourteen is written. The outstanding work is tracked as
+GitHub issues under the `chapter`, `appendix`, `experiment` and
+`infrastructure` labels — **work from the labels, not from a list here**,
+because a list in this file is the class of claim nothing can check. In rough
+order:
 
-1. **Chapters 1 to 7**, which are v0.1. Suggested order: 1, 2, 3 first,
-   because every later chapter's listings assume the reader trusts the
-   environment; then 4 to 7 in order, each leaning on the last.
+1. **Chapters 1, 2 and 4 to 7**, which complete v0.1. Chapter 3 is written
+   and was written third for a reason that did not survive: it was supposed
+   to follow 1 and 2, because every later chapter's listings assume the
+   reader trusts the environment. It does not depend on either in practice
+   — it names what it borrows and borrows almost nothing — so the ordering
+   is a preference rather than a constraint. Then 4 to 7 in order, each
+   leaning on the last.
 2. **Chapters 8 to 12** (v0.2), with the trace-assert stage 01 in Chapter 11
    and experiments E4 to E7.
 3. **Chapters 13 and 14 and Appendices A to D** (v1.0). Appendix B is
