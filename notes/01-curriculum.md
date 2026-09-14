@@ -100,7 +100,7 @@ restate a total here or in `CLAUDE.md`** — the math book's ledger said
 | E3 | 6 | Cost of a `try` against a check, happy path and unhappy path | free | **run**, Chapter 6 pass. Committed as executed-bytecode counts, which are exact on the pinned interpreter; the wall-clock half is asserted as bounds and printed rather than committed, because CI re-runs every measurement script and compares |
 | E4 | 8 | One blocking call's degradation, in the TPL-against-asyncio framing | free; the LangChain book's Chapter 3 has the asyncio half already | **run**, Chapter 8 pass, `code/measure/e04_blocking.py`. Same shape as E3 and arrived at independently: what is committed is exact arithmetic on the script's own inputs, and the stopwatch is asserted against one-sided bounds derived from them |
 | E5 | 9 | uvicorn workers against concurrency: throughput, p50, p95, mocked upstream, calibrated the way the LangChain book's Chapter 13 recorded | free | not run |
-| E6 | 10 | The N+1 reproduced and counted from the engine's echo, before and after `selectinload`, on SQLite | free | not run |
+| E6 | 10 | The N+1 reproduced and counted from the engine's echo, before and after `selectinload`, on SQLite | free | **run**, Chapter 10 pass, `code/measure/e06_nplusone.py` |
 | E7 | 12 | Image size and cold start of three Dockerfile shapes | free; needs Docker AND a reachable registry | **not run** — blocked, see the note below |
 | E8 | 13 | Validation cost of one structured output across pydantic strict, pydantic lax and a dataclass over `json` | free | not run |
 

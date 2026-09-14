@@ -19,18 +19,25 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **5 of 14 written: Chapter 3 *Typing*, Chapter 6 *Errors*, Chapter 7 *Imports and dependency injection*, Chapter 8 *asyncio*, and Chapter 12 *Observability and operations* — both editions** | 1, 2, 4, 5, 9–11, 13, 14 |
+| Chapters | **6 of 14 written: Chapter 3 *Typing*, Chapter 6 *Errors*, Chapter 7 *Imports and dependency injection*, Chapter 8 *asyncio*, Chapter 10 *Data*, and Chapter 12 *Observability and operations* — both editions** | 1, 2, 4, 5, 9, 11, 13, 14 |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapters 3, 6, 7, 8 and 12's listings and exercises, Chapter 12's three Dockerfiles, E3 and E4, and the measurement, ledger and transcript scripts, and CI runs all of it | every other chapter's listings and exercises; six of the eight experiments |
+| Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapters 3, 6, 7, 8, 10 and 12's listings and exercises, Chapter 12's three Dockerfiles, E3, E4 and E6, and the measurement, ledger and transcript scripts, and CI runs all of it | every other chapter's listings and exercises; five of the eight experiments |
 
-**The scaffold plus five chapters.** The scaffold existed so that the shape of
+**The scaffold plus six chapters.** The scaffold existed so that the shape of
 the book could be argued with before any chapter was written, and so that the
 first one was written into a build that already had every gate. Chapters 3, 6,
-7, 8 and 12 were written in parallel, by separate passes, each against the
-issue that came up first rather than against the reading order — which is
-possible because a chapter names what it borrows and borrows little. The gates
-earned their keep on all five, and none had to be loosened to let a written
-chapter past; see the five pass notes below.
+7, 8, 10 and 12 were written in parallel, by separate passes, each against
+the issue that came up first rather than against the reading order — which is
+possible because a chapter names what it borrows and borrows little. The
+gates earned their keep on all six, and none had to be loosened to let a
+written chapter past; see the six pass notes below.
+**Two of those notes open by calling themselves the first chapter written**,
+and neither is wrong from where it stood: the passes could not see each
+other, and each was the first into the scaffold it had. It is worth leaving
+as it is rather than tidying, because it is the clearest evidence in this
+file of what parallel passes cost — six sessions each re-measured every
+ledger, and two of them merged `main` four or five times, because each merge
+was overtaken before its own CI could finish.
 
 **Two editions, one paper size, both clean.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
@@ -38,8 +45,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 111 | 0 | 0 | 2 [11.6, 2.3] | 0 |
-| `main-pl` | 115 | 0 | 0 | 0 | 0 |
+| `main-en` | 122 | 0 | 0 | 0 | 0 |
+| `main-pl` | 124 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -50,36 +57,49 @@ so two installations set the same source in different metrics and paginate
 differently. That is the inherited two-machines rule and it is not a defect.
 **Name the check rather than the machine** — `kpsewhich newtxtext.sty`
 answers it in a second — because this book is written by passes on different
-containers and a sentence about “this machine” is false as soon as
-somebody else reads it. **The two rows above are from a BARE installation**
-(no `newtx`, no `inconsolata`), which is the pessimistic side: the Chapter 12
-pass measured the same commit both ways and the full installation set it
-one page shorter in English and two in Polish. CI compiles on a full TeX
-Live, so the published PDF is always the tighter one.
+containers, and a sentence about “this machine” is false as soon as somebody
+else reads it. See *Build traps* for the two `apt-get` lines that turn a bare
+container into the reference one, which is what turns a page-level defect
+from a guess-and-push loop into a verification loop.
 
-**And the two boxes in the table are the same effect, caught in the act.**
-Both are in chapters this branch did not write: `2.3` pt in Chapter 7's §7.1,
-a paragraph of three unbreakable `\code{}` and `\api{}` spans, and `11.6` pt
-in Chapter 8's §8.1, which is `\code{SynchronizationContext}` — a
-twenty-two-character identifier that cannot hyphenate. Neither is a defect in
-its chapter: this branch is byte-identical to `main` for every file of both,
-the log names `T1/lmr` as the only text font in the build, and each chapter's
-own CI run reported zero overfull boxes on a full TeX Live. A run of
-unbreakable spans that fits one measure does not fit another, and Latin
-Modern is wider than `newtx` at the same nominal size. **Do not fix a box you
-can only see on a bare installation**; confirm against CI first, which is the
-build that ships.
+**The two rows above are from the REFERENCE installation** — `newtx`,
+`inconsolata` and `tex-gyre` present, so they are comparable with CI and not
+with a bare container. Two passes have compared the same source both ways,
+and the pair is worth keeping because neither alone is a rule:
+
+| pass | bare (en / pl) | full (en / pl) |
+|---|---|---|
+| Chapter 10 | 51 / 53 | 51 / 51 |
+| Chapter 12 | 54 / 56 | 53 / 54 (CI) |
+
+So the full installation came out **tighter or equal in all four columns**,
+and the Polish edition moved in both comparisons while the English moved in
+one. That makes a bare measurement the *pessimistic* one on the evidence so
+far — two controlled comparisons, not a law about which font sets tighter.
+
+**And a bare container cannot finish this build at all any more, which is
+what finally settles the argument for installing the fonts.** Chapter 10's
+§10.4 carries `\code{MissingGreenlet}` mid-paragraph; under `lmodern` that
+paragraph overflows by **28.3 pt**, which is over the 15 pt budget, so
+`checklog.py` *fails* rather than reports and `make en` stops before the
+Polish edition is built. The same source on the reference fonts is clean.
+So the bare-container boxes were never worth chasing — two of them were
+under budget and reported, and the third stops the build — and the remedy is
+one `apt-get` line rather than an edit to somebody else's chapter. **Install
+the fonts before measuring anything page-level**; the list is in *Build
+traps*.
+
 
 **Debt ledgers, reported by CI on every build** (`make debt`), and printed
 for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **9 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **8 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 94 listing references, every file and region present · 22 exercises, each
-  with a starter, a solution and a test · 44 transcript references, every
-  file present · 130 code files, none over 79 columns · 19 pins agree between
+- 126 listing references, every file and region present · 27 exercises, each
+  with a starter, a solution and a test · 54 transcript references, every
+  file present · 157 code files, none over 79 columns · 19 pins agree between
   `preamble.tex` and `code/pyproject.toml`
 - **1 `verifybox` block** — Chapter 12's three Dockerfiles, which could not
   be built because no container registry is reachable from the machine that
@@ -88,10 +108,19 @@ does not:
   was not run. **That figure is per edition, which is what Appendix E
   prints; `make debt`'s `shots` target greps both editions and says 2.**
   Quote whichever you mean, and say which
-- 32 Mermaid sources, sixteen per language, all rendering, all placed
-- 41 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 122 labels in each edition,
+- 38 Mermaid sources, nineteen per language, all rendering, all placed
+- 52 computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · 148 labels in each edition,
   0 mismatches
+- Prose words against a budget of 3,000, and `csbox` translation boxes,
+  English first: Chapter 3 at 2,915 / 2,516 with 2 boxes, Chapter 6 at
+  2,638 / 2,311 with 3, Chapter 7 at 2,581 / 2,242 with 3, Chapter 8 at
+  2,269 / 1,990 with 2, Chapter 10 at 2,386 / 2,069 with 3. These are what
+  `--words` and `--csbox` print and they move with any prose edit, so
+  re-read them from the tool rather than from here. **`reflist.py` reads
+  the `.aux` tree**, so its label count is a fact about the last build
+  rather than about the source: rebuild before quoting it, or it reports
+  the tree you had before your merge.
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
   runs each one; neither that file nor this one states a total, because a
@@ -400,6 +429,46 @@ are listed by name and their reasoning is in the companion books.
   an undefined control sequence. So the preamble guesses nothing: CI's full
   TeX Live is the reference, and locally the fix is `apt-get install
   tex-gyre`.
+
+- **This container CAN be made into the reference machine, and until it is,
+  a page-level defect is a guess-and-push loop.** The entry above says CI is
+  the reference and stops there, which reads as though the two metrics
+  cannot be reconciled locally. They can: `texlive-fonts-extra` (newtx,
+  inconsolata) plus `texlive-plain-generic` (`binhex.tex`, which `newtxmath`
+  loads and without which the run dies `File \`binhex.tex' not found` with
+  no PDF) plus `tex-gyre` gives a build that reproduced a CI failure
+  **exactly** — same 22.7 pt box, same source lines, same 51 pages — where
+  the bare container had reported zero overfull boxes on the same commit.
+  Do this before touching a chapter. An over-budget hbox is a hard gate, so
+  without it every attempt at a fix costs a push, a CI run and a cancelled
+  predecessor, and the only evidence you get back is one number.
+  **The cost is that the container stops being the bare one**, whose absence
+  of inconsolata is what makes `upquote` observable — so a change to the
+  listings quoting machinery still wants checking on a machine without it.
+
+- **`\addcontentsline` records hyperref's CURRENT anchor, which after a
+  listing is a line that was never printed.** `\mermaidfig` wrote its
+  manifest entry before opening the `figure`, so the entry linked to
+  whatever preceded the figure. Placed after a `\pyregion` that is what
+  listings last set — and listings has already advanced its counter past the
+  last line it printed, so the destination does not exist: `pdfTeX warning
+  (dest): name{lstnumber.10.4.46} has been referenced but does not exist,
+  replaced by a fixed one`. `\phantomsection` before the `\addcontentsline`
+  fixes it, and was measured layout-neutral (51 and 51 either side).
+
+  **Three things about this are worth more than the fix.** It was in the
+  scaffold from the start: *all three* diagram manifest entries pointed at a
+  listing line, and the two in the front matter were silent only because the
+  lines they named happen to be printed — so the warning is the defect
+  becoming visible, not the defect arriving. The exercise manifest never had
+  it, because `\begin{exercise}` steps a counter and that is what sets the
+  anchor, which is the shape to copy for any future manifest. And it is the
+  one defect in this pass that **`checklog.py` does not fail on** — it is a
+  pdfTeX destination warning rather than an unresolved `\ref`, so `make en`
+  went green with a broken internal link in the PDF. Read the raw log, not
+  only the checker; this file already records that an ignore list is where a
+  defect goes to become permanent, and a warning nothing has been told to
+  look at is the same thing with no list.
 - **A raw `#` in a chapter title poisons the contents file, and the poison
   survives the fix.** `\chapter{The C# to Python cheat sheet}` fails at the
   chapter line with `Illegal parameter number in definition of
@@ -523,7 +592,16 @@ are listed by name and their reasoning is in the companion books.
 | alembic | 1.20.0 | | | |
 
 `preamble.tex` is the record and `tools/check_versions.py` is the check;
-this table is a snapshot and will go stale first.
+this table is a snapshot and will go stale first. **It already has**: the
+Chapter 10 pass added `aiosqlite`, which is in `preamble.tex`,
+`code/pyproject.toml`, `tools/check_versions.py` and `uv.lock` but not in
+the table above. The table is left at what the scaffold pass verified on
+the day rather than quietly kept current, because a dated snapshot that is
+edited stops being evidence of anything. `check_structure.py --pins` is the
+figure that moves, and it moved from 19 to 20 — note that it counts
+distributions compared between the preamble and `pyproject.toml`, where the
+table above lists 21 things including Python and uv, which are pinned
+elsewhere and are not among them.
 
 **The brief said pytest 8; the pin is 9.1.1.** The current release on the
 day the pins were verified was 9.1.1, and pinning a major behind on day one
@@ -1292,6 +1370,172 @@ before it**, and say which installation.
 
 ---
 
+### Chapter 10 pass, September 2026 --- SQLAlchemy, polars and E6
+
+**The brief was half right about lazy loading, and the half it got wrong is
+the half a reader of this book will meet.** It says *lazy by default in
+both*. Under a **sync** session that is exactly right and the N+1 is
+identical to EF Core's. Under the **async** session a lazy relationship does
+not quietly issue a query at all: it raises `MissingGreenlet`, because
+issuing one there would mean blocking the event loop.
+
+So the rule runs the opposite way to the usual advice, and it is now in the
+chapter and in the manifest: **the N+1 is silent in a synchronous service
+and loud in an asynchronous one.** A team porting a sync service to async
+does not acquire the bug; it acquires the error message for the bug it
+already had. Chapter 9 serves everything asynchronously, so this is the
+session most of this book's readers will actually hold.
+`tools/chapters.json` and `notes/02-traps.md` entry 47 both say so now.
+
+**E6 is run**, and the method is worth keeping. `code/ch10/counting.py`
+counts every statement **twice** — once through `before_cursor_execute`,
+the engine event the echo is emitted from, and once through the echo's own
+log lines — and raises rather than reporting a number the two disagree
+about. Three extra lines, and the difference between a count and a claim.
+
+Its own guard earned its place: the log level is raised and restored rather
+than assumed. An echo-counting instrument pointed at an engine whose logger
+sits at WARNING counts nothing, agrees with nothing, and reports a confident
+zero, which is this repository's recorded instrument class exactly.
+
+And the measurement asserts a **shape** rather than three figures. One pair
+of numbers says the eager loader is cheaper on this database; sweeping the
+parent count says what kind of cheaper, and only that version survives a
+bigger one:
+
+| Services | Lazy | `selectinload` |
+|---|---|---|
+| 5 | 6 | 2 |
+| 20 | 21 | 2 |
+| 50 | 51 | 2 |
+
+`e06_nplusone.py` asserts `lazy == parents + 1` and `eager == 2` at every
+size, so a change that broke the shape could not come back as a smaller
+number. It also imports the chapter's own listings rather than
+re-implementing them, so the page and the measurement cannot drift into
+disagreeing about what was run.
+
+**`expire_on_commit` was measured too, and the finding is an identity rather
+than a figure:** reading back objects you already had, after a commit, costs
+one statement per object — 5 for 5 — against 0 with the flag off. The
+script asserts the identity, not the number.
+
+**aiosqlite is a new pin, and this chapter forced it.** An async listing
+needs an async driver, and there was none: the alternatives were a listing
+inside a `verifybox` (which the release rule says must be zero) or no
+runnable async section at all, and the brief asks for one by name. Added the
+way the gate requires — `preamble.tex`'s macro with its distribution
+comment, `code/pyproject.toml`'s `==` pin, `tools/check_versions.py`'s
+`PINS` dict, and `uv.lock` — so `--pins` compares 20 rather than 19. The
+scaffold's pin table above is dated and is deliberately not edited; this is
+the record.
+
+**Every test of an exercise must fail on the starter, not merely one of
+them**, and nothing had written that down. Exercise 10.3 is a *make this
+cheaper* exercise, so its starter returns the right answer and costs six
+statements. Written as two tests — one for the answer, one for the cost
+— `make starters` reported `XPASS(strict)` on the correctness half and
+failed, correctly: `conftest.py` marks **every** exercise test strict-xfail.
+The fix is one test asserting the answer and the cost together, which is
+also the honest verdict for that exercise. An exercise whose fault is cost
+rather than correctness cannot have a separate correctness test.
+
+**pyright needed an execution environment to see the chapter's listings from
+`measure/`.** A listing is a script and imports its siblings by bare name,
+which is what the reader typing `uv run python ch10/nplusone.py` gets;
+pyright searches the file's own directory, so that resolves inside `ch10/`
+and not from `measure/`. `code/pyproject.toml` now carries
+`[[tool.pyright.executionEnvironments]]` with `root = "measure"` and
+`extraPaths = ["ch10"]`. Add a chapter to that list when its measurement
+script reaches into one.
+
+**pyright caught a real bug and a real limitation.** The bug:
+`Session.get_bind()` returns `Engine | Connection`, so passing it to
+something typed `Engine` is wrong, and the checker said so before any test
+did. The limitation: **polars does not type-check strictly at the pinned
+version** — its frame methods carry unions wide enough that the chained
+result is *partially unknown*. The checker is right and the stubs are the
+reason, so the two polars files carry a named
+`# pyright: reportUnknownMemberType=false` rather than the project relaxing
+strict mode, and the chapter says so in a note. That is Chapter 3's material
+arriving early.
+
+**Two overfull boxes, one per edition, and both fixes improved the page.**
+The English one was a run of two `\code{}` spans in a prose sentence
+(`alembic upgrade head` beside `Update-Database`) with nothing to break on:
+5.0 pt. It became a `csbox` mapping table, which also discharges the front
+matter's own promise that every chapter carries one, C# on the left and
+Python on the right. The Polish one was 8.9 pt from `\code{AsyncSession}`
+trailing a line of long Polish words; the sentence was split. Both are the
+recorded class — a long `\code{}` mid-paragraph is a latent overfull box.
+
+**Measured on a machine without newtx or inconsolata.** This container has
+neither, so the preamble degrades to Latin Modern and the two boxes above
+were found under metrics CI does not share. That is the recorded
+two-installations situation: CI is the second machine, and a box that
+appears only there is fixed the same way.
+
+**One prose claim did not survive being checked, which is the whole point of
+checking them.** A sentence said that where a clause cannot be translated to
+SQL “the failure is at composition time and says so.” The first half is
+true and useful — there is no `IEnumerable` twin, so the LINQ hazard of a
+mistyped variable quietly moving the query in process has nothing to happen
+to. The second half is not: `select(Service).where(lambda s: ...)` raises an
+ordinary `TypeError` about the lambda's argument, and says nothing about
+translation. The sentence now says both halves.
+
+Two claims beside it were checked and held: `joinedload` on a collection
+genuinely **requires** `.unique()` (`InvalidRequestError`, not a
+recommendation), and an Alembic `Revision` really does carry
+`down_revision`, so revisions chain by parent id rather than sort by
+timestamp.
+
+**A region marker nothing prints is a promise nothing keeps.** Four were
+left behind after the sections were cut to length. Two of them carried the
+premise of a claim the prose makes — that a repeated `get()` costs nothing,
+and that the two model versions in the migration section differ by exactly
+one renamed column — so those are printed, and the reader can check the
+setup rather than take it. The other two markers were removed. Note that
+`\pyregion` prints the file's own line numbers, so removing a marker moves
+every later listing's numbering and needs a rebuild.
+
+**A caption is a claim, so the diagrams were measured before the captions
+were written.** All three render between 7.4 and 8.3 pt of node text, every
+one above the aspect-ratio crossover, so only the width matters — and the
+first cut of `orm-n-plus-one` came out 719 pt in Polish, at the bottom of
+the band, and was shortened to 679. `pdfinfo` is not in this container; the
+MediaBox reads out of the PDF with six lines of Python.
+
+**And then CI failed on a box this container could not see, which is the
+most useful thing the pass produced.** `main-pl` came back 22.7 pt over the
+15 pt budget in a paragraph the local build had reported clean, because CI
+has newtx and the bare container sets the same source in Latin Modern. The
+recorded remedy for that divergence is *do not chase it with prose, the
+metrics are not on this machine* — and the better answer turned out to be to
+**put the metrics on this machine**: two `apt-get` lines reproduced the
+failure exactly, and the fix was then verified locally instead of pushed at.
+See *Build traps*. The page table above moved from 51/53 to 51/51 as a
+result, and it now says which machine it was measured on, which it did not
+before and should always have.
+
+The box itself was the recorded class: `\code{MissingGreenlet}` set
+mid-paragraph in the edition with the longer words. Moving it to the start
+of its sentence is the remedy this file already carries, and the mechanism
+is worth stating because it is not *a sentence space helps* — a rigid
+fifteen-character run that plainly cannot fit beside a sixty-nine character
+sentence **forces** the break after that sentence, so TeX has no bad global
+solution left to prefer.
+
+**Two more things fell out of fixing it, and neither was the box.** The
+sentence carried *the brief for this chapter was half right* — and a brief
+is a thing in `tools/chapters.json` that the reader has never seen and
+cannot see, since it is deleted when the chapter is written. It now names
+the previous section, which is a thing on the page. And the surrounding
+paragraph's rebuild surfaced the `\mermaidfig` anchor defect above, which
+had been in the scaffold from the beginning and which no gate fails on.
+
+---
+
 ### The Chapter 12 pass, September 2026
 
 **The brief was right about the subject and wrong about two of its own
@@ -1477,7 +1721,7 @@ Tag from a local clone.
 
 ## What is left
 
-Five chapters of fourteen are written: 3, 6, 7, 8 and 12. The outstanding
+Six chapters of fourteen are written: 3, 6, 7, 8, 10 and 12. The outstanding
 work is tracked as GitHub issues under the `chapter`, `appendix`,
 `experiment` and
 `infrastructure` labels — **work from the labels, not from a list here**,
@@ -1486,7 +1730,7 @@ order:
 
 1. **Chapters 1, 2, 4 and 5**, which with the written Chapters 3, 6 and 7
    complete v0.1. The suggested order was 1, 2, 3 first, because every later
-   chapter's listings assume the reader trusts the environment — and the
+   chapter's listings assume the reader trusts the environment — and five
    chapters written out of that order did not suffer for it, because each
    names what it borrows and borrows almost nothing. Treat the ordering as a
    preference rather than a constraint. Two things that cost Chapter 6 a
@@ -1494,10 +1738,11 @@ order:
    exercise-harness paragraph before writing an exercise, and the note on
    dumping the English token stream with `parity.py`'s own tokeniser before
    writing the Polish.
-2. **Chapters 9 to 11**, which complete v0.2 with the written Chapters 8 and
-   12. The trace-assert stage 01 is Chapter 11's, and experiments E5 and E6
-   belong here. Chapter 8 and E4 are done. E7 is written and blocked on a
-   machine that can reach a container registry; `PYBOOK_E7=1` runs it.
+2. **Chapters 9 and 11**, which complete v0.2 with the written Chapters 8,
+   10 and 12. The trace-assert stage 01 is Chapter 11's, and experiment E5
+   belongs there. Chapter 8 with E4, and Chapter 10 with E6, are done. E7 is
+   written and blocked on a machine that can reach a container registry;
+   `PYBOOK_E7=1` runs it.
 3. **Chapters 13 and 14 and Appendices A to D** (v1.0). Appendix B is
    written from `notes/02-traps.md`; Appendix C's version column prints
    from the preamble's macros and is never typed; Appendix D needs the
