@@ -1,0 +1,17 @@
+import the module, read the name later:
+  Order total: GBP 19.99
+
+import the name at import time, inside a package:
+  ImportError: cannot import name 'CURRENCY' from partially initialized
+    module 'cycle._orders' (most likely due to a circular import)
+    (cycle/_orders.py)
+
+the same cycle, flat, in the directory you ran from:
+  ImportError: cannot import name 'CURRENCY' from '_flat_orders' (consider
+    renaming '_flat_orders.py' if it has the same name as a library you
+    intended to import)
+
+extract what both sides wanted:
+  Order total: GBP 19.99
+
+modules the cycle package left in the cache: 5
