@@ -19,14 +19,15 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **0 of 14 written.** Every chapter is a brief printed where the chapter will go | all fourteen |
+| Chapters | **1 of 14 written: Chapter 10 (Data).** Every other chapter is a brief printed where the chapter will go | thirteen |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: the `trace-assert` skeleton, the first listing, the first exercise, the two measurement scripts, and CI runs all of it | every chapter's listings and exercises; the eight experiments |
+| Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapter 10's eight listings and five exercises, the three measurement scripts, and CI runs all of it | every other chapter's listings and exercises; seven of the eight experiments |
 
-**This is the scaffold.** It exists so that the shape of the book can be
-argued with before Chapter 1 is written, and so that the first chapter is
-written into a build that already has every gate. Nothing in it teaches
-Python yet.
+**The scaffold plus one chapter.** The scaffold exists so that the shape of
+the book could be argued with before any chapter was written, and so that
+the first chapter went into a build that already had every gate. Chapter 10
+is the first through that build, and its pass note below records what the
+gates caught.
 
 **Two editions, one paper size, both clean.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
@@ -34,8 +35,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 37 | 0 | 0 | 0 | 0 |
-| `main-pl` | 37 | 0 | 0 | 0 | 0 |
+| `main-en` | 50 | 0 | 0 | 0 | 0 |
+| `main-pl` | 52 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -46,18 +47,20 @@ for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **14 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **13 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 2 listing references, every file and region present · 1 exercise, with a
-  starter, a solution and a test · 2 transcript references, every file
-  present · 14 code files, none over 79 columns · 19 pins agree between
+- 30 listing references, every file and region present · 6 exercises, each
+  with a starter, a solution and a test · 12 transcript references, every
+  file present · 41 code files, none over 79 columns · 20 pins agree between
   `preamble.tex` and `code/pyproject.toml`
 - **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
   reader that something was not run
-- 4 Mermaid sources, two per language, all rendering, both placed
-- 9 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 26 labels in each edition,
+- 10 Mermaid sources, five per language, all rendering, all placed
+- 20 computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · 51 labels in each edition,
   0 mismatches
+- Chapter 10 carries 3 `csbox` translation boxes and 2,338 / 2,020 prose
+  words against a budget of 3,000
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
   runs each one; neither that file nor this one states a total, because a
@@ -702,6 +705,118 @@ for reasons worth keeping rather than silently dropping:
   general (`\pysettingsver` names `pydantic-settings`, not
   `pysettings`), so the dict is the one place that mapping can live.
 
+### Chapter 10 pass, September 2026 --- the first chapter, and E6
+
+**The brief was half right about lazy loading, and the half it got wrong is
+the half a reader of this book will meet.** It says *lazy by default in
+both*. Under a **sync** session that is exactly right and the N+1 is
+identical to EF Core's. Under the **async** session a lazy relationship does
+not quietly issue a query at all: it raises `MissingGreenlet`, because
+issuing one there would mean blocking the event loop.
+
+So the rule runs the opposite way to the usual advice, and it is now in the
+chapter and in the manifest: **the N+1 is silent in a synchronous service
+and loud in an asynchronous one.** A team porting a sync service to async
+does not acquire the bug; it acquires the error message for the bug it
+already had. Chapter 9 serves everything asynchronously, so this is the
+session most of this book's readers will actually hold.
+`tools/chapters.json` and `notes/02-traps.md` entry 47 both say so now.
+
+**E6 is run**, and the method is worth keeping. `code/ch10/counting.py`
+counts every statement **twice** — once through `before_cursor_execute`,
+the engine event the echo is emitted from, and once through the echo's own
+log lines — and raises rather than reporting a number the two disagree
+about. Three extra lines, and the difference between a count and a claim.
+
+Its own guard earned its place: the log level is raised and restored rather
+than assumed. An echo-counting instrument pointed at an engine whose logger
+sits at WARNING counts nothing, agrees with nothing, and reports a confident
+zero, which is this repository's recorded instrument class exactly.
+
+And the measurement asserts a **shape** rather than three figures. One pair
+of numbers says the eager loader is cheaper on this database; sweeping the
+parent count says what kind of cheaper, and only that version survives a
+bigger one:
+
+| Services | Lazy | `selectinload` |
+|---|---|---|
+| 5 | 6 | 2 |
+| 20 | 21 | 2 |
+| 50 | 51 | 2 |
+
+`e06_nplusone.py` asserts `lazy == parents + 1` and `eager == 2` at every
+size, so a change that broke the shape could not come back as a smaller
+number. It also imports the chapter's own listings rather than
+re-implementing them, so the page and the measurement cannot drift into
+disagreeing about what was run.
+
+**`expire_on_commit` was measured too, and the finding is an identity rather
+than a figure:** reading back objects you already had, after a commit, costs
+one statement per object — 5 for 5 — against 0 with the flag off. The
+script asserts the identity, not the number.
+
+**aiosqlite is a new pin, and this chapter forced it.** An async listing
+needs an async driver, and there was none: the alternatives were a listing
+inside a `verifybox` (which the release rule says must be zero) or no
+runnable async section at all, and the brief asks for one by name. Added the
+way the gate requires — `preamble.tex`'s macro with its distribution
+comment, `code/pyproject.toml`'s `==` pin, `tools/check_versions.py`'s
+`PINS` dict, and `uv.lock` — so `--pins` compares 20 rather than 19. The
+scaffold's pin table above is dated and is deliberately not edited; this is
+the record.
+
+**Every test of an exercise must fail on the starter, not merely one of
+them**, and nothing had written that down. Exercise 10.3 is a *make this
+cheaper* exercise, so its starter returns the right answer and costs six
+statements. Written as two tests — one for the answer, one for the cost
+— `make starters` reported `XPASS(strict)` on the correctness half and
+failed, correctly: `conftest.py` marks **every** exercise test strict-xfail.
+The fix is one test asserting the answer and the cost together, which is
+also the honest verdict for that exercise. An exercise whose fault is cost
+rather than correctness cannot have a separate correctness test.
+
+**pyright needed an execution environment to see the chapter's listings from
+`measure/`.** A listing is a script and imports its siblings by bare name,
+which is what the reader typing `uv run python ch10/nplusone.py` gets;
+pyright searches the file's own directory, so that resolves inside `ch10/`
+and not from `measure/`. `code/pyproject.toml` now carries
+`[[tool.pyright.executionEnvironments]]` with `root = "measure"` and
+`extraPaths = ["ch10"]`. Add a chapter to that list when its measurement
+script reaches into one.
+
+**pyright caught a real bug and a real limitation.** The bug:
+`Session.get_bind()` returns `Engine | Connection`, so passing it to
+something typed `Engine` is wrong, and the checker said so before any test
+did. The limitation: **polars does not type-check strictly at the pinned
+version** — its frame methods carry unions wide enough that the chained
+result is *partially unknown*. The checker is right and the stubs are the
+reason, so the two polars files carry a named
+`# pyright: reportUnknownMemberType=false` rather than the project relaxing
+strict mode, and the chapter says so in a note. That is Chapter 3's material
+arriving early.
+
+**Two overfull boxes, one per edition, and both fixes improved the page.**
+The English one was a run of two `\code{}` spans in a prose sentence
+(`alembic upgrade head` beside `Update-Database`) with nothing to break on:
+5.0 pt. It became a `csbox` mapping table, which also discharges the front
+matter's own promise that every chapter carries one, C# on the left and
+Python on the right. The Polish one was 8.9 pt from `\code{AsyncSession}`
+trailing a line of long Polish words; the sentence was split. Both are the
+recorded class — a long `\code{}` mid-paragraph is a latent overfull box.
+
+**Measured on a machine without newtx or inconsolata.** This container has
+neither, so the preamble degrades to Latin Modern and the two boxes above
+were found under metrics CI does not share. That is the recorded
+two-installations situation: CI is the second machine, and a box that
+appears only there is fixed the same way.
+
+**A caption is a claim, so the diagrams were measured before the captions
+were written.** All three render between 7.4 and 8.3 pt of node text, every
+one above the aspect-ratio crossover, so only the width matters — and the
+first cut of `orm-n-plus-one` came out 719 pt in Polish, at the bottom of
+the band, and was shortened to 679. `pdfinfo` is not in this container; the
+MediaBox reads out of the PDF with six lines of Python.
+
 ---
 
 ## After each pass
@@ -728,16 +843,16 @@ Tag from a local clone.
 
 ## What is left
 
-Nothing in the book is written. The outstanding work is tracked as GitHub
-issues under the `chapter`, `appendix`, `experiment` and `infrastructure`
-labels — **work from the labels, not from a list here**, because a list in
+One chapter of fourteen is written. The outstanding work is tracked as
+GitHub issues under the `chapter`, `appendix`, `experiment` and
+`infrastructure` labels — **work from the labels, not from a list here**, because a list in
 this file is the class of claim nothing can check. In rough order:
 
 1. **Chapters 1 to 7**, which are v0.1. Suggested order: 1, 2, 3 first,
    because every later chapter's listings assume the reader trusts the
    environment; then 4 to 7 in order, each leaning on the last.
 2. **Chapters 8 to 12** (v0.2), with the trace-assert stage 01 in Chapter 11
-   and experiments E4 to E7.
+   and experiments E4, E5 and E7. Chapter 10 and E6 are done.
 3. **Chapters 13 and 14 and Appendices A to D** (v1.0). Appendix B is
    written from `notes/02-traps.md`; Appendix C's version column prints
    from the preamble's macros and is never typed; Appendix D needs the
