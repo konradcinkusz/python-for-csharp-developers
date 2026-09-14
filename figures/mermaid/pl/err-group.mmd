@@ -1,0 +1,5 @@
+flowchart LR
+    A["<b>Jedno zgloszenie</b><br/>ExceptionGroup niosaca kazde<br/>sprawdzenie, ktore zawiodlo,<br/>a nie tylko pierwsze"]
+    B["<b>Kilka handlerow</b><br/>kazda klauzula except*, ktora cos<br/>w grupie dopasuje, wykona sie,<br/>czego catch nie potrafi"]
+    C["<b>To, co nie pasowalo</b><br/>leci dalej, nadal jako grupa<br/>i nadal z komunikatem,<br/>ktory nadal jej raise"]
+    A --> B --> C

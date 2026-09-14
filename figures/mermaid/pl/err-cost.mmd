@@ -1,0 +1,5 @@
+flowchart LR
+    A["<b>Pytanie nie jest darmowe</b><br/>sprawdzenie wykonuje sie przy<br/>kazdym wywolaniu, a odpowiedz<br/>moze sie zdezaktualizowac"]
+    B["<b>Proba jest, dopoki nie zadziala</b><br/>handler trafia do tablicy obok,<br/>a nie na sciezke, ktora<br/>nie zglasza wyjatku"]
+    C["<b>Wybieraj wiec wedlug czestosci</b><br/>rzadko i umiesz odpowiedziec: sprobuj i obsluz<br/>rutynowo: zapytaj albo zwroc wartosc<br/>nie do naprawienia: przepusc dalej"]
+    A --> B --> C
