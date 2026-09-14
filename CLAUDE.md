@@ -37,35 +37,41 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | PAGES_EN | 0 | 0 | 0 | 0 |
-| `main-pl` | PAGES_PL | 0 | 0 | 0 | 0 |
+| `main-en` | 67 | 0 | 0 | 0 | 0 |
+| `main-pl` | 68 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
-to go stale. **And say which build**: the two rows above are from a bare TeX
-Live — `lmodern`, no `newtx` and no `inconsolata`, which is what the
-preamble's `\IfFileExists` probes degrade to — so they are comparable with
-the scaffold's 37 and 37 and are *not* comparable with a full installation's.
-CI compiles on a full TeX Live and will paginate differently; that is the
-inherited two-machines rule and it is not a defect.
+to go stale. **And say which build**: the two rows above are from a TeX Live
+carrying `newtx` and `inconsolata`, which the preamble's `\IfFileExists`
+probes therefore find. They are *not* comparable with the scaffold's 37 and
+37, or with the Chapter 3 pass's 53 and 56, both of which were measured on a
+bare installation that degrades to `lmodern`. CI compiles on a full TeX Live;
+that is the inherited two-machines rule and it is not a defect.
+
+And one small tell worth keeping: an unrendered diagram is visible in the log
+rather than only on the page. `\mermaidfig`'s fallback uses `\captionof`,
+which emits a `caption` package warning about `\setcaptiontype`, so three
+such warnings in a clean build meant three diagrams had not been rendered.
+Run `make diagrams` before believing a page count.
 
 **Debt ledgers, reported by CI on every build** (`make debt`), and printed
 for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **13 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **12 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- L_LISTINGS listing references, every file and region present · L_EXERCISES
-  exercises, each with a starter, a solution and a test · L_TRANSCRIPTS
-  transcript references, every file present · L_CODEFILES code files, none
+- 40 listing references, every file and region present · 10
+  exercises, each with a starter, a solution and a test · 20
+  transcript references, every file present · 59 code files, none
   over 79 columns · 19 pins agree between `preamble.tex` and
   `code/pyproject.toml`
 - **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
   reader that something was not run
-- L_MERMAID Mermaid sources, L_MERMAID_HALF per language, all rendering, all placed
-- L_VALUES computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · L_LABELS labels in each edition,
+- 14 Mermaid sources, seven per language, all rendering, all placed
+- 44 computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · 68 labels in each edition,
   0 mismatches
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
@@ -836,12 +842,14 @@ reasoned about.
 
 ---
 
-### Chapter 9 pass, September 2026 --- the first chapter, and experiment E5
+### Chapter 9 pass, September 2026 --- Services, and experiment E5
 
-Written out of order on purpose: Chapter 9's measurement is free, its brief
-was the most specific in the manifest, and a chapter with seven listings,
-five exercises, three figures and thirty computed values is what tells you
-whether the gates hold against content rather than against a scaffold.
+Written out of order and, as it turned out, in parallel with Chapter 3:
+the two sessions took whichever issue came up first, and neither chapter
+needed the other. Chapter 9's measurement is free, its brief was the most
+specific in the manifest, and a chapter with seven listings, five exercises,
+three figures and twenty-nine computed values is what tells you whether the
+gates hold against content rather than against a scaffold.
 
 **The brief was right about the framework and wrong about nothing**, which
 has not been true of the first chapter of either companion volume. What was
