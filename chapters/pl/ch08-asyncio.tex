@@ -248,8 +248,8 @@ Anulowanie w Pythonie jest kooperacyjne w innym sensie.
 i wraca, a przy najbliższym \code{await} anulowanej korutyny zostaje w niej
 \emph{wewnątrz} podniesiony \api{CancelledError}. Nie ma tokenu do
 przekazania, parametru do przewleczenia przez dwadzieścia miejsc wywołania
-ani niczego do odpytania. Nie ma też nic, co da się zrobić z korutyną,
-która nigdy nie czeka.
+ani niczego do odpytania. Nie ma też nic, co anulowanie mogłoby zrobić z
+korutyną, która nigdy nie czeka.
 
 Czyli anulowanie podlega tym samym regułom, co każdy inny wyjątek \dash{}
 łącznie z tą, że kto je złapie, ten je przejmuje. Cztery zadania poniżej są
@@ -330,10 +330,10 @@ wynosi on pięć sekund i stosuje się osobno do czterech faz, a nie do
 \textbf{\code{HttpClient} jest singletonem, więc \api{AsyncClient} też.}
 Rada o cyklu życia się przenosi \dash{} utwórz raz, współdziel, zamknij
 \dash{} a domyślne wartości nie. Tam, gdzie twój \code{HttpClient} ma jeden
-limit obejmujący całe żądanie i wartość na tyle dużą, że pewnie nigdy jej
-nie ustawiałeś, \api{AsyncClient} ma cztery krótkie, a pierwsze ciężkie
-popołudnie w nowym serwisie w Pythonie to zwykle limit odczytu, którego
-nikt nie skonfigurował.
+limit obejmujący całe żądanie \dash{} jakkolwiek go ustawiłeś \dash{}
+\api{AsyncClient} ma cztery i są krótkie, a pierwsze ciężkie popołudnie w
+nowym serwisie w Pythonie to zwykle limit odczytu, którego nikt nie
+skonfigurował.
 \end{trapbox}
 
 \section{Granica synchroniczna}
@@ -351,8 +351,8 @@ czymś jest \api{asyncio.run}, wywołane raz, na samej górze i nigdy ze
 \transcript{ch08-boundary}
 
 \noindent
-Drugi wiersz to nawyk \code{.Result} spotykający środowisko, które go nie
-ma. Zapytanie nieskończonego \api{Task} o wartość nie blokuje i nie może
+Dwa pierwsze wiersze to nawyk \code{.Result} spotykający środowisko,
+które go nie ma. Zapytanie nieskończonego \api{Task} o wartość nie blokuje i nie może
 się zakleszczyć: podnosi wyjątek. Nie ma blokującego czekania na zadanie ze
 środka pętli, co jest tym samym faktem, co
 \S\ref{sec:asyncio-one-thread}, widzianym z drugiej strony \dash{}

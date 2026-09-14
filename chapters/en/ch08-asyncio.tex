@@ -246,8 +246,8 @@ Python's cancellation is cooperative in a different sense.
 request and returns, and at the cancelled coroutine's next \code{await} a
 \api{CancelledError} is raised \emph{inside} it. There is no token to
 pass, no parameter to thread through twenty call sites, and nothing to
-poll. There is also nothing you can do about a coroutine that never
-awaits.
+poll. There is also nothing a cancellation can do about a coroutine that
+never awaits.
 
 Which means cancellation obeys the same rules as any other exception \dash{}
 including the rule that whoever catches it owns it. Four tasks below are
@@ -326,10 +326,10 @@ separately rather than to the request as a whole.
 \textbf{\code{HttpClient} is a singleton, so \api{AsyncClient} is too.}
 The lifetime advice carries \dash{} construct it once, share it, close it
 \dash{} and the defaults do not. Where your \code{HttpClient} has one
-timeout covering the whole request and a value long enough that you have
-probably never set it, \api{AsyncClient} has four short ones, and the
-first hard afternoon in a new Python service is usually a read timeout
-nobody configured.
+timeout covering the whole request \dash{} whatever you have it set to
+\dash{} \api{AsyncClient} has four, and they are short, and the first hard
+afternoon in a new Python service is usually a read timeout nobody
+configured.
 \end{trapbox}
 
 \section{The sync boundary}
@@ -347,8 +347,8 @@ inside a coroutine.
 \transcript{ch08-boundary}
 
 \noindent
-The second line is the \code{.Result} habit meeting a runtime that does
-not have it. Asking an unfinished \api{Task} for its value does not block
+The first two lines are the \code{.Result} habit meeting a runtime that
+does not have it. Asking an unfinished \api{Task} for its value does not block
 and cannot deadlock: it raises. There is no blocking wait on a task from
 inside the loop, which is the same fact as \S\ref{sec:asyncio-one-thread}
 seen from the other side \dash{} a blocking wait would stop the thread
