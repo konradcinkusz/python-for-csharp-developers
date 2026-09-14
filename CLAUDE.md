@@ -59,7 +59,7 @@ does not:
 - 20 computed value keys, every one produced and every one used
 - Parity: 23 file pairs, 0 failures, 0 warnings · 51 labels in each edition,
   0 mismatches
-- Chapter 10 carries 3 `csbox` translation boxes and 2,338 / 2,020 prose
+- Chapter 10 carries 3 `csbox` translation boxes and 2,370 / 2,051 prose
   words against a budget of 3,000
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
@@ -809,6 +809,21 @@ neither, so the preamble degrades to Latin Modern and the two boxes above
 were found under metrics CI does not share. That is the recorded
 two-installations situation: CI is the second machine, and a box that
 appears only there is fixed the same way.
+
+**One prose claim did not survive being checked, which is the whole point of
+checking them.** A sentence said that where a clause cannot be translated to
+SQL “the failure is at composition time and says so.” The first half is
+true and useful — there is no `IEnumerable` twin, so the LINQ hazard of a
+mistyped variable quietly moving the query in process has nothing to happen
+to. The second half is not: `select(Service).where(lambda s: ...)` raises an
+ordinary `TypeError` about the lambda's argument, and says nothing about
+translation. The sentence now says both halves.
+
+Two claims beside it were checked and held: `joinedload` on a collection
+genuinely **requires** `.unique()` (`InvalidRequestError`, not a
+recommendation), and an Alembic `Revision` really does carry
+`down_revision`, so revisions chain by parent id rather than sort by
+timestamp.
 
 **A caption is a claim, so the diagrams were measured before the captions
 were written.** All three render between 7.4 and 8.3 pt of node text, every

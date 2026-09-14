@@ -52,9 +52,12 @@ the statement is handed to the session.
 \pyregion{code/ch10/session.py}{query}{\code{select()} composes; \code{scalars()} executes}{lst:ch10-query}
 
 The difference from LINQ is that there is one API and not two. There is no
-\code{IEnumerable} version of this that silently does the same work in
-process: if a clause cannot be translated, the failure is at composition
-time and says so.
+\code{IEnumerable} twin with the same shape, so the LINQ hazard \dash{} a
+mistyped variable quietly moving the whole query in process \dash{} has
+nothing to happen to. A clause that cannot become SQL fails where you wrote
+it rather than succeeding somewhere slower; what it fails with is another
+matter, and is often an ordinary \code{TypeError} rather than anything
+about translation.
 
 Two moments inside the session are worth naming, because EF habits attach
 to both. The identity map means two loads of one row give you one object,
