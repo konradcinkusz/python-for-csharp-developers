@@ -9,7 +9,7 @@ GOOD = {"title": "Disk filling up", "severity": 2}
 
 
 def client() -> TestClient:
-    module: ModuleType = load("ch09", "e09_02_problem_details")
+    module: ModuleType = load("ch09", "e09_01_problem_details")
     return TestClient(module.build_app())
 
 

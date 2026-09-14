@@ -7,7 +7,7 @@ from exercises._loader import load
 
 
 def module() -> ModuleType:
-    return load("ch09", "e09_05_async_client")
+    return load("ch09", "e09_04_async_client")
 
 
 async def test_it_reaches_the_application() -> None:

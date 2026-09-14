@@ -14,7 +14,7 @@ def settings_class(tmp_path: Path) -> Iterator[type]:
     # The secret's FILE NAME carries the env prefix, and the match is
     # case-insensitive.
     (tmp_path / "ops_api_key").write_text("s3cret", encoding="utf8")
-    module: ModuleType = load("ch09", "e09_04_settings")
+    module: ModuleType = load("ch09", "e09_03_settings")
     kept = dict(os.environ)
     os.environ["OPS_DATABASE_URL"] = "postgresql://localhost/ops"
     try:

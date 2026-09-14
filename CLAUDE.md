@@ -1270,6 +1270,25 @@ not.
 - Parity came back clean on its first run, on a chapter of this size, which
   is what writing the English first and mirroring it macro by macro buys.
 
+**And the exercise keys were numbered by writing order, which the Chapter 6
+pass had found in its own chapter hours earlier.** `\theexercise` counts
+`\begin{exercise}` in document order, and the key is a file name chosen by
+hand, so the box that prints *Exercise 9.1* was telling the reader to open
+`e09_02_problem_details.py` while *Exercise 9.5* pointed at
+`e09_01_scoped_dependency.py`. Five triples renamed, and the `load()` string
+inside each test with them -- a permutation rather than a shift, so it has to
+be one simultaneous substitution and not five sequential ones, or
+`e09_02` chains through `e09_01` into `e09_05`.
+
+Two passes finding the same defect independently makes it a property of the
+mechanism rather than an accident: **write the exercises in the order the
+argument needs them, and number the keys afterwards.** `check_structure.py
+--exercises` checks a key's CHAPTER prefix and says nothing about its
+ordinal, which is why neither pass's gates saw it; the gap is already
+recorded above as belonging to an infrastructure issue, and this pass did
+not close it either, for the same reason -- it is a shared tool and other
+chapters are in flight.
+
 
 ---
 

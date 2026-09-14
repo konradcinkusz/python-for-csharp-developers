@@ -6,7 +6,7 @@ from exercises._loader import load
 
 
 def module() -> ModuleType:
-    return load("ch09", "e09_03_response_model")
+    return load("ch09", "e09_02_response_model")
 
 
 def test_the_wire_names_are_camel_case() -> None:

@@ -6,7 +6,7 @@ from exercises._loader import load
 
 
 def module() -> ModuleType:
-    m = load("ch09", "e09_01_scoped_dependency")
+    m = load("ch09", "e09_05_scoped_dependency")
     m.UnitOfWork.made.clear()
     return m
 

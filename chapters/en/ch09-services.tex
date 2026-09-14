@@ -105,7 +105,7 @@ produces.
 
 \pyregion{code/ch09/validation.py}{problem}{One handler, and the whole service speaks problem details}{lst:ch09-problem}
 
-\begin{exercise}{e09_02_problem_details}{Give the service the error shape your callers expect}
+\begin{exercise}{e09_01_problem_details}{Give the service the error shape your callers expect}
 Write that handler yourself, against a test that checks the status, the
 content type and the shape of the \code{errors} object. The interesting part
 is not the mapping; it is that \code{exc.errors()} gives you a location
@@ -149,7 +149,7 @@ FastAPI emits two schemas, suffixed \code{-Input} and \code{-Output}, where
 Swashbuckle would have emitted one.
 \end{trapbox}
 
-\begin{exercise}{e09_03_response_model}{The wire name and the field name are different things}
+\begin{exercise}{e09_02_response_model}{The wire name and the field name are different things}
 Build a view model that renames two fields for the wire, keeps a secret out
 of the response altogether, and is still constructible from Python with
 ordinary keyword arguments. The test checks all three, and the fourth
@@ -216,7 +216,7 @@ mounted as \code{api\_key} is not found and one mounted as
 until something calls \code{get\_secret\_value()}.
 \end{note}
 
-\begin{exercise}{e09_04_settings}{Configuration that fails at startup, not at first use}
+\begin{exercise}{e09_03_settings}{Configuration that fails at startup, not at first use}
 Write the settings model for this service: a required database URL, a
 bounded timeout, a worker count, and an API key read from a secrets
 directory. Six tests, and two of them are about what the model must
@@ -360,7 +360,7 @@ what you want when the test is itself async \dash{} and it is the same client
 class you would use against a real service, so a test and a caller share an
 API.
 
-\begin{exercise}{e09_05_async_client}{Exercise the application without starting a server}
+\begin{exercise}{e09_04_async_client}{Exercise the application without starting a server}
 Write a function that calls the application over \code{ASGITransport} and
 returns the decoded body. One of its tests forbids \code{socket.socket}
 outright, which is how you prove nothing went near the network.
@@ -401,7 +401,7 @@ threads in one process & \code{--workers}, which are processes \\
 \end{tabularx}
 \end{center}
 
-\begin{exercise}{e09_01_scoped_dependency}{A dependency with a lifetime}
+\begin{exercise}{e09_05_scoped_dependency}{A dependency with a lifetime}
 Build the application the trap in \S\ref{sec:ch09-depends} describes: one
 route that asks for a unit of work twice, one instance per request, a new one
 next time, and closed when the request is over. Four tests, and the third is

@@ -103,7 +103,7 @@ naraz, a druga połowa transkryptu powyżej jest tym, co produkuje.
 
 \pyregion{code/ch09/validation.py}{problem}{Jeden handler i cały serwis mówi problem details}{lst:ch09-problem}
 
-\begin{exercise}{e09_02_problem_details}{Daj serwisowi kształt błędu, którego oczekują twoi klienci}
+\begin{exercise}{e09_01_problem_details}{Daj serwisowi kształt błędu, którego oczekują twoi klienci}
 Napisz ten handler sam, pod testem sprawdzającym status, typ treści i kształt
 obiektu \code{errors}. Ciekawe jest nie samo mapowanie, lecz to, że
 \code{exc.errors()} daje \emph{ścieżkę} położenia, a nie nazwę pola, a jej
@@ -146,7 +146,7 @@ przyrostkami \code{-Input} i \code{-Output}, tam gdzie Swashbuckle wyemitowałby
 jeden.
 \end{trapbox}
 
-\begin{exercise}{e09_03_response_model}{Nazwa na drucie i nazwa pola to dwie różne rzeczy}
+\begin{exercise}{e09_02_response_model}{Nazwa na drucie i nazwa pola to dwie różne rzeczy}
 Zbuduj model widoku, który zmienia nazwy dwóch pól na potrzeby drutu, trzyma
 sekret z dala od odpowiedzi i nadal daje się zbudować z Pythona zwykłymi
 argumentami nazwanymi. Test sprawdza wszystkie trzy, a czwarta asercja
@@ -213,7 +213,7 @@ jako \code{SecretStr}, a zostanie poza każdym \code{repr} i każdą linią
 dziennika, dopóki ktoś nie wywoła \code{get\_secret\_value()}.
 \end{note}
 
-\begin{exercise}{e09_04_settings}{Konfiguracja, która wywraca się przy starcie, a nie przy pierwszym użyciu}
+\begin{exercise}{e09_03_settings}{Konfiguracja, która wywraca się przy starcie, a nie przy pierwszym użyciu}
 Napisz model ustawień tego serwisu: wymagany adres bazy, ograniczony timeout,
 liczbę workerów i klucz API czytany z katalogu sekretów. Sześć testów, a dwa z
 nich są o tym, czego model ma \emph{odmówić}.
@@ -356,7 +356,7 @@ roboczy, czego chcesz w większości testów. \code{ASGITransport} kładzie
 test jest asynchroniczny \dash{} a jest to ta sama klasa klienta, której użyjesz
 przeciw prawdziwemu serwisowi, więc test i klient dzielą API.
 
-\begin{exercise}{e09_05_async_client}{Sprawdź aplikację bez wstawania serwera}
+\begin{exercise}{e09_04_async_client}{Sprawdź aplikację bez wstawania serwera}
 Napisz funkcję, która woła aplikację przez \code{ASGITransport} i zwraca
 zdekodowane ciało. Jeden z jej testów zabrania \code{socket.socket} wprost, i
 tak właśnie dowodzi się, że nic nie zbliżyło się do sieci.
@@ -398,7 +398,7 @@ wątki w jednym procesie & \code{--workers}, czyli procesy \\
 \end{tabularx}
 \end{center}
 
-\begin{exercise}{e09_01_scoped_dependency}{Zależność z czasem życia}
+\begin{exercise}{e09_05_scoped_dependency}{Zależność z czasem życia}
 Zbuduj aplikację, którą opisuje pułapka z \S\ref{sec:ch09-depends}: jedna
 trasa prosząca o jednostkę pracy dwa razy, jedna instancja na żądanie, nowa
 następnym razem i zamknięta, gdy żądanie się skończy. Cztery testy, a trzeci
