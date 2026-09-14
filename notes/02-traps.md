@@ -14,7 +14,9 @@ brief changes, re-derive the owner from `tools/chapters.json` rather than
 from this file.
 
 Numbered so a chapter can cite an entry. The numbering is by owning chapter
-and never reused; a retired entry keeps its number and says why.
+and never reused; a retired entry keeps its number and says why. An owner
+reading `Ch. N §N.M, delivered` names the section that elicits the trap in
+the written chapter; an owner reading a bare `Ch. N` is still a promise.
 
 ## Part I — Runtime and toolchain
 
@@ -27,11 +29,11 @@ and never reused; a retired entry keeps its number and says why.
 | 5 | `pip install` puts the package on the machine, like a global tool | An environment is a directory; a global install is the one thing every later chapter's listings cannot survive | Ch. 2 |
 | 6 | I activate the environment and then run things | `uv run` resolves the environment per invocation; activation is the habit that ships the wrong interpreter to CI | Ch. 2 |
 | 7 | `requirements.txt` is the lockfile | It is a wish list with ranges; `uv.lock` is the lockfile, it is committed, and `uv sync --locked` refuses to drift from it | Ch. 2 |
-| 8 | A type hint is a type | It is a claim the runtime never checks; `str` can be `None` at run time and nothing says so. A checker is a second compiler you have to invite | Ch. 3 |
-| 9 | `List[int]`, `Optional[str]`, `Dict[str, Any]` | 2019 spellings; `list[int]`, `str | None` and `dict[str, Any]` on the pinned interpreter, and PEP 695 for generics | Ch. 3 |
-| 10 | `@dataclass` validates its fields, like a record with a constructor | It generates `__init__`, `__eq__` and `__repr__` and checks nothing; validation at a boundary is pydantic's job | Ch. 3 |
-| 11 | `def f(items=[])` — an optional list parameter | The default is evaluated once, at definition, and shared by every call. `None` and construct inside | Ch. 3 |
-| 12 | `Any` is like `dynamic`, a thing I can contain | `Any` propagates: one `Any` in a chain turns everything downstream into `Any`, and the checker reports nothing | Ch. 3 |
+| 8 | A type hint is a type | It is a claim the runtime never checks; `str` can be `None` at run time and nothing says so. A checker is a second compiler you have to invite | Ch. 3 §3.1, delivered |
+| 9 | `List[int]`, `Optional[str]`, `Dict[str, Any]` | 2019 spellings; `list[int]`, `str | None` and `dict[str, Any]` on the pinned interpreter, and PEP 695 for generics | Ch. 3 §3.2, delivered |
+| 10 | `@dataclass` validates its fields, like a record with a constructor | It generates `__init__`, `__eq__` and `__repr__` and checks nothing; validation at a boundary is pydantic's job | Ch. 3 §3.3, delivered |
+| 11 | `def f(items=[])` — an optional list parameter | The default is evaluated once, at definition, and shared by every call. `None` and construct inside | Ch. 3 §3.5, delivered |
+| 12 | `Any` is like `dynamic`, a thing I can contain | `Any` propagates: one `Any` in a chain turns everything downstream into `Any`, and the checker reports nothing | Ch. 3 §3.5, delivered |
 
 ## Part II — The language, mapped
 
@@ -65,13 +67,13 @@ and never reused; a retired entry keeps its number and says why.
 
 | # | The habit, in the reader's voice | What Python does | Owner |
 |---|---|---|---|
-| 36 | A coroutine is a `Task`: calling it starts it | A coroutine is cold; calling it builds an object that does nothing until awaited or scheduled. Forgetting the `await` is a warning, not an error | Ch. 8 · delivered §8.2 |
-| 37 | `create_task` starts the task immediately | It schedules; the body does not run until the caller yields. Measured in the LangChain book's Chapter 3 | Ch. 8 · delivered §8.2 |
-| 38 | `.Result` on a task deadlocks, so I use `ConfigureAwait(false)` | There is no `SynchronizationContext` and no `ConfigureAwait`; there is one loop, and one blocking call inside it freezes every other coroutine, with no error and no log line | Ch. 8 · delivered §8.3 |
-| 39 | `gather` is `WhenAll` | `gather` orphans its siblings when one fails; `TaskGroup` cancels them. The two are identical on speed, so the choice is only ever about failure semantics | Ch. 8 · delivered §8.4 |
-| 40 | Cancellation is a token I poll, so catching `Exception` is how I lose it | Backwards in both halves. It is `CancelledError`, delivered at an `await` -- and it inherits from `BaseException`, so `except Exception` is the clause that lets it THROUGH. What swallows it is a bare `except:`, `except BaseException:`, or an `except asyncio.CancelledError` block with no `raise` under it | Ch. 8 · delivered §8.5 |
-| 41 | `HttpClient` is a singleton, so `httpx.AsyncClient` is too | The lifetime advice carries -- construct it once, share it, close it -- and the defaults do not: a default `AsyncClient` already has a five-second deadline, applied separately to connect, read, write and pool rather than to the request as a whole | Ch. 8 · delivered §8.6 |
-| 60 | A `Task` can be awaited twice, so a coroutine can | A `Task` is a handle on work already running and hands out its result as often as you ask; a coroutine IS the work, and awaiting it a second time raises `RuntimeError: cannot reuse already awaited coroutine`. Out of block because numbers are never reused | Ch. 8 · delivered §8.2 |
+| 36 | A coroutine is a `Task`: calling it starts it | A coroutine is cold; calling it builds an object that does nothing until awaited or scheduled. Forgetting the `await` is a warning, not an error | Ch. 8 §8.2, delivered |
+| 37 | `create_task` starts the task immediately | It schedules; the body does not run until the caller yields. Measured in the LangChain book's Chapter 3 | Ch. 8 §8.2, delivered |
+| 38 | `.Result` on a task deadlocks, so I use `ConfigureAwait(false)` | There is no `SynchronizationContext` and no `ConfigureAwait`; there is one loop, and one blocking call inside it freezes every other coroutine, with no error and no log line | Ch. 8 §8.3, delivered |
+| 39 | `gather` is `WhenAll` | `gather` orphans its siblings when one fails; `TaskGroup` cancels them. The two are identical on speed, so the choice is only ever about failure semantics | Ch. 8 §8.4, delivered |
+| 40 | Cancellation is a token I poll, so catching `Exception` is how I lose it | Backwards in both halves. It is `CancelledError`, delivered at an `await` -- and it inherits from `BaseException`, so `except Exception` is the clause that lets it THROUGH. What swallows it is a bare `except:`, `except BaseException:`, or an `except asyncio.CancelledError` block with no `raise` under it | Ch. 8 §8.5, delivered |
+| 41 | `HttpClient` is a singleton, so `httpx.AsyncClient` is too | The lifetime advice carries -- construct it once, share it, close it -- and the defaults do not: a default `AsyncClient` already has a five-second deadline, applied separately to connect, read, write and pool rather than to the request as a whole | Ch. 8 §8.6, delivered |
+| 60 | A `Task` can be awaited twice, so a coroutine can | A `Task` is a handle on work already running and hands out its result as often as you ask; a coroutine IS the work, and awaiting it a second time raises `RuntimeError: cannot reuse already awaited coroutine`. Out of block because numbers are never reused | Ch. 8 §8.2, delivered |
 
 ## Part IV — Shipping
 

@@ -42,6 +42,9 @@ WIDTH = 79
 # run that listing themselves.
 TRANSCRIPTS = {
     "ch00-loop": "ch00/loop.py",
+    "ch03-hint-is-a-claim": "ch03/hint_is_a_claim.py",
+    "ch03-dto-four-ways": "ch03/dto_four_ways.py",
+    "ch03-defaults": "ch03/defaults.py",
     "ch08-cold": "ch08/cold.py",
     "ch08-whenall": "ch08/whenall.py",
     "ch08-cancelled": "ch08/cancelled.py",
