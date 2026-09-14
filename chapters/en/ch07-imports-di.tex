@@ -27,9 +27,11 @@ when the language has no container.
 The closest C\# construction is not \code{using} at all. It is a static
 class with a static constructor: one instance for the process, initialised
 by running code, on first contact. Python's version differs in two ways
-that matter. It is triggered by \emph{import} rather than by first use, and
-the language makes no thread-safety promise about it that you should rely
-on.
+that matter. It is triggered by \emph{import} rather than by first use; and
+the difference that bites is not thread safety, because CPython does take a
+lock per module while a body runs and detects its own deadlocks, but that a
+cycle lets a second module see this one half-built, which is
+\S\ref{sec:cycles}.
 \end{csbox}
 
 \section{A module is an object that runs once}
@@ -133,11 +135,13 @@ difference, because it is the one that bites later: the head of
 the directory you ran from in the second.
 
 \begin{csbox}
-\code{-m} is closest to running a project rather than an assembly file:
-\code{dotnet run} resolves the project and its references, where invoking a
-DLL directly gives you whatever the directory happens to contain. The
-\code{src/} layout of Chapter~\ref{ch:packaging} exists to make the second
-kind of accident impossible, and this section is the mechanism underneath
+\code{-m} has no exact C\# counterpart, and the reason is the useful part.
+In .NET what an assembly resolves against is declared \dash{} by the project,
+and at run time by the deps file written beside it \dash{} so the directory
+you happen to be standing in does not change which code loads. In Python it
+does, because \api{sys.path} begins with a directory chosen by how you
+started the process. The \code{src/} layout of Chapter~\ref{ch:packaging}
+exists to stop that mattering, and this section is the mechanism underneath
 it.
 \end{csbox}
 

@@ -30,8 +30,11 @@ Najbliższą konstrukcją C\# nie jest wcale \code{using}. Jest nią klasa
 statyczna ze statycznym konstruktorem: jedna instancja na proces,
 zainicjowana przez wykonanie kodu, przy pierwszym kontakcie. Wersja
 Pythona różni się dwiema rzeczami, które mają znaczenie. Wyzwala ją
-\emph{import}, a nie pierwsze użycie, i język nie daje o niej obietnicy
-bezpieczeństwa wątkowego, na której warto polegać.
+\emph{import}, a nie pierwsze użycie; a różnicą, która gryzie, nie jest
+bezpieczeństwo wątkowe, bo CPython bierze blokadę na moduł na czas
+wykonywania ciała i wykrywa własne zakleszczenia, tylko to, że cykl
+pozwala drugiemu modułowi zobaczyć ten w połowie zbudowany, o czym jest
+\S\ref{sec:cycles}.
 \end{csbox}
 
 \section{Moduł jest obiektem, który wykonuje się raz}
@@ -134,11 +137,14 @@ stoi \emph{katalog samego skryptu} w pierwszym przypadku, a katalog, z
 którego uruchamiasz, w drugim.
 
 \begin{csbox}
-\code{-m} jest najbliższe uruchomieniu projektu, a nie pliku zestawu:
-\code{dotnet run} rozwiązuje projekt i jego referencje, podczas gdy
-wywołanie biblioteki DLL wprost daje to, co akurat leży w katalogu. Układ
-\code{src/} z rozdziału~\ref{ch:packaging} istnieje po to, by ten drugi
-rodzaj wypadku był niemożliwy, a ta sekcja jest mechanizmem pod nim.
+\code{-m} nie ma dokładnego odpowiednika w C\#, i to właśnie jest użyteczne.
+W .NET to, względem czego rozwiązuje się zestaw, jest zadeklarowane \dash{}
+przez projekt, a w czasie działania przez plik deps zapisany obok \dash{}
+więc katalog, w którym akurat stoisz, nie zmienia tego, jaki kod się
+ładuje. W Pythonie zmienia, bo \api{sys.path} zaczyna się od katalogu
+wybranego przez sposób uruchomienia procesu. Układ \code{src/} z
+rozdziału~\ref{ch:packaging} istnieje po to, by przestało to mieć
+znaczenie, a ta sekcja jest mechanizmem pod nim.
 \end{csbox}
 
 \noindent

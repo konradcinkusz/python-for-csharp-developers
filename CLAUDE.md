@@ -35,7 +35,7 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 51 | 0 | 0 | 0 | 0 |
+| `main-en` | 52 | 0 | 0 | 0 | 0 |
 | `main-pl` | 52 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
@@ -775,6 +775,23 @@ than asserted, and the chapter says so. An `__init__.py` with
 chapter argues for anyway. A constant assigned in both branches of a
 `try`/`except` is `reportConstantRedefinition`; assigning it once from a
 helper reads better regardless.
+
+**Two claims written from background knowledge rather than from a probe,
+both caught on a last read of the chapter and both wrong.** The C# box said
+Python “makes no thread-safety promise” about a module body. It does:
+`importlib._bootstrap._ModuleLock` is a lock per module, taken while a body
+runs, and it detects its own deadlocks — read out of the installed
+interpreter. So the box now says what is actually different, which is better
+material: not thread safety, but that a cycle lets a second module see this
+one half-built, which hands forward to §7.3. And the `-m` box said that
+invoking a .NET DLL directly “gives you whatever the directory happens to
+contain”, which is false — resolution is declared, by the project and by the
+deps file beside it. The corrected contrast is sharper than the wrong one:
+in .NET the directory you are standing in does not change which code loads,
+and in Python it does, because `sys.path[0]` is chosen by how you started the
+process. **A .NET claim in this book is the one a reader is most likely to
+know better than the author**, and neither of these would have been caught by
+any gate.
 
 **Two overfull hboxes, both the inherited long-`\api{}`-at-a-line-break
 class, and this book’s first.** 3.1 pt in English on
