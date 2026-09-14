@@ -55,11 +55,24 @@ CODE = Path(__file__).resolve().parents[1]
 OUT = CODE.parent / "figures" / "transcripts"
 WIDTH = 79
 
-# pytest and coverage size their rules to the terminal, and fall back to
-# 80 when there is no tty -- one column over the budget, and a number that
-# is a property of whatever ran the build rather than of the book. Pinned
-# here so the transcript is the same on this machine and on CI.
-ENV = {**os.environ, "COLUMNS": str(WIDTH)}
+# Two things about the environment change pytest's output, and both would
+# make `make verify` fail on CI for no defect.
+#
+#   * COLUMNS. pytest and coverage size their rules to the terminal and fall
+#     back to 80 when there is no tty -- one column over the budget, and a
+#     number that is a property of whatever ran the build rather than of the
+#     book.
+#   * CI and BUILD_NUMBER. `_pytest.compat.running_on_ci()` is true when
+#     either is set and non-empty, and TWO places read it: a sequence
+#     comparison prints "Use -v to get more diff" when it is false and the
+#     whole difflib diff when it is true (`assertion/_compare_sequence.py`),
+#     and long output is truncated only when it is false
+#     (`assertion/truncate.py`). So the same failing test reports
+#     differently on a laptop and on a runner, by design. The transcript is
+#     a claim about what the READER sees, and the reader is not on CI, so
+#     both are cleared rather than the page being made to match the runner.
+#     Read out of the installed pytest, not remembered.
+ENV = {**os.environ, "COLUMNS": str(WIDTH), "CI": "", "BUILD_NUMBER": ""}
 
 
 @dataclass(frozen=True)

@@ -103,6 +103,7 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 | 57 | `model_validate_json` is `JsonSerializer.Deserialize` | Lax mode coerces where `System.Text.Json` refuses; strict mode is what a C# engineer expects, and E8 prices both | Ch. 13 |
 | 58 | A notebook is where Python happens | A notebook is a REPL with a memory of every cell you ran in any order; nothing in this book is one, and Chapter 13 says when one is right | Ch. 13 |
 | 59 | A trace assertion needs a model to evaluate | The first layer of agent-eval-bench is deterministic; it runs with no model, which is why it can run in CI | Ch. 14 |
+| 60 | A test report is a test report; the same failure prints the same thing everywhere | pytest reports differently on a build server on purpose: `running_on_ci()` is true when `CI` or `BUILD_NUMBER` is set, and a sequence diff is then printed in full and long output is not truncated. A transcript, a golden file or a screenshot of a failure is a claim about one of the two | Ch. 11 — **delivered**, §11.1 |
 
 ## Retired
 

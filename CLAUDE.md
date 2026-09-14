@@ -1565,6 +1565,36 @@ address is ASCII, printable, and short, so the three existing guards could
 not see it. It is caught by name --- `0x7f`, `0x55` --- which is crude and is
 the only thing that would have failed on the shape that actually occurred.
 
+**A fourth cause, and only CI could find it, because CI is the cause.**
+The three above were found by running twice on one machine; this one cannot
+be. `_pytest.compat.running_on_ci()` is true when `CI` or `BUILD_NUMBER` is
+set and non-empty, and **two** places read it: `assertion/_compare_sequence.py`
+prints `Use -v to get more diff` when it is false and the whole `difflib`
+diff when it is true, and `assertion/truncate.py` truncates long output only
+when it is false. So the same failing test reports differently on a laptop
+and on a runner, deliberately --- and `make verify` failed on CI with a
+transcript that was correct on both machines and identical on neither.
+
+The transcript is a claim about what the **reader** sees and the reader is
+not on CI, so both variables are cleared in `measure/transcripts.py`'s `ENV`
+and in `exercises/ch11/_pytest_runner.py`'s, rather than the page being made
+to match the runner. Proved in both directions before it was believed: with
+the old environment `CI=true` produces the full diff, and with the new one
+`CI=true` and `BUILD_NUMBER=42` each reproduce the committed transcript byte
+for byte. The chapter says it too, in §11.1, because a reader who runs the
+book's own listing on a build server would otherwise find the page wrong.
+
+**The generalisable half: a reproducibility guard cannot be written against
+one machine.** Everything a tool does differently *because* it is on CI is
+invisible to a diff of two local runs, and it is precisely the class that
+breaks the gate.
+
+**And the fix has a horizon.** Both those call sites are private
+(`_pytest.compat`, `_pytest.assertion`), so this is a fact about
+pytest 9.1.1 rather than a supported interface. If a future pytest reports
+differently again, re-read those two files rather than guessing which knob
+moved.
+
 #### `make starters` caught a genuine design flaw, not a mechanical one
 
 Exercise 11.3's first draft had a test that passed on the untouched starter,

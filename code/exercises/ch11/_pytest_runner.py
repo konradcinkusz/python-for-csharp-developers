@@ -19,10 +19,11 @@ from pathlib import Path
 from types import ModuleType
 
 CODE = Path(__file__).resolve().parents[2]
-# pytest sizes its rules to the terminal; pinning the width keeps a failure
-# message the same here and on CI, which is the same reason
-# code/measure/transcripts.py pins it.
-ENV = {**os.environ, "COLUMNS": "79"}
+# The same three the transcript writer pins, for the same reason: pytest
+# sizes its rules to the terminal, and it prints a longer assertion diff
+# when CI or BUILD_NUMBER is set. A check that reads pytest's output must
+# not see one thing on your machine and another on a runner.
+ENV = {**os.environ, "COLUMNS": "79", "CI": "", "BUILD_NUMBER": ""}
 
 
 def run(module: ModuleType) -> subprocess.CompletedProcess[str]:

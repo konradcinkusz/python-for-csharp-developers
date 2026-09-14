@@ -67,6 +67,19 @@ the value, and for the collection it found the index that differs. An
 assertion library exists to buy you that, and here the language keyword and
 the library are the same thing.
 
+\begin{warning}
+Run that same file on a build server and the last line reads differently:
+instead of \code{Use -v to get more diff} you get the whole
+\api{difflib} diff, and long output stops being truncated.
+\api{running\_on\_ci} in \code{\_pytest.compat} is true when
+\code{CI} or \code{BUILD\_NUMBER} is set and non-empty, and two places
+read it \dash{} the sequence comparison and the truncation. It is a
+deliberate kindness, because on a runner you cannot re-run with
+\code{-v}. It also means a report is not reproducible between your machine
+and the server unless you say which you want, so the script that generates
+every transcript in this book clears both variables.
+\end{warning}
+
 \begin{trapbox}
 \code{assert} is not the debug-build statement you are thinking of. It is
 the assertion library, because pytest rewrites the bytecode of every module
