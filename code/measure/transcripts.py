@@ -36,12 +36,18 @@ WIDTH = 79
 
 # stem -> the listing whose stdout it is, relative to code/
 #
-# Only a listing whose output the book QUOTES belongs here. ch08/one_loop.py
-# is deliberately absent: it prints milliseconds, which differ on every
-# machine, so the chapter quotes E4's bounds instead and tells the reader to
-# run that listing themselves.
+# Only a listing whose output the book QUOTES belongs here, and a listing
+# that prints a wall-clock time never does: the number differs on every
+# machine, so a committed transcript of it could not survive the drift gate.
+# Two are deliberately absent for that reason. ch01/workloads.py prints
+# seconds; its numbers reach the page through measure/e01_gil.py, which
+# records them once into a committed JSON with the machine named beside
+# them. ch08/one_loop.py prints milliseconds; its chapter quotes E4's
+# bounds instead and tells the reader to run the listing themselves.
 TRANSCRIPTS = {
     "ch00-loop": "ch00/loop.py",
+    "ch01-bytecode": "ch01/bytecode.py",
+    "ch01-interpreter": "ch01/interpreter.py",
     "ch02-where-am-i": "ch02/where_am_i.py",
     "ch02-lockfile": "ch02/lockfile.py",
     "ch03-hint-is-a-claim": "ch03/hint_is_a_claim.py",

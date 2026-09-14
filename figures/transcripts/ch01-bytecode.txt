@@ -1,0 +1,17 @@
+ 17           RESUME                   0
+
+ 18           LOAD_FAST_BORROW_LOAD_FAST_BORROW 1 (subtotal, rate)
+              BINARY_OP                5 (*)
+              STORE_FAST               2 (tax)
+
+ 19           LOAD_FAST_BORROW_LOAD_FAST_BORROW 2 (subtotal, tax)
+              BINARY_OP                0 (+)
+              STORE_FAST               3 (total)
+
+ 20           LOAD_GLOBAL              1 (round + NULL)
+              LOAD_FAST_BORROW         3 (total)
+              LOAD_SMALL_INT           2
+              CALL                     2
+              RETURN_VALUE
+
+cached at: __pycache__/widget.cpython-314.pyc
