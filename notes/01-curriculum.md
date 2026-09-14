@@ -97,7 +97,7 @@ restate a total here or in `CLAUDE.md`** — the math book's ledger said
 |---|---|---|---|---|
 | E1 | 1 | CPU-bound work, four threads, default build against `python3.14t`, on the pinned interpreter | free; needs the free-threaded build installed by `uv python install 3.14t` | not run |
 | E2 | 2 | Cold `uv sync` against `pip install -r` on the same lockfile | free | not run |
-| E3 | 6 | Cost of a `try` against a check, happy path and unhappy path | free | not run |
+| E3 | 6 | Cost of a `try` against a check, happy path and unhappy path | free | **run**, Chapter 6 pass. Committed as executed-bytecode counts, which are exact on the pinned interpreter; the wall-clock half is asserted as bounds and printed rather than committed, because CI re-runs every measurement script and compares |
 | E4 | 8 | One blocking call's degradation, in the TPL-against-asyncio framing | free; the LangChain book's Chapter 3 has the asyncio half already | not run |
 | E5 | 9 | uvicorn workers against concurrency: throughput, p50, p95, mocked upstream, calibrated the way the LangChain book's Chapter 13 recorded | free | not run |
 | E6 | 10 | The N+1 reproduced and counted from the engine's echo, before and after `selectinload`, on SQLite | free | **run**, Chapter 10 pass, `code/measure/e06_nplusone.py` |
