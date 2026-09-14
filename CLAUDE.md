@@ -19,15 +19,15 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **1 of 14 written: Chapter 3, both editions.** The other thirteen are briefs printed where the chapter will go | 1, 2 and 4 to 14 |
+| Chapters | **2 of 14 written: Chapters 3 and 12, both editions.** The other twelve are briefs printed where the chapter will go | 1, 2, 4--11, 13, 14 |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapter 3's seven listings, five exercises, three measurement scripts, and CI runs all of it | every other chapter's listings and exercises; the eight experiments |
+| Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapter 3's seven listings, Chapter 12's five listings and three Dockerfiles, nine exercises, the measurement scripts, and CI runs all of it | every other chapter's listings and exercises; seven of the eight experiments |
 
-**The scaffold plus one chapter.** The scaffold existed so that the shape of
+**The scaffold plus two chapters.** The scaffold existed so that the shape of
 the book could be argued with before Chapter 1 was written, and so that the
 first chapter was written into a build that already had every gate. Chapter 3
-is the first chapter written into it, and the gates earned their keep on the
-first pass — see *The Chapter 3 pass* below.
+landed first and Chapter 12 second, and on both the gates earned their keep on
+the first pass — see *The Chapter 3 pass* and *The Chapter 12 pass* below.
 
 **Two editions, one paper size, both clean.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
@@ -35,8 +35,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 53 | 0 | 0 | 0 | 0 |
-| `main-pl` | 56 | 0 | 0 | 0 | 0 |
+| `main-en` | PAGES_EN | 0 | 0 | 0 | 0 |
+| `main-pl` | PAGES_PL | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -54,15 +54,20 @@ does not:
 
 - **13 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 16 listing references, every file and region present · 5 exercises, each
-  with a starter, a solution and a test · 12 transcript references, every
-  file present · 34 code files, none over 79 columns · 19 pins agree between
+- N_LISTINGS listing references, every file and region present · N_EXERCISES exercises, each
+  with a starter, a solution and a test · N_TRANSCRIPTS transcript references, every
+  file present · N_CODEFILES code files, none over 79 columns · 19 pins agree between
   `preamble.tex` and `code/pyproject.toml`
-- **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
-  reader that something was not run
-- 8 Mermaid sources, four per language, all rendering, all placed
-- 15 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 44 labels in each edition,
+- **1 `verifybox` block** — Chapter 12's three Dockerfiles, which could not
+  be built because no container registry is reachable from the machine that
+  compiles this book. It is the first one the book has carried and it must
+  not become two by habit: a box is a promise to the reader that something
+  was not run. **That figure is per edition, which is what Appendix E
+  prints; `make debt`'s `shots` target greps both editions and says 2.**
+  Quote whichever you mean, and say which
+- N_DIAGRAMS Mermaid sources, N_DIAG_PER per language, all rendering, all placed
+- N_VALUES computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · N_LABELS labels in each edition,
   0 mismatches
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
@@ -824,6 +829,152 @@ trimmed first was not the widest one** — mermaid sizes a chain by the sum of
 its nodes' longest lines, so the render has to be measured again rather than
 reasoned about.
 
+### The Chapter 12 pass, September 2026
+
+**The brief was right about the subject and wrong about two of its own
+prescriptions**, and both corrections came from the installed tools rather
+than from reading around them.
+
+**1. `pip-audit --locked` does not audit `uv.lock`.** The brief pairs
+`pip-audit` with `dotnet list package --vulnerable`, and the flag whose name
+says it does that is the wrong one: `--locked` reads a PEP 751
+`pylock.toml`, and pointed at a uv project it reports
+`no lockfiles found in .` -- measured. `uv.lock` is not a `pylock.toml` and
+uv does not write one by default. The bridge is one command,
+`uv export --format pylock.toml`, and the pair then works end to end; both
+halves are in the chapter because the flag's name is a trap a reader will
+walk into. The other half worth knowing: your own package is *skipped*
+rather than audited, because it is not on an index, and a skip is not a
+failure until `--strict` makes it one.
+
+**2. `--frozen` and `--locked` are not synonyms, and the brief only names
+the first.** `uv sync --locked` *asserts* that `uv.lock` agrees with
+`pyproject.toml`; `uv sync --frozen` installs what the lock says without
+checking. The Dockerfile wants `--frozen` (the lock has already been
+asserted upstream) and CI wants `--locked`. Read out of `uv sync --help` on
+the pinned uv, not from memory. **No manifest change was needed for either**:
+the brief's wording survives both corrections, so `tools/chapters.json` is
+untouched.
+
+#### Experiment E7 is blocked, and the blocker is not the one the notes assumed
+
+`notes/01-curriculum.md` predicted E7 would need "CI rather than the
+sandbox" because it needs Docker. The sandbox *has* a working Docker daemon.
+What it does not have is a route to any registry: `docker pull` and
+`docker build` both die with `Forbidden` from
+`production.cloudfront.docker.com`, and GHCR's `pkg-containers.
+githubusercontent.com` answers the same, both recorded as policy denials by
+the egress proxy's own status endpoint. So no base image can be fetched and
+nothing can be built. **Confirmed by running E7 for real**: its script
+assembles the build context correctly -- `requirements.txt` exported from
+`uv.lock`, all three Dockerfiles, the source tree -- and fails at exactly one
+place, the `FROM` line.
+
+`code/measure/e07_images.py` is committed and is **off unless
+`PYBOOK_E7=1`**, on the `PYBOOK_SOLUTIONS` convention. That is not
+tidiness: everything under `measure/` runs on every build and in CI, so a
+script that silently built three images would turn a forty-second job into a
+ten-minute one and fail on every machine without a daemon. The chapter's
+table of image sizes is absent rather than estimated, and every comparison
+it makes between the three shapes is labelled as an argument from what they
+contain.
+
+**What was measured instead, and it is deliberately not E7.** Ask of any
+blocked measurement whether it splits, which is the math book's rule: the
+`--no-dev` half of the Dockerfile claim needs no Docker at all, because
+`uv.lock` records every wheel's size. `code/measure/deps_weight.py` totals
+the runtime dependency closure against the full one, offline and
+deterministically, and prices the flag exactly. The chapter states the two
+qualifications on the page: those are download bytes rather than installed
+ones, so the footprint removed is larger than the figure; and it settles one
+of the three differences between the shapes rather than the image size.
+
+#### The findings the listings are built on
+
+Each was run against the installed, pinned package before a word was written
+about it.
+
+- **`basicConfig` is a no-op once the root logger has a handler**, silently:
+  the level stays at `WARNING`, the requested format is ignored, and the
+  requested `DEBUG` line never appears. No exception, no warning, no return
+  value. `force=True` is the standard library's own answer.
+- **`foreign_pre_chain` is the whole reason to route `logging` through
+  structlog's `ProcessorFormatter`.** With `merge_contextvars` in it, a line
+  written by a library that has never heard of structlog comes out as JSON
+  carrying your request identifier. Measured on an `httpx` logger.
+- **A `SecretStr` cannot leak into a JSON log line.** structlog's
+  `JSONRenderer` falls back to `repr` for anything the serialiser refuses,
+  and `repr(SecretStr(...))` is a row of asterisks, where a plain `str`
+  prints the secret. So the type is the control, which is a better sentence
+  than any review checklist.
+- **`Resource.create()` with no attributes supplies
+  `service.name = "unknown_service"`**, so an unconfigured provider files
+  every span under a name shared with every other unconfigured service.
+- **uvicorn's `timeout_graceful_shutdown` defaults to `None`, and `None`
+  means wait indefinitely** (`asyncio.wait_for(..., timeout=None)`). Read
+  out of `Server.shutdown` in the installed package, which is also where the
+  shutdown order is: stop accepting, drain connections, wait for tasks,
+  *then* the lifespan's shutdown half.
+
+#### A silent build defect: latexmk will not rerun for a file it has never read
+
+The Polish edition built green -- 0 errors, 0 unresolved, 0 overfull boxes,
+the right page count -- with three of its five diagrams **not in the PDF**,
+falling back to the typeset Mermaid source. The only tell was four
+`Package caption Warning` lines that the English build did not have.
+
+The cause is not the `.fdb_latexmk` cache, which was the first guess and was
+wrong. `make diagrams` had been run before the Polish `.mmd` files existed,
+so those PDFs were absent when latexmk last scanned; a file latexmk has
+never read is not in its dependency database, and creating it therefore
+triggers nothing. `make pl` then reports *All targets up-to-date* and leaves
+the previous PDF in place. **`touch` on the chapter does not force it
+either**, because latexmk compares content rather than timestamps.
+
+**Isolated properly, and the first attempt at isolating it measured
+nothing** -- the probe builds reported *up-to-date* and never reran the
+compiler, so both of its arms returned the previous run's log. Forced with
+`latexmk -g`, with the cache deliberately left in place: with the diagram
+absent, 2 caption warnings and 4 diagrams included; with it restored, 0 and
+5. So the cache is innocent and the remedy is simply to make latexmk run
+again -- `latexmk -g`, or remove the PDF. **Render the diagrams before
+building, not after**, and treat a caption warning in one edition and not
+the other as a missing figure rather than as noise.
+
+#### Also
+
+- **Every test in an exercise must fail against its starter, not just one.**
+  `conftest.py` marks every test under `exercises/` as a *strict* xfail
+  under `PYBOOK_STARTERS=fail`, so a test that happens to pass with the
+  starter is an XPASS and fails the gate. Exercise 12.2 shipped a
+  `set`/`get` round-trip test that the broken version passed; it is now a
+  test that the caller's value survives a child task, which the broken
+  version cannot pass either.
+- **An exercise test that calls `_loader.load()` per invocation hands every
+  concurrent coroutine a module of its own.** Exercise 12.2's first test
+  loaded inside each handler, so the two handlers got two separate
+  `RequestContext` classes, could not overwrite each other, and the broken
+  starter passed. One load per test, in a fixture.
+- **A JSON log line does not fit the 79-column transcript guard**, and no
+  realistic record does: the minimum with a timestamp is 102 columns. The
+  chapter's transcript drops the timestamp instead of shrinking the record,
+  which is a real production choice under a collector that stamps every line
+  -- and the listing says so rather than leaving the reader to wonder.
+- **Three over-budget hboxes, all the recorded unbreakable-`\code{}` class**,
+  and the fix for each was structural rather than a reword: shorten a
+  38-character `\api{}` to the name the listing above already prints, start
+  a paragraph with the identifier so it is guaranteed a line start, and
+  split a sentence carrying two `\code{}` runs. A fourth, 3.1 pt, was
+  `\pkg{pydantic-settings}` landing at a line end and was fixed by moving it
+  off the end.
+- **`PYTHONUNBUFFERED` was already set in the sandbox**, so the first probe
+  of the buffering claim reported `write_through=True` with and without it
+  and looked like a refutation. `env -u` settles it: piped and unset,
+  `write_through` is `False`. The recorded instrument class, one more time.
+- Three figures, measured with the PDF's own `MediaBox` before the captions
+  were written: 618--731 pt wide, ratios 3.6 to 6.6, node text 6.9 to 8.3 pt
+  in both editions. All above the aspect-ratio crossover, so no redesign.
+
 ---
 
 ## After each pass
@@ -850,8 +1001,8 @@ Tag from a local clone.
 
 ## What is left
 
-One chapter of fourteen is written. The outstanding work is tracked as
-GitHub issues under the `chapter`, `appendix`, `experiment` and
+Two chapters of fourteen are written, 3 and 12. The outstanding work is
+tracked as GitHub issues under the `chapter`, `appendix`, `experiment` and
 `infrastructure` labels — **work from the labels, not from a list here**,
 because a list in this file is the class of claim nothing can check. In rough
 order:
@@ -863,8 +1014,10 @@ order:
    — it names what it borrows and borrows almost nothing — so the ordering
    is a preference rather than a constraint. Then 4 to 7 in order, each
    leaning on the last.
-2. **Chapters 8 to 12** (v0.2), with the trace-assert stage 01 in Chapter 11
-   and experiments E4 to E7.
+2. **Chapters 8 to 11**, which complete v0.2 with Chapter 12, which is
+   written. The trace-assert stage 01 is Chapter 11's, and experiments E4 to
+   E6 belong here. E7 is written and blocked on a machine that can reach a
+   container registry; `PYBOOK_E7=1` runs it.
 3. **Chapters 13 and 14 and Appendices A to D** (v1.0). Appendix B is
    written from `notes/02-traps.md`; Appendix C's version column prints
    from the preamble's macros and is never typed; Appendix D needs the

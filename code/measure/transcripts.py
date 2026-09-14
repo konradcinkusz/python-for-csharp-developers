@@ -40,6 +40,10 @@ TRANSCRIPTS = {
     "ch03-hint-is-a-claim": "ch03/hint_is_a_claim.py",
     "ch03-dto-four-ways": "ch03/dto_four_ways.py",
     "ch03-defaults": "ch03/defaults.py",
+    "ch12-logging-default": "ch12/logging_default.py",
+    "ch12-log-setup": "ch12/log_setup.py",
+    "ch12-correlation": "ch12/correlation.py",
+    "ch12-shutdown": "ch12/shutdown.py",
 }
 
 

@@ -89,9 +89,9 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 | 50 | A test class per fixture, like `IClassFixture` | pytest fixtures are functions with a scope; the class is optional and usually absent | Ch. 11 |
 | 51 | Mock where the thing is defined | Patch where the name is *looked up* — the importing module — or the patch does nothing and the test passes for the wrong reason | Ch. 11 |
 | 52 | `assert` is for debug builds | pytest rewrites `assert` to explain itself; it is the assertion library | Ch. 11 |
-| 53 | `logging.basicConfig` and I am done | The standard module's configuration is global, import-order-sensitive and the reason structlog exists | Ch. 12 |
-| 54 | Correlation id in a static field, like `AsyncLocal` | `contextvars` is `AsyncLocal`; a module-level variable is shared by every request on the loop | Ch. 12 |
-| 55 | `FROM python:3.14` and `pip install` in the Dockerfile | Multi-stage with `uv sync --frozen --no-dev`, a non-root user, and the two environment variables. E7 measures the three shapes | Ch. 12 |
+| 53 | `logging.basicConfig` and I am done | The standard module's configuration is global, import-order-sensitive and the reason structlog exists | Ch. 12, **delivered** in §12.1: the second `basicConfig` call is a silent no-op, elicited before it is named |
+| 54 | Correlation id in a static field, like `AsyncLocal` | `contextvars` is `AsyncLocal`; a module-level variable is shared by every request on the loop | Ch. 12, **delivered** in §12.3: two concurrent handlers, and the module-level column reports the same name twice |
+| 55 | `FROM python:3.14` and `pip install` in the Dockerfile | Multi-stage with `uv sync --frozen --no-dev`, a non-root user, and the two environment variables | Ch. 12, **delivered** in §12.5, with the three shapes side by side. E7 would measure them and has not run: see `notes/01-curriculum.md` §4 |
 
 ## Part V — Python for AI work
 
