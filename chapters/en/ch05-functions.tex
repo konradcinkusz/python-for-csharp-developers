@@ -310,8 +310,10 @@ whatever the consumer sent in \dash{} \code{None} for a plain
 \code{return}s carries the value out as well, which is why
 \code{Generator} has three type parameters where \code{IEnumerable} has
 one. That makes a Python generator a coroutine in the original sense, and
-it is the machinery \code{async def} was built on top of; Chapter
-\ref{ch:asyncio} picks it up there.
+it is the machinery \code{async def} was built on top of. Chapter
+\ref{ch:asyncio} is where coroutines proper are, and the first thing it
+says about one is this same thing: it does nothing until something drives
+it.
 \end{trapbox}
 
 \section{\code{with} is \code{using}, and contextlib is the rest}
