@@ -1,0 +1,5 @@
+flowchart LR
+    A["<b>add / change</b><br/>the Session tracks the object;<br/>nothing has been written"]
+    B["<b>flush</b><br/>the INSERT runs inside the<br/>transaction and the key comes back"]
+    C["<b>commit</b><br/>the transaction ends, and every<br/>object is expired: the next<br/>attribute you read is a SELECT"]
+    A --> B --> C
