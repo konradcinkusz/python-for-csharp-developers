@@ -96,7 +96,7 @@ restate a total here or in `CLAUDE.md`** — the math book's ledger said
 | # | Chapter | What | Cost | Status |
 |---|---|---|---|---|
 | E1 | 1 | CPU-bound work, four threads, default build against `python3.14t`, on the pinned interpreter | free; needs the free-threaded build installed by `uv python install 3.14t` | not run |
-| E2 | 2 | Cold `uv sync` against `pip install -r` on the same lockfile | free | not run |
+| E2 | 2 | Cold `uv sync` against `pip install -r` on the same lockfile | free | **run**, Ch. 2 pass, September 2026: `code/measure/e2_install.py`, raw trials committed beside it. The finding is the cache column, not the headline — a warm cache buys uv a factor of nine and buys pip nothing, because pip's time is its own work rather than the download |
 | E3 | 6 | Cost of a `try` against a check, happy path and unhappy path | free | **run**, Chapter 6 pass. Committed as executed-bytecode counts, which are exact on the pinned interpreter; the wall-clock half is asserted as bounds and printed rather than committed, because CI re-runs every measurement script and compares |
 | E4 | 8 | One blocking call's degradation, in the TPL-against-asyncio framing | free; the LangChain book's Chapter 3 has the asyncio half already | **run**, Chapter 8 pass, `code/measure/e04_blocking.py`. Same shape as E3 and arrived at independently: what is committed is exact arithmetic on the script's own inputs, and the stopwatch is asserted against one-sided bounds derived from them |
 | E5 | 9 | uvicorn workers against concurrency: throughput, p50, p95, mocked upstream, calibrated the way the LangChain book's Chapter 13 recorded | free | not run |
@@ -106,16 +106,23 @@ restate a total here or in `CLAUDE.md`** — the math book's ledger said
 
 Each result goes into `code/measure/<experiment>.py`, which writes
 `figures/values/<experiment>.tex`; the chapter reads it with `\val{}` and
-`make verify` fails when the two drift.
+`make verify` fails when the two drift. **A timing cannot be re-derived on
+every machine, so an experiment that measures one splits in two**: a `--run` mode
+that performs the benchmark and writes committed raw data under
+`code/measure/data/`, and a default mode that only formats that data into the
+value file. CI runs the second, which is deterministic; the first is run by hand
+and reviewed as a diff. E2 is the first to need this and the shape is general.
 
-**E4 committed no measured number, and that is the shape to copy.** `make
+**And E4 shows the other shape, which is better where it applies.** `make
 verify` re-runs every script here on a machine nobody controls, so a
 timing in milliseconds fails the build on its first green run. Every value
 E4 writes is exact arithmetic on its own inputs -- the serialised cost of
 K blocking calls is K times B because that is what one thread means -- and
 the measurement's job is to be ASSERTED against bounds derived from them,
 one-sided in the direction a slow machine makes easier to clear. A machine
-that disagrees fails the script by name instead of drifting a digit.
+that disagrees fails the script by name instead of drifting a digit. Prefer
+this to E2's two modes wherever the quantity has an exact form; E2's shape
+is for a measurement that has none.
 
 The three companion books' rule
 holds here without exception: **a number the reader cannot do in their head
