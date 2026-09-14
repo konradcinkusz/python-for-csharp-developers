@@ -304,9 +304,13 @@ populated cache buys \pkg{uv} a factor of \val{e2.uv.cachegain}; it buys
 \code{pip}'s own work \dash{} building the environment, unpacking wheels,
 copying files \dash{} and no cache removes any of it, which is why a warm
 \code{pip} run comes in about a tenth faster than a cold one rather than in a
-fraction of the time. \pkg{uv} writes
-its warm installs by linking from the cache rather than copying, so once the
-wheels are local there is very nearly nothing left to do.
+fraction of the time. The two caches do not hold the same
+thing. \code{pip}'s holds each wheel still zipped, so a warm install unpacks
+every one of them again; \pkg{uv}'s holds the files already unpacked and
+materialises an environment out of them without copying the bytes, which is
+what \code{--link-mode} names and what defaults to a copy-on-write clone on
+Linux. Once the wheels are local there is very nearly nothing left for
+\pkg{uv} to do.
 
 Two consequences you can act on. Caching the package directory in CI is worth
 doing with \pkg{uv} and close to pointless with \code{pip}. And a container

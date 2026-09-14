@@ -306,9 +306,13 @@ prawie nic. Czas \code{pip}-a to nie pobieranie. To własna praca \code{pip}-a
 \dash{} budowanie środowiska, rozpakowywanie kół, kopiowanie plików \dash{} i
 żaden cache nie usuwa z niej niczego, dlatego ciepły przebieg \code{pip}-a
 jest szybszy od zimnego mniej więcej o jedną dziesiątą, a nie o rząd
-wielkości. \pkg{uv} zapisuje ciepłe instalacje,
-linkując z cache'u zamiast kopiować, więc gdy koła są już lokalne, zostaje
-prawie nic do zrobienia.
+wielkości. Te dwa cache nie trzymają tego samego.
+\code{pip} trzyma każde koło wciąż spakowane, więc ciepła instalacja
+rozpakowuje je wszystkie od nowa; \pkg{uv} trzyma pliki już rozpakowane i
+materializuje z nich środowisko bez kopiowania bajtów, co nazywa
+\code{--link-mode} i co na Linuksie domyślnie jest klonem
+kopiuj-przy-zapisie. Gdy koła są już lokalne, \pkg{uv} nie ma prawie nic do
+zrobienia.
 
 Dwie konsekwencje, na które możesz zadziałać. Cache'owanie katalogu pakietów w
 CI jest warte zachodu przy \pkg{uv} i niemal bezcelowe przy \code{pip}. A

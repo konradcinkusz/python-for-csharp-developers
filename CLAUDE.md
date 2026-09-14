@@ -783,6 +783,17 @@ formats that data and touches neither clock nor network. The experiment is
 reviewed as a diff. This is the first experiment to need the shape and it is
 general; `notes/01-curriculum.md` §4 records it beside the ledger.
 
+**And the mechanism was verified rather than asserted, which changed the
+sentence.** The first draft said uv "writes its warm installs by linking from
+the cache rather than copying". `uv help sync` says `--link-mode` defaults to
+`clone`, a copy-on-write clone, on Linux and macOS — not a hardlink — and the
+real reason is one directory listing away: **uv's cache holds wheels
+UNPACKED** (`archive-v0/<hash>/nodeenv.py` is a real file on disk) where
+**pip's holds them still zipped** (`~/.cache/pip/wheels/.../*.whl`). So a warm
+pip install unzips every wheel again and a warm uv install clones files that
+are already files. That is why the cache column reads ninefold against a
+tenth, and the chapter now says it because it was looked at.
+
 **Two honesty items, both on the page.** One uv cold trial stalled
 mid-download for 312 seconds against a median of 2.4; the median is untouched by it, which is why a median rather
 than a mean is reported, and the note in the chapter says so rather than
