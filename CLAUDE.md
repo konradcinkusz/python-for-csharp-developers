@@ -802,10 +802,31 @@ comes from its PyPI wheel (`pip download uv==0.12.13`, unzip, it is a
 single binary). There is no TeX in the sandbox image; `apt-get install`
 of `latexmk texlive-latex-extra texlive-fonts-extra tex-gyre
 texlive-lang-polish texlive-science` builds both editions, and `tex-gyre`
-is the one the preamble's own comment warns about. And `pdfinfo` is not
-installed either, so a diagram's page size was read out of the PDF's
-`/MediaBox` directly — the width formula in the scaffold note works
-unchanged on it.
+is the one the preamble's own comment warns about. And poppler is not
+installed either, so a diagram's page size was first read out of the PDF's
+`/MediaBox` directly -- the width formula in the scaffold note works
+unchanged on it -- before `poppler-utils` was installed for the check below.
+
+**The inherited extract-and-run check was done, and it needed four attempts
+-- none of them the book's fault.** The rule (a listing is only verified
+when you pull it out of the finished PDF and run *that*) caught nothing
+here: the models listing extracted from `main-en.pdf` parses, runs, and
+reproduces the committed transcript to the character, lax coercing to
+`severity=2, needs_human=True` and strict raising `int_type` and
+`bool_type`. `upquote` is doing its job -- the only curly quote anywhere in
+a code-like line of the rendered PDF is in prose, where it belongs.
+
+What went wrong three times was **the extraction harness**, which is this
+trilogy's most-recorded class arriving once more: the tool accepted the
+input and returned a plausible answer. `pdftotext -layout` keeps the page's
+left margin, so the first attempt raised `IndentationError`; the second
+sliced a fixed window and silently truncated `StrictAnswer` to a docstring,
+which then validated *anything* and reported no error at all -- a green run
+that proved nothing; the third stopped at the first blank line, because
+`listings` emits a numbered line and then an unnumbered empty one for a
+blank in the source. Only the fourth was measuring the book. **A harness
+that reads a PDF is an instrument, and it gets the same scepticism as one
+that reads a number.**
 
 **A converging diagram is too narrow, again.** `two-boundaries` was first
 drawn as two nodes meeting at one, rendered 434 pt wide and set its node
