@@ -65,12 +65,13 @@ and never reused; a retired entry keeps its number and says why.
 
 | # | The habit, in the reader's voice | What Python does | Owner |
 |---|---|---|---|
-| 36 | A coroutine is a `Task`: calling it starts it | A coroutine is cold; calling it builds an object that does nothing until awaited or scheduled. Forgetting the `await` is a warning, not an error | Ch. 8 |
-| 37 | `create_task` starts the task immediately | It schedules; the body does not run until the caller yields. Measured in the LangChain book's Chapter 3 | Ch. 8 |
-| 38 | `.Result` on a task deadlocks, so I use `ConfigureAwait(false)` | There is no `SynchronizationContext` and no `ConfigureAwait`; there is one loop, and one blocking call inside it freezes every other coroutine, with no error and no log line | Ch. 8 |
-| 39 | `gather` is `WhenAll` | `gather` orphans its siblings when one fails; `TaskGroup` cancels them. The two are identical on speed, so the choice is only ever about failure semantics | Ch. 8 |
-| 40 | Cancellation is a token I poll | It is `CancelledError`, delivered at an `await`; catching `Exception` swallows it and the task cannot be stopped | Ch. 8 |
-| 41 | `HttpClient` is a singleton, so `httpx.AsyncClient` is too | It is a resource with a lifetime and a connection pool; construct it once per application and close it, and note that it has a default timeout where `HttpClient` has none | Ch. 8 |
+| 36 | A coroutine is a `Task`: calling it starts it | A coroutine is cold; calling it builds an object that does nothing until awaited or scheduled. Forgetting the `await` is a warning, not an error | Ch. 8 · delivered §8.2 |
+| 37 | `create_task` starts the task immediately | It schedules; the body does not run until the caller yields. Measured in the LangChain book's Chapter 3 | Ch. 8 · delivered §8.2 |
+| 38 | `.Result` on a task deadlocks, so I use `ConfigureAwait(false)` | There is no `SynchronizationContext` and no `ConfigureAwait`; there is one loop, and one blocking call inside it freezes every other coroutine, with no error and no log line | Ch. 8 · delivered §8.3 |
+| 39 | `gather` is `WhenAll` | `gather` orphans its siblings when one fails; `TaskGroup` cancels them. The two are identical on speed, so the choice is only ever about failure semantics | Ch. 8 · delivered §8.4 |
+| 40 | Cancellation is a token I poll, so catching `Exception` is how I lose it | Backwards in both halves. It is `CancelledError`, delivered at an `await` -- and it inherits from `BaseException`, so `except Exception` is the clause that lets it THROUGH. What swallows it is a bare `except:`, `except BaseException:`, or an `except asyncio.CancelledError` block with no `raise` under it | Ch. 8 · delivered §8.5 |
+| 41 | `HttpClient` is a singleton, so `httpx.AsyncClient` is too | The lifetime advice carries -- construct it once, share it, close it -- and the defaults do not: a default `AsyncClient` already has a five-second deadline, applied separately to connect, read, write and pool rather than to the request as a whole | Ch. 8 · delivered §8.6 |
+| 60 | A `Task` can be awaited twice, so a coroutine can | A `Task` is a handle on work already running and hands out its result as often as you ask; a coroutine IS the work, and awaiting it a second time raises `RuntimeError: cannot reuse already awaited coroutine`. Out of block because numbers are never reused | Ch. 8 · delivered §8.2 |
 
 ## Part IV — Shipping
 
@@ -104,3 +105,19 @@ and never reused; a retired entry keeps its number and says why.
 
 None yet. An entry retires when its chapter is written and finds it false;
 it keeps its number and gains the reason.
+
+**Corrected rather than retired, September 2026, writing Chapter 8.** Two
+entries had the habit right and the correction wrong, which is a different
+thing from being false, so both keep their number and their row:
+
+- **40** said catching `Exception` swallows a cancellation. It does not:
+  `asyncio.CancelledError.__mro__` is `(CancelledError, BaseException,
+  object)` on the pinned interpreter, so `except Exception` never sees one.
+  The entry had the clause that is SAFE in Python named as the dangerous
+  one, which is the worst possible advice to give a reader arriving from
+  C#. Verified by running it, not by reading the source; `code/ch08/
+  cancelled.py` is the demonstration and prints the inheritance chain.
+- **41** said `HttpClient` has no default timeout. That half was never
+  checked and this repository has no .NET to check it against, so it is
+  gone rather than corrected: the row now states only the httpx side, which
+  `code/ch08/deadline.py` reads off the installed package.
