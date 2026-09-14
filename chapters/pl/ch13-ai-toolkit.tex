@@ -1,39 +1,375 @@
-%% ch13 --- Zestaw inżyniera AI: pydantic, httpx i kształt SDK
+%% ch13 --- Zestaw inzyniera AI: pydantic, httpx i ksztalt SDK
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie zalążkowego bloku (tego, który zaczyna się po
-%% linii \chapter) i zastąpienie go rozdziałem -- po czym ten plik nie jest
-%% już generowany.
+%% Napisane we wrzesniu 2026. Kazde zdanie o SDK w tym rozdziale wypisuje
+%% code/ch13/sdk_shape.py z zainstalowanego pakietu, a kazda liczba pochodzi
+%% z code/measure/e08_validation.py. Nic tutaj nie zostalo napisane z
+%% pamieci; tam, gdzie opis rozdzialu okazal sie bledny, mowi o tym
+%% CLAUDE.md w sekcji *Resolved questions*.
 
 \chapter{Zestaw inżyniera AI: pydantic, httpx i kształt SDK}
 \label{ch:aitoolkit}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\section{Trzy rzeczy w jednym płaszczu}
+\label{sec:ai-three-things}
+\index{SDK!z czego się składa}
 
-Argument: every AI SDK in Python is the same three things \dash{} a pydantic
-model, an httpx client and a streaming iterator \dash{} and knowing that
-makes the SDKs readable rather than magical. pydantic for structured
-outputs: a JSON schema from a model, \code{model\_validate\_json}, strict
-against lax; httpx clients for model APIs: timeouts, retries, streaming
-responses, and the \code{AsyncClient} lifetime from chapter 8; the shape of
-the Anthropic and OpenAI SDKs \dash{} client, then messages or responses,
-then typed results, then streaming \dash{} read from the installed, pinned
-package and never from memory; notebooks against scripts, when a notebook is
-right and why nothing in this book is one; tokens and cost as first-class
-quantities. Pointer, never duplication: agents, tools, middleware and graphs
-belong to the LangChain book, and this chapter stops at one model call and
-one structured output. Payoff: a \code{call\_model} function with typed
-input and typed output the reader can drop into the chapter 9 service.
-Measurement: experiment E8, validation cost of one structured output across
-pydantic strict, pydantic lax and a dataclass over \code{json}, free. Four
-exercises.
+Dodałeś do projektu \pkg{openai} albo \pkg{anthropic} i edytor podpowiada ci
+sto nazw. Przychodząc z .NET, rozsądnie jest spodziewać się SDK w stylu
+dostawcy: wygenerowanego klienta z własnym modelem obiektowym, własnym typem
+opcji, własnym łańcuchem handlerów i warstwą abstrakcji między tobą a
+drutem, z którą prędzej czy później przyjdzie ci walczyć.
 
-\medskip
-\textbf{Budżet słów:} 3000.\\
-\textbf{Wydanie:} v1.0.\\
-\textbf{Pomiar:} E8.\\
-\textbf{Projekt przewodni:} trace-assert stage 02: recording a model call as trace events.
-}
+To oczekiwanie jest błędne, i to w stronę, która ułatwia ci życie. Zanim
+pójdziesz dalej, odpowiedz: wywołanie SDK oddaje ci obiekt. Nie \dash{} co
+jest w środku, tylko jakiej \emph{klasy} jest to instancja?
+
+Odpowiedź brzmi: modelu pydantic. To, co go pobrało, jest klientem httpx.
+Strumieniową postacią tego samego wywołania jest iterator. I to wszystko:
+trzy kawałki Pythona, które już umiesz czytać, złożone tak, jak sam byś je
+złożył.
+
+\mermaidfig{sdk-anatomy}{Z czego zbudowany jest każdy SDK modelu w Pythonie.
+Każda z tych trzech rzeczy to biblioteka, którą da się przeczytać, a SDK
+jest okablowaniem między nimi.}{trzy części SDK modelu}
+
+\begin{csbox}
+\code{HttpClient} plus \code{System.Text.Json} plus
+\code{IAsyncEnumerable<T>}, a SDK jest kodem pomiędzy nimi. Czego Python nie
+ma, to \code{IHttpClientFactory}: żaden kontener nie podaje ci klienta z
+puli, więc decyzja o czasie jego życia należy do ciebie, a zapada w
+\S\ref{sec:ai-which-httpx}.
+\end{csbox}
+
+Ten rozdział kończy się na jednym wywołaniu modelu i jednym ustrukturyzowanym
+wyjściu. Agenci, narzędzia, middleware i grafy to inna książka \dash{} są
+tematem tomu towarzyszącego, a powtarzanie ich tutaj dałoby ci dwa opisy
+jednej rzeczy, które się rozjadą. Dostajesz za to podłogę, na której one
+stoją, czyli tę część, która nie zmienia się razem z frameworkiem.
+
+\section{Ustrukturyzowane wyjście to klasa, którą już napisałeś}
+\label{sec:ai-structured}
+\index{pydantic!ustrukturyzowane wyjście}
+
+Model zwraca tekst. \emph{Ustrukturyzowane wyjście} to ten tekst sparsowany
+do typu, który zadeklarowałeś, a w Pythonie tym typem jest model pydantic.
+Pydantic spotkałeś na granicy usługi w rozdziale~\ref{ch:services}; to ten
+sam mechanizm obrócony w drugą stronę \dash{} ku odpowiedzi, nie ku żądaniu.
+
+\pyregion{code/ch13/structured.py}{models}{Dwie deklaracje jednego kształtu.
+Druga różni się o jedną linię, a \S\ref{sec:ai-what-costs} mierzy, ile ta
+linia kosztuje.}{lst:ch13-models}
+
+Całą robotę wykonują dwa wywołania i razem są one tym, czym jest pomocnik od
+ustrukturyzowanych wyjść w SDK.
+
+\pyregion{code/ch13/structured.py}{schema}{W stronę drutu: model staje się
+schematem JSON, a SDK dokłada do niego to, czego chce
+dostawca.}{lst:ch13-schema}
+
+\mermaidfig{schema-round-trip}{Jedna klasa użyta dwa razy: raz, żeby
+powiedzieć, jak ma wyglądać odpowiedź, i raz, żeby sprawdzić, że tak
+wyglądała.}{ustrukturyzowane wyjście, tam i z powrotem}
+
+W stronę drutu \api{model\_json\_schema()} zamienia twoją klasę na schemat
+JSON, który niesie żądanie. W drugą stronę
+\api{model\_validate\_json()}\index{model\_validate\_json@\texttt{model\_validate\_json}}
+zamienia tekst odpowiedzi w instancję tej klasy. Wkładem SDK do schematu są
+dwa klucze \dash{} nazwa oraz \code{additionalProperties: false} dla
+dostawcy, który obiecuje zwrócić twoje pola i nic poza nimi. Cała reszta na
+drucie należy do pydantica.
+
+Warto się przy tym zatrzymać, bo to odpowiedź na pytanie, które inaczej
+wygląda głęboko. Nie ma rejestru, nie ma kroku generowania kodu i nie ma
+warstwy mapującej. Kształt jest zapisany w jednym miejscu, w klasie, i obie
+połowy tej podróży czytają go stamtąd.
+
+\section{Co się przeciska}
+\label{sec:ai-what-gets-through}
+\index{pydantic!tryb ścisły i luźny}
+
+Teraz część, w której twoje nawyki z .NET aktywnie przeszkadzają.
+Zadeklarowałeś \code{severity: int}. Dostawca, albo proxy przed nim, przysyła
+\code{"2"} \dash{} właściwą wartość, jako napis. Zanim pójdziesz dalej: co
+zrobi z tym \api{model\_validate\_json()}?
+
+\pyregion{code/ch13/structured.py}{validate}{Ten sam ładunek, dwa razy. Jedno
+z tych zachowań jest tym, co zrobiłby
+\code{JsonSerializer.Deserialize}.}{lst:ch13-validate}
+
+\transcript{ch13-structured}
+
+Konwertuje. \code{"2"} staje się \num{2}, \code{"true"} staje się
+\code{True}, i nikt nigdzie nie zostaje o tym poinformowany. To domyślne
+zachowanie pydantica i nazywa się trybem \emph{luźnym}.
+
+\begin{trapbox}
+\code{System.Text.Json} odmawia przyjęcia napisu JSON dla właściwości
+liczbowej, dopóki nie zgodzisz się na to przez \code{NumberHandling}.
+Pydantic działa odwrotnie: konwersja jest domyślna, a odmowa jest opcją.
+Odruch mówiący, że \emph{deserializacja waliduje}, obowiązuje więc w C\# i
+nie obowiązuje tutaj \dash{} granica napisana z tego odruchu po cichu
+przyjmuje zmianę kontraktu, a pierwszą rzeczą, jakiej się o niej dowiesz,
+jest zła liczba gdzieś dalej.
+
+\end{trapbox}
+
+\code{strict=True} w konfiguracji modelu odkupuje zachowanie, którego się
+spodziewałeś. Użyteczne pytanie nie brzmi, który tryb jest słuszny w
+oderwaniu od wszystkiego, tylko co każdy z nich przepuszcza \dash{} a to da
+się policzyć.
+
+\pyregion{code/ch13/what_survives.py}{plain}{Trzecia strategia: typ, który
+inżynier C\# pisze najpierw.}{lst:ch13-plain}
+
+\pyfile{code/ch13/what_survives.py}{Siedem odpowiedzi, które są poprawnym
+JSON-em i są złe. Eksperyment E8 importuje ten zestaw, zamiast go kopiować,
+więc ta tabela i ten pomiar nie mogą się rozjechać.}{lst:ch13-survives}
+
+\transcript{ch13-survives}
+
+Przeczytaj najpierw ostatni wiersz: z \val{e08.corpus} zepsutych odpowiedzi
+tryb luźny odrzuca \val{e08.reject.lax}, ścisły odrzuca
+\val{e08.reject.strict}, a dataclass odrzuca \val{e08.reject.plain}.
+Dataclass przepuszcza \val{e08.silent.plain} z nich, każdą złą, ponieważ
+dataclass generuje \api{\_\_init\_\_} i nie sprawdza w czasie działania ani
+jednej ze swoich adnotacji.
+
+Przeczytaj teraz ostatnią linię tabeli, bo to ona jest warta ceny tego
+rozdziału. Jedyny ładunek, który dataclass odrzuca, to ten, z którym było
+\emph{wszystko w porządku}: dostawca dodał pole. Oba SDK spodziewają się, że
+tak będzie \dash{} ich własne modele są skonfigurowane tak, by zachowywać
+nieznane pola, a nie porzucać je, co wypisuje \S\ref{sec:ai-which-httpx}
+\dash{} więc naiwna strategia notuje jedną odmowę i jest to fałszywy alarm.
+
+\section{Ile to kosztuje, zmierzone}
+\label{sec:ai-what-costs}
+\index{pomiar!E8, koszt walidacji}
+
+Oczywiste następne pytanie brzmi, ile to bezpieczeństwo kosztuje, a oczywiste
+oczekiwanie to wymiana: walidacja jest pracą, praca zajmuje czas, wybierz
+punkt na krzywej. Eksperyment E8 mierzy czasy trzech strategii na zestawie
+powyżej i to oczekiwanie tego nie przeżywa.
+
+Dwa wyniki, na maszynie, na której to powstawało. \textbf{Tryb ścisły nie
+kosztuje nic ponad luźny} \dash{} oba wyszły w granicach kilku procent od
+siebie, raz w jedną, raz w drugą stronę. Oraz: \textbf{sparsowanie i
+walidacja przez pydantica bije sam parser biblioteki standardowej}: na
+odpowiedzi o \val{e08.fields.wide} polach samo \api{json.loads} zajęło
+ponad \val{e08.json.factor} razy więcej czasu, niż
+\api{model\_validate\_json} potrzebowało, żeby sparsować te same bajty
+\emph{i} sprawdzić każde pole względem typu.
+
+Mechanizm przestaje być tajemniczy, gdy się go wypowie. \api{json.loads}
+buduje pythonowy słownik z każdego klucza i każdej wartości, którą przysłał
+dostawca, a potem większość tego wyrzucasz. Rdzeń pydantica parsuje bajty w
+skompilowanym kodzie prosto do pól modelu i nigdy nie tworzy pośredniego
+słownika. Im szersza odpowiedź, tym bardziej odjeżdża \dash{} co jest
+odwrotnością kształtu, który narysowałbyś, myśląc o walidacji jak o podatku
+nałożonym na parsowanie.
+
+\begin{note}
+Żadnej z tych dwóch wartości nie ma na tej stronie i jest to celowe.
+Mikrosekunda jest własnością maszyny, więc nie da się jej zapisać w książce,
+która sama przelicza swoje pomiary i przewraca się, gdy któryś się ruszy. E8
+zapisuje w zamian parę sufitów, dobranych z zapasem i
+\emph{sprawdzanych przy każdym uruchomieniu}: tryb ścisły może kosztować
+najwyżej \val{e08.strict.overhead.pct} procent więcej niż luźny, a samo
+\api{json.loads} musi być co najmniej \val{e08.json.factor} razy wolniejsze.
+Każdy z nich brany jest jako najlepszy z \val{e08.repeats} przebiegów po
+\val{e08.iterations} wywołań, bo najszybszy przebieg jest tym najmniej
+zaburzonym przez planistę, podczas gdy średnia jest średnią z zaburzeń.
+Jeśli późniejszy pydantic złamie którykolwiek z nich, build robi się
+czerwony i ta sekcja jest błędna tego samego dnia. Liczby w
+\S\ref{sec:ai-what-gets-through} nie są sufitami: są własnością kodu i są
+identyczne na każdej maszynie.
+\end{note}
+
+Wymiana, od której zaczęła się ta sekcja, nie istnieje, a rada jest wyjątkowo
+prosta. Włącz tryb ścisły na każdej granicy, którą przekracza odpowiedź
+modelu. To jedna linia, odrzuca dwie dodatkowe klasy zepsutych odpowiedzi i
+jest za darmo.
+
+\section{Który httpx}
+\label{sec:ai-which-httpx}
+\index{httpx!która dystrybucja}
+
+Wszystko powyżej dotyczy nogi pydanticowej. W nodze transportowej jest
+pułapka, przed którą nie ostrzeże cię żadna dokumentacja, a jedynym sposobem,
+żeby ją znaleźć, jest przeczytanie zainstalowanego pakietu.
+
+Przeczytaj go więc. Klient w środku SDK jest klientem httpx, a ta książka
+przypina \pkg{httpx}. Zanim pójdziesz dalej: co zwróci
+\api{isinstance(client.\_client, httpx.Client)}?
+
+\pyfile{code/ch13/sdk_shape.py}{Każde zdanie, jakie ten rozdział mówi o SDK,
+wypisane z zainstalowanego pakietu. Asercje na dole oznaczają, że CI padnie w
+dniu, w którym któreś z nich przestanie być prawdziwe.}{lst:ch13-sdk-shape}
+
+\transcript{ch13-sdk-shape}
+
+\pkg{httpx} i \pkg{httpx2} to dwie dystrybucje. Ta książka przypina
+pierwszą, w wersji~\httpxver, bo to z nią pisze się klienta; oba SDK zależą
+od drugiej, a klient w ich środku jest klientem \pkg{httpx2}. Mają wspólne
+pochodzenie i wspólną pisownię, i nie są tym samym pakietem, więc
+\api{isinstance(client.\_client, httpx.Client)} daje \code{False} na kliencie
+SDK, który jest przecież oczywistym klientem httpx.
+
+\begin{warning}
+Oba SDK nie zgadzają się co do tego, czy podanie im niewłaściwego klienta
+jest błędem. Zmierzone, nie wywnioskowane: \pkg{anthropic} odrzuca
+\api{httpx.Client} błędem \code{TypeError}, który nazywa oba pakiety, a
+\pkg{openai} przyjmuje go i działa \dash{} przynajmniej na zwykłym żądaniu, i
+tylko tyle zostało sprawdzone. \enquote{U mnie zadziałało} nie jest zatem
+dowodem, że klient, którego podałeś, jest tym, którego SDK oczekuje.
+\end{warning}
+
+Z tego listingu wynikają jeszcze dwie rzeczy. Własne modele SDK są
+skonfigurowane tak, by \emph{zachowywać} pola, których nikt nie
+zadeklarował, zamiast je ignorować \dash{} i to właśnie sprawia, że dodanie
+pola przez dostawcę jest nie-wydarzeniem. Domyślne limity czasu natomiast nie
+są czymś, co chcesz odziedziczyć: limit odczytu, który wypisuje listing, to
+dziesięć minut, co jest rozsądnym ustawieniem dla dostawcy strumieniującego długą odpowiedź i
+fatalnym dla żądania siedzącego w handlerze HTTP, na który ktoś czeka.
+Rozdział~\ref{ch:services} daje temu żądaniu budżet; SDK nie da mu go za
+ciebie.
+
+Drugą decyzją jest czas życia klienta. Klient httpx trzyma pulę połączeń,
+więc jeden na proces jest właściwy, a jeden na żądanie wyrzuca tę pulę za
+każdym razem \dash{} ten sam argument i ten sam tryb awarii, co przy czasie
+życia \api{AsyncClient} w rozdziale~\ref{ch:asyncio}.
+
+\section{Tokeny są wielkościami, a pieniądze nie są floatem}
+\label{sec:ai-tokens}
+\index{koszt!tokeny jako wielkość}
+
+Każda odpowiedź niesie liczby, które decydują o rachunku, w polu
+\api{usage}, będącym kolejnym modelem pydantic. Usługa, która ich nie
+sumuje, dowiaduje się, ile wydała, z faktury \dash{} a wtedy przebieg, który
+te pieniądze wydał, ma już dwa tygodnie.
+
+\begin{csbox}
+Cena to pieniądze, więc jest typu \api{Decimal}, a nigdy \code{float},
+dokładnie z tego powodu, dla którego w C\# jest to \code{decimal}, a nigdy
+\code{double}. Różnica polega na tym, że kompilator C\# każe ci powiedzieć,
+co miałeś na myśli, a Python nie: nieotypowany literał jest floatem,
+\code{0.1 + 0.2} nie jest równe \code{0.3} także tutaj, a miesiąc kosztów
+pojedynczych wywołań zsumowany na floatach dryfuje. \api{Decimal} bierze
+też swoją precyzję z kontekstu, a nie z typu, więc kwantuj świadomie,
+zamiast ufać wartości domyślnej.
+\end{csbox}
+
+Ćwiczenie~\ref{ex:ch13-cost} to ta arytmetyka, zrobiona raz i porządnie.
+
+\section{Notatniki kontra skrypty}
+\label{sec:ai-notebooks}
+\index{notatniki!i dlaczego nie ma ich w tej książce}
+
+Każdy tutorial, jaki spotkasz do tego materiału, jest notatnikiem, a nic w
+tej książce nim nie jest. To stanowisko, więc oto argument za nim.
+
+Notatnik nie jest plikiem, który się wykonuje. Jest REPL-em, który pamięta
+każdą komórkę, jaką uruchomiłeś, w kolejności, w jakiej je uruchamiałeś
+\dash{} a nie w tej, w jakiej są na ekranie. Usuń komórkę, a nazwa, którą
+zdefiniowała, nadal jest związana. Uruchom je od góry do dołu na świeżym
+jądrze, a dostaniesz inny wynik niż ten na ekranie, i to w tej różnicy
+przepada popołudnie. Nic w tej książce nie mogłoby być notatnikiem, bo każdy
+listing tutaj wykonuje się na przypiętych wersjach przy każdym pushu, a
+\enquote{u mnie w jądrze działało} nie jest czymś, co CI potrafi sprawdzić.
+
+Notatnik jest właściwy do pracy, do której powstał: oglądania danych,
+próbowania czegoś, trzymania wykresu obok kodu, który go narysował. Używaj
+go. Zasada warta zapamiętania jest węższa niż \emph{unikaj notatników}
+\dash{} brzmi ona, że nic, co importuje usługa, nie mieszka w notatniku. W
+momencie, w którym funkcję ma wywołać coś innego niż ty, jej miejsce jest w
+module, z testem obok.
+
+\section{Jedno wywołanie, otypowane z obu stron}
+\label{sec:ai-call-model}
+
+Oto wszystko powyżej, złożone w najmniejszą użyteczną rzecz: jedno wywołanie
+z typem wchodzącym, typem wychodzącym, budżetem czasu i zapisem tego, co się
+wydarzyło.
+
+\pyfile{code/ch13/call_model.py}{Nagroda. Nic tutaj nie jest specyficzne dla
+dostawcy i wchodzi do usługi z rozdziału~\ref{ch:services} tak, jak
+stoi.}{lst:ch13-call-model}
+
+\transcript{ch13-call-model}
+
+Trzy szczegóły zasługują na swoje miejsce. Limit czasu jest argumentem z
+wartością domyślną liczoną w sekundach, a nie dziesięcioma minutami z SDK.
+Awaria jest zgłaszana jako jeden własny typ wyjątku, więc wywołujący obsługuje
+\emph{model nie odpowiedział}, zamiast uczyć się taksonomii błędów dostawcy
+\dash{} i nazywa się \code{...Error}, a nie \code{...Exception}, co jest
+konwencją Pythona i czego pilnuje linter. A odpowiedź jest sprawdzana pod
+kątem tego, czy w ogóle się sparsowała, zanim zostanie zwrócona, bo
+\api{output\_parsed} jest opcjonalne, a wywołujący, który to zignoruje,
+dostaje \code{None} dwie ramki stosu od przyczyny.
+
+\mermaidfig{two-boundaries}{Dwie krawędzie usługi i ten sam mechanizm na
+obu.}{walidacja na obu granicach}
+
+Ten listing wykonuje się w CI przy każdym pushu, bez dostawcy i bez klucza
+API. Lokalny serwer odpowiadający w kształcie, który SDK parsuje, jest dla
+SDK nie do odróżnienia od dostawcy \dash{} i to właśnie sprawia, że rozdział
+o SDK modeli daje się w ogóle testować.
+
+\begin{projectbox}
+\textbf{Etap 02 \dash{} zapis wywołania modelu.} Model śladu z
+rozdziału~\ref{ch:testing} zostawił jedną rzecz otwartą: co wywołanie modelu
+wkłada do ładunku zdarzenia. Ten rozdział to rozstrzyga. Wywołanie to
+\emph{dwa} zdarzenia, a nie jedno, bo wywołanie, które nigdy nie wróciło,
+jest przypadkiem, który najbardziej chcesz umieć znaleźć, a pojedyncze
+zdarzenie zapisane po odpowiedzi nie potrafi go przedstawić. Ładunek niesie
+liczby tokenów i to, czy odpowiedź się sparsowała; nie niesie promptu ani
+odpowiedzi modelu, bo ślad jest przechowywany, przesyłany i czytany przez
+ludzi, których nie było w pokoju.
+\end{projectbox}
+
+\section{Ćwiczenia}
+\label{sec:ai-exercises}
+
+\begin{exercise}{e13_01_strict_boundary}{Granica, która nie zgaduje}
+\code{Reply} konwertuje, więc napis \code{"2"} przychodzi jako liczba
+całkowita i nikt nie zostaje o tym poinformowany. Spraw, żeby parsowanie
+odrzucało wszystko, czego typy nie są dokładnie tym, co deklaruje klasa, i
+zwracało zamiast tego \code{None}. Nie pisz tych sprawdzeń ręcznie.
+\end{exercise}
+
+\begin{exercise}{e13_02_wire_schema}{Schemat, który dostawca przyjmie}
+Dostawca, który obiecuje zwrócić twoje pola i nic poza nimi, chce
+\code{additionalProperties: false} na każdym obiekcie w schemacie. Model
+zagnieżdżony jest drugim obiektem, a pydantic nie zagnieżdża go tam, gdzie
+byś się spodziewał \dash{} wyciąga go na zewnątrz. Domknij je wszystkie.
+\end{exercise}
+
+\begin{exercise}{e13_03_what_it_cost}{Ile kosztowało jedno wywołanie}
+\label{ex:ch13-cost}
+Wyceń odpowiedź na podstawie jej dwóch liczb tokenów i dwóch stawek
+dostawcy. Wynikiem są pieniądze, więc nie jest floatem; i jest
+skwantowany, żeby miesiąc takich wyników sumował się dwa razy do tej samej
+liczby.
+\end{exercise}
+
+\begin{exercise}{e13_04_read_the_trace}{Dlaczego wywołanie to dwa zdarzenia}
+Napisz dwa pytania, dla których istnieje ślad: które modele zostały wywołane
+i nigdy nie odpowiedziały oraz ile wydał cały przebieg. Żadne z nich nie może
+zakładać, że ślad jest poprawnie zbudowany \dash{} po to się go ma.
+\end{exercise}
+
+\section{Gdzie to się kończy}
+\label{sec:ai-stops}
+
+Potrafisz już czytać SDK, a nie tylko je wywoływać. Kiedy pojawi się
+następne, z inną nazwą zasobu i inną kopertą, rozstrzygają je trzy pytania:
+jaki model pydantic wraca, który klient HTTP jest pod spodem i co oddaje
+strumieniowa postać wywołania. Odpowiedzi są w zainstalowanym pakiecie i
+nigdzie indziej \dash{} nie we wpisie na blogu, nie we wspomnieniach modelu i
+nie zawsze w dokumentacji.
+
+Celowo nie ma tu wszystkiego, co jest zbudowane \emph{na} tym: wywoływania
+narzędzi, pętli agenta, ponowień z osądem w środku, grafów i stanu, który im
+towarzyszy. To temat tomu towarzyszącego i zaczyna się tam, gdzie kończy się
+ten rozdział. Rozdział~\ref{ch:traceassert} idzie drugą drogą: kończy
+przyrząd, który ten rozdział nauczył zapisywać wywołanie, i wysyła go w
+świat.
