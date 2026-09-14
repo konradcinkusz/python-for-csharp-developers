@@ -70,8 +70,8 @@ są tym samym.
 \begin{warning}
 Uruchom ten sam plik na CI, a ostatnia linia będzie inna:
 zamiast \code{Use -v to get more diff} dostaniesz cały diff z
-\api{difflib}, a długie wyjście przestanie być przycinane.
-\api{running\_on\_ci} w \code{\_pytest.compat} jest prawdziwe, gdy
+\pkg{difflib}, a długie wyjście przestanie być przycinane.
+\api{running\_on\_ci} w \pkg{\_pytest.compat} jest prawdziwe, gdy
 \code{CI} albo \code{BUILD\_NUMBER} jest ustawione i niepuste, a czytają
 je dwa miejsca \dash{} porównanie sekwencji i przycinanie. To świadoma
 uprzejmość, bo na runnerze nie powtórzysz uruchomienia z \code{-v}.

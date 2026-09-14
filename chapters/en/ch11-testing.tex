@@ -70,8 +70,8 @@ the library are the same thing.
 \begin{warning}
 Run that same file on a build server and the last line reads differently:
 instead of \code{Use -v to get more diff} you get the whole
-\api{difflib} diff, and long output stops being truncated.
-\api{running\_on\_ci} in \code{\_pytest.compat} is true when
+\pkg{difflib} diff, and long output stops being truncated.
+\api{running\_on\_ci} in \pkg{\_pytest.compat} is true when
 \code{CI} or \code{BUILD\_NUMBER} is set and non-empty, and two places
 read it \dash{} the sequence comparison and the truncation. It is a
 deliberate kindness, because on a runner you cannot re-run with
