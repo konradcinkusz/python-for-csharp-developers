@@ -51,13 +51,14 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 | 22 | A closure in a loop captures the loop variable's value | It captures the variable, late-bound; every closure sees the last value. Bind with a default argument or `functools.partial` | Ch. 5 |
 | 23 | `s += piece` in a loop is fine, strings are strings | Quadratic; `"".join(pieces)` is linear | Ch. 5 |
 | 24 | A generator is `yield return` | It is, and it also has `send()`, `close()` and a `return` value carried in `StopIteration` — a coroutine before `async` existed | Ch. 5 |
-| 25 | `except:` catches everything, like `catch {}` | It catches `KeyboardInterrupt` and `SystemExit` too, which is why the process cannot be stopped. `except Exception:` at most, and log the traceback | Ch. 6 |
-| 26 | Catch `Exception`, log it, continue — defensive | It converts a crash into a silent wrong answer; EAFP means catching the exception you expect, not every one | Ch. 6 |
-| 27 | `raise e` inside `except` re-throws, like `throw ex;` | It resets the traceback to the `raise` line, exactly as `throw ex;` does; bare `raise` preserves it, exactly as `throw;` does | Ch. 6 |
-| 28 | `return` in `finally` is harmless | It swallows any in-flight exception, silently, and returns as if nothing happened | Ch. 6 |
-| 29 | A method's hint tells me what it raises | Nothing in the type system carries exceptions; a docstring does, and Python has no checked exceptions | Ch. 6 |
-| 30 | `KeyError` means something went wrong | `KeyError`, `StopIteration` and `AttributeError` are protocol: a `dict` lookup, an iterator's end and `getattr` all speak through them | Ch. 6 |
-| 31 | Truthiness is `bool`, like C# | Empty containers, zero, `None` and empty strings are false; `if items:` is idiomatic and `if items is not None:` is a different question | Ch. 6 |
+| 25 | `except:` catches everything, like `catch {}` | It catches `KeyboardInterrupt` and `SystemExit` too, which is why the process cannot be stopped. `except Exception:` at most, and log the traceback. ruff reports it as E722 | Ch. 6 §6.4, delivered |
+| 26 | Catch `Exception`, log it, continue — defensive | It converts a crash into a silent wrong answer; EAFP means catching the exception you expect, not every one. **The one trap in this chapter that nothing in the book's toolchain reports**, which is why it is the one that reaches production | Ch. 6 §6.4, delivered |
+| 27 | `raise e` inside `except` re-throws, like `throw ex;` | **This entry was wrong, and the chapter that owns it measured the correction.** Python keeps the traceback on the exception OBJECT, so `raise e` truncates nothing: every frame under it survives and the re-raise line is *added*, so the re-raising frame appears twice. Bare `raise` is still the better habit — the duplicate frame is noise — but the C# rule does not transfer and neither does the anxiety. What a re-raise can lose is the *link*: `raise New(...)` without `from` sets `__context__` rather than `__cause__` | Ch. 6 §6.4, delivered |
+| 28 | `return` in `finally` is harmless | It swallows any in-flight exception and returns as if nothing happened. Not silently on the pinned interpreter: PEP 765 has the compiler emit `SyntaxWarning: 'return' in a 'finally' block`, and ruff reports B012 and SIM107 — and it still swallows, because a warning is not an error | Ch. 6 §6.4, delivered |
+| 29 | A method's hint tells me what it raises | Nothing in the type system carries exceptions; a docstring does, nothing verifies it, and Python has no checked exceptions — nor does C#, so what transfers badly is the tooling around them rather than the language | Ch. 6 §6.3, delivered |
+| 30 | `KeyError` means something went wrong | `KeyError`, `StopIteration` and `AttributeError` are protocol: a `dict` lookup, an iterator's end and `getattr` all speak through them | Ch. 6 §6.2, delivered |
+| 31 | Truthiness is `bool`, like C# | Empty containers, zero, `None` and empty strings are false; `if items:` is idiomatic and `if items is not None:` is a different question | Ch. 6 §6.2, delivered |
+| 31a | An exception class is a `FooException` | Python's suffix is `Error`, and ruff's N818 reports a class without it. `JobUnavailable` fails the lint until it is `JobUnavailableError` | Ch. 6 §6.3, delivered |
 | 32 | A module is a namespace; importing it is free and pure | A module is an object that runs once, top to bottom; a side effect at import runs for every importer, and a circular import is two modules half-run | Ch. 7 §7.1, delivered |
 | 33 | `from x import *` is `using x;` | It copies every public name into the importing module and hides where anything came from; `import x` and `from x import name` | Ch. 7 §7.2, delivered |
 | 34 | I can name a variable `list`, `id` or `type` | It shadows the builtin for the rest of the scope, and the failure arrives three functions later | Ch. 7 §7.2, delivered, at module level as well as at name level |
@@ -67,12 +68,13 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 
 | # | The habit, in the reader's voice | What Python does | Owner |
 |---|---|---|---|
-| 36 | A coroutine is a `Task`: calling it starts it | A coroutine is cold; calling it builds an object that does nothing until awaited or scheduled. Forgetting the `await` is a warning, not an error | Ch. 8 |
-| 37 | `create_task` starts the task immediately | It schedules; the body does not run until the caller yields. Measured in the LangChain book's Chapter 3 | Ch. 8 |
-| 38 | `.Result` on a task deadlocks, so I use `ConfigureAwait(false)` | There is no `SynchronizationContext` and no `ConfigureAwait`; there is one loop, and one blocking call inside it freezes every other coroutine, with no error and no log line | Ch. 8 |
-| 39 | `gather` is `WhenAll` | `gather` orphans its siblings when one fails; `TaskGroup` cancels them. The two are identical on speed, so the choice is only ever about failure semantics | Ch. 8 |
-| 40 | Cancellation is a token I poll | It is `CancelledError`, delivered at an `await`; catching `Exception` swallows it and the task cannot be stopped | Ch. 8 |
-| 41 | `HttpClient` is a singleton, so `httpx.AsyncClient` is too | It is a resource with a lifetime and a connection pool; construct it once per application and close it, and note that it has a default timeout where `HttpClient` has none | Ch. 8 |
+| 36 | A coroutine is a `Task`: calling it starts it | A coroutine is cold; calling it builds an object that does nothing until awaited or scheduled. Forgetting the `await` is a warning, not an error | Ch. 8 §8.2, delivered |
+| 37 | `create_task` starts the task immediately | It schedules; the body does not run until the caller yields. Measured in the LangChain book's Chapter 3 | Ch. 8 §8.2, delivered |
+| 38 | `.Result` on a task deadlocks, so I use `ConfigureAwait(false)` | There is no `SynchronizationContext` and no `ConfigureAwait`; there is one loop, and one blocking call inside it freezes every other coroutine, with no error and no log line | Ch. 8 §8.3, delivered |
+| 39 | `gather` is `WhenAll` | `gather` orphans its siblings when one fails; `TaskGroup` cancels them. The two are identical on speed, so the choice is only ever about failure semantics | Ch. 8 §8.4, delivered |
+| 40 | Cancellation is a token I poll, so catching `Exception` is how I lose it | Backwards in both halves. It is `CancelledError`, delivered at an `await` -- and it inherits from `BaseException`, so `except Exception` is the clause that lets it THROUGH. What swallows it is a bare `except:`, `except BaseException:`, or an `except asyncio.CancelledError` block with no `raise` under it | Ch. 8 §8.5, delivered |
+| 41 | `HttpClient` is a singleton, so `httpx.AsyncClient` is too | The lifetime advice carries -- construct it once, share it, close it -- and the defaults do not: a default `AsyncClient` already has a five-second deadline, applied separately to connect, read, write and pool rather than to the request as a whole | Ch. 8 §8.6, delivered |
+| 60 | A `Task` can be awaited twice, so a coroutine can | A `Task` is a handle on work already running and hands out its result as often as you ask; a coroutine IS the work, and awaiting it a second time raises `RuntimeError: cannot reuse already awaited coroutine`. Out of block because numbers are never reused | Ch. 8 §8.2, delivered |
 
 ## Part IV — Shipping
 
@@ -106,3 +108,19 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 
 None yet. An entry retires when its chapter is written and finds it false;
 it keeps its number and gains the reason.
+
+**Corrected rather than retired, September 2026, writing Chapter 8.** Two
+entries had the habit right and the correction wrong, which is a different
+thing from being false, so both keep their number and their row:
+
+- **40** said catching `Exception` swallows a cancellation. It does not:
+  `asyncio.CancelledError.__mro__` is `(CancelledError, BaseException,
+  object)` on the pinned interpreter, so `except Exception` never sees one.
+  The entry had the clause that is SAFE in Python named as the dangerous
+  one, which is the worst possible advice to give a reader arriving from
+  C#. Verified by running it, not by reading the source; `code/ch08/
+  cancelled.py` is the demonstration and prints the inheritance chain.
+- **41** said `HttpClient` has no default timeout. That half was never
+  checked and this repository has no .NET to check it against, so it is
+  gone rather than corrected: the row now states only the httpx side, which
+  `code/ch08/deadline.py` reads off the installed package.

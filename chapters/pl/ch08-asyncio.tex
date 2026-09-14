@@ -1,44 +1,371 @@
-%% ch08 --- asyncio dla tych, którzy znają Task
+%% ch08 --- asyncio dla tych, ktorzy znaja Task
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie zalążkowego bloku (tego, który zaczyna się po
-%% linii \chapter) i zastąpienie go rozdziałem -- po czym ten plik nie jest
-%% już generowany.
+%% Napisany we wrzesniu 2026. Opis, ktory tu stal, jest w
+%% tools/chapters.json; to, co sie w nim nie zgadzalo, jest zapisane w
+%% CLAUDE.md pod *Resolved questions* -- przede wszystkim pulapka 40, ktora
+%% miala klauzule o anulowaniu odwrocona.
+%%
+%% Regula rozdzialu pracy, najostrzejsza w ksiazce: rozdzialy 3 i 4 tomu o
+%% LangChain sa wlascicielem petli zdarzen, anulowania i pomiarow w
+%% szczegolach. Ten rozdzial jest widokiem tlumacza. Wskazuje tam raz, w
+%% sekcji 8.1, i nie powtarza zadnej jego sekcji.
 
-\chapter{asyncio dla tych, którzy znają Task}
+\chapter{asyncio dla tych, którzy znają \texorpdfstring{\code{Task}}{Task}}
 \label{ch:asyncio}
+\index{asyncio}
+\index{asyncio!coroutine}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\noindent
+Ten kod już pisałeś. Czekałeś na wywołanie, uruchamiałeś ich całą partię
+naraz, anulowałeś jedno po przekroczeniu terminu i zostałeś wezwany o
+czwartej nad ranem, bo coś w środku się zablokowało. Pojęcia przenoszą się
+w całości, nazwy prawie w całości, a reszta, która się nie przenosi, jest
+źródłem każdej awarii z asyncio w tej książce.
 
-Argument: the reader already has the mental model and most of it transfers;
-the part that does not is where the incidents come from. The map: a
-coroutine against a \code{Task} (cold against hot \dash{} a coroutine does
-nothing until it is scheduled, a C\# \code{Task} is already running); an
-event loop with no \code{SynchronizationContext} (no \code{ConfigureAwait},
-no deadlock by \code{.Result}, but one blocking call freezes everything);
-\code{TaskGroup} against \code{Task.WhenAll}, and \code{gather} with its
-orphaning semantics; \code{CancellationToken} against \code{Task.cancel()}
-and \code{CancelledError} (cancellation is an exception delivered at an
-\code{await}, not a flag you poll); \code{asyncio.timeout} against
-\code{CancelAfter}; threads against processes under the GIL, and where
-\code{to\_thread} and a process pool belong; \code{httpx.AsyncClient}
-against \code{HttpClient} (lifetime, pooling, and a default timeout that
-exists); the sync boundary, \code{asyncio.run}, and the absence of an
-\code{async Main}. Payoff: a translation table from the TPL to asyncio, and
-the three incidents \dash{} a blocking call, an orphaned task, a swallowed
-\code{CancelledError}. Measurement: experiment E4, the one-blocking-call
-degradation reproduced in the TPL-against-asyncio framing, free. Five
-exercises, one of them porting a C\# \code{WhenAll} plus
-\code{CancellationToken} snippet. Overlap rule, and it is the strictest in
-the book: the LangChain book's chapters 3 and 4 own the event loop,
-cancellation and the measurements in depth. This chapter is the translation
-view. It points there in one sentence and never repeats a section.
+Ten rozdział jest więc tłumaczeniem, a nie wprowadzeniem. Zakłada model,
+który już masz w głowie, i poświęca swoją długość pięciu miejscom, w
+których ten model jest błędny \dash{} każde z nich to miejsce, gdzie kod w
+Pythonie działa, nie zgłasza wyjątku i robi coś innego, niż inżynier .NET
+byłby gotów przysiąc.
+
+\section{Co się przenosi}
+\label{sec:asyncio-map}
+\index{asyncio!translation table}
+
+Prawie wszystko. Tabela jest całym rozdziałem na jednej stronie; reszta
+rozdziału to pięć wierszy, które kłamią.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{.NET} & \textbf{Python} \\
+\midrule
+\code{Task<T>} & korutyna, czyli coś zimniejszego, albo \api{Task}, który ją opakowuje \\
+\code{await t} & \code{await c}, i tylko raz na korutynę \\
+\code{Task.Run(f)} & \api{asyncio.to\_thread(f)}, z dużo mniejszą pulą \\
+\code{Task.WhenAll} & \api{asyncio.gather} albo \api{asyncio.TaskGroup} \\
+\code{Task.WhenAny} & \api{asyncio.wait} z \code{FIRST\_COMPLETED} \\
+\code{Task.Delay} & \api{asyncio.sleep} \\
+\code{CancellationToken} & nic: anulowanie jest wyjątkiem \\
+\code{cts.CancelAfter(t)} & \api{asyncio.timeout(t)} \\
+\code{OperationCanceledException} & \api{asyncio.CancelledError} \\
+\code{SemaphoreSlim} & \api{asyncio.Semaphore} \\
+\code{Channel<T>} & \api{asyncio.Queue} \\
+\code{IAsyncEnumerable<T>} & generator asynchroniczny i \code{async for} \\
+\code{AggregateException} & \code{ExceptionGroup}, łapany przez \code{except*} \\
+\code{async Main} & \api{asyncio.run(main())}, wywołane raz \\
+\code{ConfigureAwait(false)} & nic, i nic nie jest potrzebne \\
+\code{HttpClient} & \api{httpx.AsyncClient}, z cyklem życia \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent
+Dwa wiersze mówią \emph{nic} i to właśnie one są najważniejsze.
+\code{SynchronizationContext} nie ma w Pythonie żadnego odpowiednika, więc
+nie ma czego przechwytywać, nie ma czego wyłączać i nie da się zakleszczyć
+żądania, czytając z niego \code{.Result}. Cała ta rodzina zgłoszeń z .NET tutaj po prostu nie
+istnieje. Dostajesz w zamian jeden wątek, a \S\ref{sec:asyncio-one-thread}
+mówi, ile to kosztuje.
+
+\begin{note}
+Tom towarzyszący o LangChain i LangGraph jest właścicielem petli zdarzeń,
+anulowania i pomiarów współbieżności w szczegółach; jego rozdziały~3 i~4 są
+tam, gdzie idzie się po mechanizm, a nie po tłumaczenie. Ten rozdział nie
+powtarza żadnej jego sekcji.
+\end{note}
+
+\section{Zimna, nie gorąca}
+\label{sec:asyncio-cold}
+\index{asyncio!coroutine}
+\index{asyncio!create\_task@\texttt{create\_task}}
+
+W C\# zanim metoda zwróci ci \code{Task}, praca już trwa. \code{Task} jest
+uchwytem do czegoś, co się wykonuje. Czekanie na niego to sposób na
+odebranie odpowiedzi i można czekać dwa razy, dostając tę samą odpowiedź
+dwukrotnie.
+
+Korutyna w Pythonie tym nie jest. Wywołanie funkcji korutyny nie wykonuje
+niczego: tworzy obiekt i oddaje go, a ciało nie rusza, dopóki ktoś na nie
+nie zaczeka albo nie odda go pętli. Zanim przeczytasz dalej, zdecyduj, co
+wypisze każdy z czterech kroków w poniższym listingu.
+
+\pyfile{code/ch08/cold.py}{Korutyna jest zimna, a Task nie}{lst:ch08-cold}
+
+\transcript{ch08-cold}
+
+\noindent
+Trzy z nich warto mieć w palcach. \api{create\_task} planuje, a nie
+uruchamia, więc ciało nadal nie ruszyło, gdy funkcja wraca \dash{} rusza,
+gdy wywołujący najbliższy raz odda sterowanie pętli. Zapomnienie o
+\code{await} to \emph{ostrzeżenie}, wypisane przy zbieraniu obiektu, a nie
+błąd: wywołanie nie zrobiło nic, a program poszedł dalej. A czekanie na tę
+samą korutynę dwa razy podnosi wyjątek, bo korutyna \emph{jest} pracą, a
+nie uchwytem do niej.
+
+\mermaidfig{async-cold-coroutine}{Nic nie rusza, dopóki pętla nie dostanie szansy: dwa kroki, które \code{Task} w C\# ma już za sobą, gdy go trzymasz}{trzy kroki korutyny}
+
+\begin{trapbox}
+\textbf{Korutyna to \code{Task}, więc jej wywołanie ją uruchamia.} Nie jest
+i nie uruchamia. W C\# zapomniany \code{await} i tak wykonuje pracę, tracąc
+wynik; w Pythonie nie wykonuje niczego i mówi o tym w ostrzeżeniu, którego
+na zajętym stderr nie zobaczysz. Oba błędy wyglądają na przeglądzie kodu
+tak samo, a w czasie wykonania są przeciwieństwami.
+\end{trapbox}
+
+\begin{exercise}{e08_01_schedule}{Spraw, by trzy korutyny się nałożyły}
+Trzy nazwy, trzy pobrania, jedna lista wyników w kolejności podanych nazw
+\dash{} i wszystkie trzy w locie naraz. Test niczego nie mierzy zegarem:
+patrzy, ile pobrań trwa jednocześnie, więc implementacja, która czeka na
+każde przy jego tworzeniu, zwraca poprawne odpowiedzi i mimo to nie
+przechodzi.
+\end{exercise}
+
+\section{Jedna pętla, jeden wątek}
+\label{sec:asyncio-one-thread}
+\index{asyncio!event loop}
+\index{asyncio!blocking call}
+
+Oto reszta rachunku za utratę \code{SynchronizationContext}. Twoje żądanie
+w ASP.NET biegło na puli wątków: gdy jeden wątek się zablokował, pozostałe
+szły dalej, a pula dokładała następny. Pętla zdarzeń to jeden wątek
+wykonujący jedną korutynę naraz, a następną bierze dopiero wtedy, gdy
+bieżąca dojdzie do \code{await}. Wywołanie, które blokuje, nigdy do niego
+nie dochodzi.
+
+Tyle wie większość. Tym, co pula wątków ukrywa, jest sytuacja z więcej niż
+jednym winowajcą \dash{} i to mierzy eksperyment~E4: poniższy listing ma
+ten sam kształt i jest do uruchomienia przez ciebie.
+
+\pyfile{code/ch08/one_loop.py}{To, gdzie wolne wywołanie spędza czas, decyduje o tym, kto jeszcze zapłaci}{lst:ch08-one-loop}
+
+\noindent
+Odpowiedz na dwie rzeczy, zanim go uruchomisz. Cztery korutyny blokują
+pętlę po jednej dziesiątej sekundy każda: ile zajmą we cztery? I piąta
+korutyna, która poprosiła o dwadzieścia milisekund i nie robi nic złego:
+ile będzie czekać?
+
+\val{e04.offenders} korutyny zabierające po \val{e04.block.ms}~ms, obok
+\val{e04.innocent}, które tylko czekają \val{e04.wait.ms}~ms. W .NET te
+cztery trafiłyby na cztery wątki puli i nałożyłyby się, kończąc razem po
+mniej więcej \val{e04.block.ms}~ms, a reszta procesu nie zauważyłaby
+niczego. Na jednym wątku nie mogą nałożyć się nawet na siebie nawzajem:
+ustawiają się w szereg, zabierając \val{e04.serial.ms}~ms, a każda z
+\val{e04.innocent} postronnych czeka na wszystkie cztery. E4, na medianie z
+\val{e04.trials} przebiegów, stwierdza, że opóźnienie najgorszej postronnej
+rośnie o co najmniej
+\val{e04.added.floor.ms}~ms, a przeniesienie tych samych wywołań poza pętlę
+przez \api{asyncio.to\_thread} trzyma ten wzrost poniżej
+\val{e04.threaded.ceiling.ms}~ms.
+
+\mermaidfig{async-one-thread}{Kolejka rusza dopiero wtedy, gdy bieżąca korutyna dojdzie do \code{await}}{jeden wątek, jedna kolejka}
+
+\begin{csbox}
+\api{to\_thread} to \code{Task.Run}, tyle że z dużo mniejszą pulą pod
+spodem: domyślny executor pętli trzyma \code{min(32, cpu\_count + 4)}
+wątków i nie rośnie tak, jak pula w .NET. Nadaje się do blokującego
+wywołania, które \emph{czeka}, i nie nadaje do tysiąca takich naraz, a do
+pracy zjadającej procesor nie nadaje się w ogóle \dash{} ta chce puli
+procesów, z powodu, który podaje rozdział~\ref{ch:runtime}.
+\end{csbox}
+
+\begin{trapbox}
+\textbf{\code{.Result} się zakleszcza, więc używam
+\code{ConfigureAwait(false)}.} Żadne z nich tu nie istnieje i żadne nie
+jest potrzebne. Awaria, która je zastępuje, jest cichsza: jedno blokujące
+wywołanie w jednej korutynie zamraża każdą inną korutynę na pętli, bez
+wyjątku, bez wpisu w logu i bez czegokolwiek w śladzie, co powiedziałoby,
+która to była.
+\end{trapbox}
+
+\begin{exercise}{e08_02_unblock}{Zdejmij blokujące wywołanie z pętli}
+Funkcja synchroniczna, której nie jesteś właścicielem i nie możesz
+przepisać, wywoływana z korutyny. Zwróć dokładnie to, co ona zwraca, bez
+uciszania pętli. Test uruchamia obok korutynę bijącą jak serce i liczy jej
+uderzenia, bo zablokowana pętla nie potrafi uderzyć.
+\end{exercise}
+
+\section{WhenAll, dwa razy}
+\label{sec:asyncio-whenall}
+\index{asyncio!gather@\texttt{gather}}
+\index{asyncio!TaskGroup@\texttt{TaskGroup}}
+
+Python zapisuje \code{Task.WhenAll} na dwa sposoby, a wszystko napisane
+przed 2022 rokiem używa pierwszego. Są tak samo szybkie. Różnią się
+dokładnie jednym i jest to los \emph{rodzeństwa} korutyny, która podniosła
+wyjątek.
+
+\pyfile{code/ch08/whenall.py}{Ta sama partia, psująca się tak samo, dwa razy}{lst:ch08-whenall}
+
+\transcript{ch08-whenall}
+
+\noindent
+Przeczytaj trzy pierwsze wiersze jeszcze raz. Wywołujący obsłużył błąd i
+poszedł dalej, a dopiero potem rodzeństwo coś wypisało \dash{} nadal
+działało, a nikt na nie nie czekał i nikt nie trzymał odwołania do jego
+wyniku. W serwisie to otwarte połączenie, niezatwierdzona transakcja i
+ponowienie, które wystrzeliwuje po tym, jak żądanie, do którego należało,
+zwróciło już 500. \api{TaskGroup} zamiast tego anuluje rodzeństwo i zgłasza
+błędy jako \code{ExceptionGroup}, co jest najbliższym odpowiednikiem
+\code{AggregateException}, jaki Python ma, i jest tematem
+rozdziału~\ref{ch:errors}.
+
+\begin{trapbox}
+\textbf{\api{gather} to \code{Task.WhenAll}.} To \code{WhenAll} bez tej
+części, w której błąd zatrzymuje partię. Wybieraj między nimi po semantyce
+błędu, nigdy po szybkości: tom towarzyszący mierzy je jako nierozróżnialne,
+a kto mówi, że \api{TaskGroup} jest szybsze, cytuje różnicę, której nie ma.
+\end{trapbox}
+
+\begin{exercise}{e08_03_when_all}{Przenieś WhenAll z CancellationToken}
+Plik startowy niesie trzywierszowy oryginał w C\#:
+\code{CancellationTokenSource} z budżetem, \code{Select} tworzący partię
+zadań, jedno \code{WhenAll}. Przenieś to tak, by wyniki zachowały
+kolejność, by jeden budżet obejmował całą partię i by nic nie zostało
+uruchomione, gdy budżet się skończy. To ostatnie jest tym, czego
+\api{gather} ci nie da.
+\end{exercise}
+
+\begin{exercise}{e08_04_bounded}{Ogranicz współbieżność}
+\api{gather} i \api{TaskGroup} startują wszystko naraz. Dwadzieścia żądań
+do usługi, która znosi cztery, to test obciążeniowy z twoim własnym
+nazwiskiem. Zachowaj kolejność wyników i nigdy nie trzymaj w locie więcej
+niż \code{limit}.
+\end{exercise}
+
+\section{Anulowanie jest wyjątkiem}
+\label{sec:asyncio-cancel}
+\index{asyncio!cancellation}
+\index{asyncio!CancelledError@\texttt{CancelledError}}
+
+\code{CancellationToken} to flaga, którą dostajesz, przekazujesz w dół i
+odpytujesz. Jest kooperacyjna w tym sensie, że metoda, która nigdy jej nie
+sprawdza, nigdy się nie zatrzyma.
+
+Anulowanie w Pythonie jest kooperacyjne w innym sensie.
+\api{task.cancel()} samo z siebie niczego nie zatrzymuje: zapisuje żądanie
+i wraca, a przy najbliższym \code{await} anulowanej korutyny zostaje w niej
+\emph{wewnątrz} podniesiony \api{CancelledError}. Nie ma tokenu do
+przekazania, parametru do przewleczenia przez dwadzieścia miejsc wywołania
+ani niczego do odpytania. Nie ma też nic, co anulowanie mogłoby zrobić z
+korutyną, która nigdy nie czeka.
+
+Czyli anulowanie podlega tym samym regułom, co każdy inny wyjątek \dash{}
+łącznie z tą, że kto je złapie, ten je przejmuje. Cztery zadania poniżej są
+anulowane identycznie i każde chroni się inaczej. Zdecyduj, które z nich
+przeżyją, zanim przeczytasz wynik.
+
+\pyfile{code/ch08/cancelled.py}{Cztery sposoby spotkania anulowania, trzy z nich błędne}{lst:ch08-cancelled}
+
+\transcript{ch08-cancelled}
+
+\noindent
+Jeśli przewidziałeś, że \code{except Exception} je połknie, jesteś w dobrym
+towarzystwie i nie masz racji, a pierwszy wiersz wyniku mówi dlaczego:
+\api{CancelledError} dziedziczy bezpośrednio po \code{BaseException} i
+nigdy nie przechodzi przez \code{Exception}. Szeroka klauzula, którą
+inżynier .NET nauczył się traktować jako lekkomyślną, jest tutaj tą
+bezpieczną. Anulowanie połyka \code{except BaseException}, gołe
+\code{except:} oraz \dash{} znacznie częściej w prawdziwym kodzie \dash{}
+blok \code{except asyncio.CancelledError}, który sprząta po sobie i
+zapomina podnieść wyjątek ponownie.
+
+\mermaidfig{async-cancel-path}{Anulowanie jest dostarczane, a nie odpytywane, i zatrzymuje je nie ta klauzula, której byś się spodziewał}{jak podróżuje anulowanie}
+
+\begin{csbox}
+Gołe \code{raise} na końcu bloku \code{except} to \code{throw;} \dash{}
+kontynuuje wyjątek, który już leci, z nienaruszonym śladem stosu.
+\code{raise e} to \code{throw e;} i ten ślad zeruje.
+Rozdział~\ref{ch:errors} robi to rozróżnienie porządnie; tutaj jest ono
+całą poprawką.
+\end{csbox}
+
+\begin{trapbox}
+\textbf{Anulowanie to flaga, którą odpytuję, więc łapanie
+\code{Exception} jest tym, przez co je tracę.} Odwrotnie, w obu połowach.
+Anulowanie przychodzi jako wyjątek przy \code{await}, a
+\code{except Exception} jest dokładnie tą klauzulą, która je przepuszcza.
+Wierszem, którego trzeba szukać w kodzie, nie jest \code{except Exception};
+jest nim \code{except asyncio.CancelledError} bez \code{raise} pod spodem.
+\end{trapbox}
+
+\begin{exercise}{e08_05_cancel_safe}{Posprzątaj i pozostań anulowalny}
+Plik startowy zwalnia swoją dzierżawę przy anulowaniu i mimo to jest
+błędny: zgłasza sukces temu, kto go anulował. Zwolnij dzierżawę i pozwól
+anulowaniu iść dalej. Jeden z trzech testów sprawdza konsekwencję, którą
+wywołujący naprawdę spotyka, a jest ona w następnej sekcji.
+\end{exercise}
+
+\section{Terminy i klient, który go ma}
+\label{sec:asyncio-deadline}
+\index{asyncio!timeout@\texttt{timeout}}
+\index{timeout}
+
+\code{CancelAfter} na źródle tokenu uzbraja termin, który anuluje pracę po
+jego przekroczeniu. \api{asyncio.timeout} robi to samo i nie wygląda
+podobnie: jest menedżerem kontekstu, obejmuje blok zamiast tokenu, a
+wyjątek, który podnosi, nie jest tym, który zobaczyła praca w środku.
+
+\pyfile{code/ch08/deadline.py}{Termin to anulowanie z lepszą nazwą na granicy}{lst:ch08-deadline}
+
+\transcript{ch08-deadline}
+
+\noindent
+Ciało widzi \api{CancelledError}, bo termin anuluje; wywołujący widzi
+\code{TimeoutError}, bo menedżer kontekstu zamienia go po drodze na
+zewnątrz. Ta zamiana jest powodem, dla którego brakujące \code{raise} z
+poprzedniej sekcji jest gorsze, niż wygląda. Czwarty wiersz to ciało, które
+połknęło anulowanie wysłane przez jego własny termin: blok kończy się
+wtedy normalnie i \emph{żaden} \code{TimeoutError} nie zostaje podniesiony.
+Termin, który po cichu nie zadziałał, jest trudniejszy do odczytania niż
+ten, który zadziałał.
+
+Dwa ostatnie wiersze to klient, odczytany z zainstalowanego \pkg{httpx}, a
+nie spisany z pamięci. Domyślny \api{httpx.AsyncClient} już niesie termin,
+wynosi on pięć sekund i stosuje się osobno do czterech faz, a nie do
+żądania jako całości.
+
+\begin{trapbox}
+\textbf{\code{HttpClient} jest singletonem, więc \api{AsyncClient} też.}
+Rada o cyklu życia się przenosi \dash{} utwórz raz, współdziel, zamknij
+\dash{} a domyślne wartości nie. Tam, gdzie twój \code{HttpClient} ma jeden
+limit obejmujący całe żądanie \dash{} jakkolwiek go ustawiłeś \dash{}
+\api{AsyncClient} ma cztery i są krótkie, a pierwsze ciężkie popołudnie w
+nowym serwisie w Pythonie to zwykle limit odczytu, którego nikt nie
+skonfigurował.
+\end{trapbox}
+
+\section{Granica synchroniczna}
+\label{sec:asyncio-boundary}
+\index{asyncio!asyncio.run@\texttt{asyncio.run}}
+
+C\# pozwala, by \code{Main} był \code{async}, a środowisko czeka na niego
+za ciebie. Python nie ma takiego punktu wejścia: \code{await} poza funkcją
+jest błędem składni, więc coś synchronicznego musi uruchomić pętlę. Tym
+czymś jest \api{asyncio.run}, wywołane raz, na samej górze i nigdy ze
+środka korutyny.
+
+\pyfile{code/ch08/boundary.py}{Gdzie zaczyna się kod asynchroniczny i co nie może przekroczyć granicy}{lst:ch08-boundary}
+
+\transcript{ch08-boundary}
+
+\noindent
+Dwa pierwsze wiersze to nawyk \code{.Result} spotykający środowisko,
+które go nie ma. Zapytanie nieskończonego \api{Task} o wartość nie blokuje i nie może
+się zakleszczyć: podnosi wyjątek. Nie ma blokującego czekania na zadanie ze
+środka pętli, co jest tym samym faktem, co
+\S\ref{sec:asyncio-one-thread}, widzianym z drugiej strony \dash{}
+blokujące czekanie zatrzymałoby wątek, który ma dokończyć to, na co się
+czeka.
 
 \medskip
-\textbf{Budżet słów:} 3000.\\
-\textbf{Wydanie:} v0.2.\\
-\textbf{Pomiar:} E4.
-}
+\noindent
+Trzy awarie zatem, i każdą z nich umiesz już rozpoznać na kartce, a nie o
+czwartej nad ranem. Blokujące wywołanie, które zamraża każdą korutynę obok
+i nie pojawia się w żadnym logu. Osierocone zadanie, które \api{gather}
+zostawia działające po tym, jak jego partia się wywróciła. I połknięty
+\code{CancelledError}, który zamienia zadanie anulowane w zakończone
+powodzeniem, a termin w obietnicę, której nikt nie dotrzymuje. Żadna z tych
+trzech nie podnosi wyjątku i wszystkie trzy widać na przeglądzie, gdy zna
+się kształty.

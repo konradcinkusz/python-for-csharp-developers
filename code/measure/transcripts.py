@@ -85,15 +85,29 @@ class Command:
     expect: int | None = None
 
 
+# stem -> the Listing whose stdout it is, or the Command whose report it is.
+#
+# Only something whose output the book QUOTES belongs here. ch08/one_loop.py
+# is deliberately absent: it prints milliseconds, which differ on every
+# machine, so the chapter quotes E4's bounds instead and tells the reader to
+# run that listing themselves.
 TRANSCRIPTS: dict[str, Listing | Command] = {
     "ch00-loop": Listing("ch00/loop.py"),
     "ch03-hint-is-a-claim": Listing("ch03/hint_is_a_claim.py"),
     "ch03-dto-four-ways": Listing("ch03/dto_four_ways.py"),
     "ch03-defaults": Listing("ch03/defaults.py"),
+    "ch06-chaining": Listing("ch06/chaining.py"),
+    "ch06-swallow": Listing("ch06/swallow.py"),
+    "ch06-groups": Listing("ch06/groups.py"),
     "ch07-runs-once": Listing("ch07/runs_once.py"),
     "ch07-two-ways": Listing("ch07/two_ways.py"),
     "ch07-shadowing": Listing("ch07/shadowing.py"),
     "ch07-cycles": Listing("ch07/cycles.py"),
+    "ch08-cold": Listing("ch08/cold.py"),
+    "ch08-whenall": Listing("ch08/whenall.py"),
+    "ch08-cancelled": Listing("ch08/cancelled.py"),
+    "ch08-deadline": Listing("ch08/deadline.py"),
+    "ch08-boundary": Listing("ch08/boundary.py"),
     # Chapter 11. Each of the two pytest runs is a FAILING run on purpose:
     # the file it names is a trap_*.py, which the suite never collects
     # because the name does not begin with test_.
