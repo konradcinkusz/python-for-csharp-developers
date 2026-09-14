@@ -276,8 +276,8 @@ by itself a reason to adopt a tool. The question worth answering is
 cache in CI is worth an afternoon.
 
 So: this book's own lockfile, exported so that both tools install exactly the
-same \val{e2.packages} distributions with no resolution to do, onto the pinned
-interpreter, each with a private package cache that is emptied before a cold
+same \val{e2.packages} distributions, hashes and all, with no resolution left
+for either to do, onto the pinned interpreter, each with a private package cache that is emptied before a cold
 trial and kept for a warm one. The environment is created inside the timed
 region in both cases, because with \code{pip} that means \code{python -m venv}
 and a reader is buying the whole journey from checkout to runnable. Median of
