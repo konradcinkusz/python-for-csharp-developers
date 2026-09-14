@@ -1,0 +1,5 @@
+flowchart LR
+    M["<b>A pydantic model</b><br/>the request you build and the<br/>response you get back are both<br/>BaseModel subclasses"]
+    H["<b>An httpx client</b><br/>held for the process, with the<br/>timeouts and retries you set --<br/>from httpx2, not httpx"]
+    S["<b>A streaming iterator</b><br/>the same call again, yielding<br/>events until the reply is whole"]
+    M --> H --> S
