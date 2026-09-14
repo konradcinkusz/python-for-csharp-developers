@@ -432,6 +432,21 @@ are listed by name and their reasoning is in the companion books.
   0.12.13 installs 3.14.7. The Makefile takes `UV ?= uv`, so a newer binary
   on `PATH` is enough, and CI pins the uv version in `setup-uv`.
 - **`siunitx` is in `texlive-science` on Debian**, not in `texlive-latex-extra`.
+- **A pull request that CONFLICTS with its base runs no CI at all, and that
+  looks exactly like a slow queue.** GitHub builds `pull_request` workflows
+  against `refs/pull/N/merge`, and it cannot create that ref while the branch
+  conflicts with `main` — so no run is queued, no run fails, and the checks
+  list is simply *empty*. With several passes merging into `main` every few
+  minutes, a branch acquires conflicts between a push and the next look, and
+  two pushes in a row can produce nothing while other PRs are visibly
+  building. The tell is one field: `mergeable_state` is `dirty` while
+  conflicted and `unstable`/`clean` once merged, and the checks appear within
+  a minute of it changing. **Read `mergeable_state` before concluding
+  anything about CI**, and resolve the conflict rather than pushing again —
+  a second push to a conflicted branch cannot start a run either. It is the
+  recorded instrument class once more: absence of output read as “not yet”
+  when it meant “never”.
+
 - **A background `make ... > log 2>&1; echo "MAKE_EXIT $?"` is reported as
   exit 0 whatever make did** (inherited). Read the log's own `MAKE_EXIT`
   line, and treat an unchanged page count as a failed build.
