@@ -803,6 +803,36 @@ agree to within a twentieth --- the exact warm ratio is 99.9 and the printed
 one is 100.7, so reporting the first would have put `100` above two numbers a
 reader divides to `101`. That check is in the script and fails the build.
 
+#### A `shellcmd` block is a listing nobody runs, and this one did not run
+
+The chapter printed its three-command session as
+
+    uv init --name incident-tools
+    uv add httpx
+    uv run python -m incident_tools
+
+and the third line **exits 1**: `uv init` writes `src/<name>/__init__.py`
+with a `main()` in it and no `__main__.py`, so
+`No module named incident_tools.__main__; 'incident_tools' is a package and
+cannot be directly executed`. The command `uv init` actually gives you is the
+entry point it writes into `[project.scripts]`, `uv run incident-tools`, which
+is also the better line because the section two pages later is about that
+entry point being the `Program.cs` mapping.
+
+**Nothing in this repository could have caught it.** Every Python listing is a
+file under `code/` that `test_listings.py` runs; a `shellcmd` body is typed
+into the chapter, is compared byte-for-byte between the editions by parity ---
+so it was equally wrong in both --- and is executed by nobody. `preamble.tex`
+permits the environment "for a shell session the reader is meant to
+reproduce", and that permission is exactly the exposure: the reader reproduces
+it and the book did not.
+
+So the habit for any future `shellcmd`: **extract the block from the source
+and run it, line by line, in an empty directory**, the way the extract-and-run
+test already treats a listing. Done here, it now goes
+`Initialized project` / `+ incident-tools==0.1.0` /
+`Hello from incident-tools!` and exits 0.
+
 #### What the brief got wrong, and what verifying changed
 
 - **The brief asked for a shell transcript of `uv init`, `uv add` and
