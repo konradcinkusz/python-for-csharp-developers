@@ -19,17 +19,17 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **2 of 14 written: Chapters 3 and 9, both editions.** The other twelve are briefs printed where the chapter will go | 1, 2, 4 to 8, and 10 to 14 |
+| Chapters | **3 of 14 written: Chapter 3, *Typing*, Chapter 7, *Imports and dependency injection*, and Chapter 9, *Services* — both editions** | 1, 2, 4–6, 8, 10–14 |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: the `trace-assert` skeleton, those two chapters' listings and exercises, experiment E5, and CI runs all of it | every other chapter's listings and exercises; the experiments that have not run |
+| Code | `code/` is a locked uv project: the `trace-assert` skeleton, those three chapters' listings and exercises, the measurement scripts including experiment E5, and CI runs all of it | every other chapter's listings and exercises; the experiments that have not run |
 
-**The scaffold plus two chapters, written in parallel.** The scaffold existed
-so that the shape of the book could be argued with before Chapter 1 was
-written, and so that the first chapters were written into a build that
-already had every gate. Chapters 3 and 9 were written against whichever
-issue came up first rather than in reading order, and both held: each names
-what it borrows and borrows almost nothing. The gates earned their keep on
-both passes — see *The Chapter 3 pass* and *The Chapter 9 pass* below.
+**The scaffold plus three chapters.** The scaffold existed so that the shape
+of the book could be argued with before any chapter was written, and so that
+the first one was written into a build that already had every gate. Chapters
+3, 7 and 9 were written in parallel, by separate passes, each against the
+issue that came up first rather than against the reading order — which is
+possible because a chapter names what it borrows and borrows little. The
+gates earned their keep on all three; see the pass notes below.
 
 **Two editions, one paper size, both clean.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
@@ -37,41 +37,44 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 67 | 0 | 0 | 0 | 0 |
-| `main-pl` | 68 | 0 | 0 | 0 | 0 |
+| `main-en` | 83 | 0 | 0 | 0 | 0 |
+| `main-pl` | 82 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
-to go stale. **And say which build**: the two rows above are from a TeX Live
-carrying `newtx` and `inconsolata`, which the preamble's `\IfFileExists`
-probes therefore find. They are *not* comparable with the scaffold's 37 and
-37, or with the Chapter 3 pass's 53 and 56, both of which were measured on a
-bare installation that degrades to `lmodern`. CI compiles on a full TeX Live;
-that is the inherited two-machines rule and it is not a defect.
+to go stale. **And say which build**, which is the Chapter 3 pass's rule and
+is why these two rows are not comparable with the ones it recorded: they are
+from an installation that HAS `newtx` and `inconsolata`
+(`texlive-fonts-extra`), where Chapter 3's 53 and 56 were from a bare one
+that degrades to `lmodern` through the preamble's `\IfFileExists` probes.
+Different fonts, different line breaks, different pagination. CI compiles on
+a full TeX Live; that is the inherited two-machines rule and it is not a
+defect. Record which installation you measured on, every time.
 
-And one small tell worth keeping: an unrendered diagram is visible in the log
-rather than only on the page. `\mermaidfig`'s fallback uses `\captionof`,
-which emits a `caption` package warning about `\setcaptiontype`, so three
-such warnings in a clean build meant three diagrams had not been rendered.
-Run `make diagrams` before believing a page count.
+And one small tell the Chapter 9 pass earned: an unrendered diagram is
+visible in the LOG rather than only on the page. `\mermaidfig`'s fallback
+uses `\captionof`, which emits a `caption` package warning about
+`\setcaptiontype`, so three such warnings in an otherwise clean build meant
+three diagrams had not been rendered. Run `make diagrams` before believing a
+page count.
 
 **Debt ledgers, reported by CI on every build** (`make debt`), and printed
 for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **12 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **11 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 40 listing references, every file and region present · 10
-  exercises, each with a starter, a solution and a test · 20
-  transcript references, every file present · 59 code files, none
+- 62 listing references, every file and region present · 14
+  exercises, each with a starter, a solution and a test · 28
+  transcript references, every file present · 92 code files, none
   over 79 columns · 19 pins agree between `preamble.tex` and
   `code/pyproject.toml`
 - **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
   reader that something was not run
-- 14 Mermaid sources, seven per language, all rendering, all placed
+- 20 Mermaid sources, ten per language, all rendering, all placed
 - 44 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 68 labels in each edition,
+- Parity: 23 file pairs, 0 failures, 0 warnings · 87 labels in each edition,
   0 mismatches
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
@@ -842,11 +845,134 @@ reasoned about.
 
 ---
 
+### Chapter 7 pass, September 2026
+
+The first chapter written, and the brief held everywhere it made a claim
+about *what the chapter should contain*. What it got wrong was the framing
+every book gets wrong, and a probe settled it in a minute.
+
+**A circular import is not an error, and the brief's “three ways out” are
+three ways of moving a name lookup past import time.** Two modules that
+`import` each other run fine: the module OBJECT is put in `sys.modules`
+before its body runs, which is what stops the recursion, so binding it
+always succeeds. What fails is a NAME read from a module whose body has not
+reached the line that binds it — which is exactly what `from x import y`
+asks for, at import time. So the three fixes are: hold the module rather
+than the name, import inside the function, and extract the shared thing
+into a third module; and only the third removes the cycle. All four cases
+are in `code/ch07/cycles.py`, which runs them and prints what came out.
+
+**THE FINDING: CPython’s diagnosis of a circular import depends on where the
+file sits, not on what went wrong.** The same two-module cycle produces two
+different messages:
+
+| Where the modules are | What CPython says |
+|---|---|
+| inside a package | `cannot import name 'X' from partially initialized module 'p.m' (most likely due to a circular import)` |
+| flat, in the directory you ran from | `cannot import name 'X' from 'm' (consider renaming 'm.py' if it has the same name as a library you intended to import)` |
+
+Hypothesised from the first probe disagreeing with the second, then
+**confirmed by moving the identical pair off `sys.path[0]` with
+`PYTHONPATH`**, at which point the flat pair produced the package message.
+CPython prefers the shadowing hint when the module’s file is in
+`sys.path[0]`, so the message that names the cause fires in the packaged
+layout and the message about a name clash fires in the flat one — which is
+the shape a first Python project takes. `§7.3` carries it as a warning box,
+and both halves are in the chapter’s transcript because the listing runs
+both.
+
+**The DI-library question the brief asked to settle on the day, settled.**
+Read off PyPI on 14 September 2026 rather than remembered:
+`dependency-injector` 4.49.1 (2026-06-18), `injector` 0.24.0 (2026-01-09),
+`punq` 0.9.0 (2026-09-08), `svcs` 26.2.0 (2026-08-24), `wireup` 2.12.0
+(2026-07-09) and `kink` 0.9.0 (2026-03-19) are all maintained; `lagom`
+2.7.7 is over a year old and stops at 3.13. **The finding is that none of
+them is the default**, which is the difference from .NET worth printing,
+and the chapter says that rather than naming a winner. No version numbers
+reached the page: a dated ecosystem claim is durable, a version number in
+prose is not, and `\pinnedon{}` already carries the date.
+
+**Chapter 7 added no dependency to `code/pyproject.toml`**, deliberately.
+Every listing in it runs on the standard library, so the composition root is
+demonstrated with `functools.partial` and `typing.Protocol` and nothing is
+installed to make a point about containers.
+
+**A listing that is MEANT to fail cannot satisfy `test_listings.py`, and the
+underscore is the mechanism.** That runner executes every `chNN/**/*.py`
+whose name does not begin with `_`, and half of a cycle run on its own
+proves nothing. So the eight modules under `code/ch07/cycle/` and the two
+`code/ch07/_flat_*.py` are underscored — which is also the ordinary Python
+mark for *internal to this package* — and `code/ch07/cycles.py`, which IS
+run, imports every one of them. The convention is recorded here because the
+next chapter that needs a deliberately-broken module should not re-derive
+it: **an underscored module is still exercised, by the driver that is not
+underscored, and the driver’s docstring says so.**
+
+**pyright strict shaped three listings, and each error was right.**
+`build()` is annotated as returning a plain callable, so `build().func` is
+refused — which is the composition root’s whole point, enforced rather
+than asserted, and the chapter says so. An `__init__.py` with
+`__all__ = ["discount"]` and no import of `discount` is
+`reportUnsupportedDunderAll`, and the fix is the empty package body the
+chapter argues for anyway. A constant assigned in both branches of a
+`try`/`except` is `reportConstantRedefinition`; assigning it once from a
+helper reads better regardless.
+
+**Two claims written from background knowledge rather than from a probe,
+both caught on a last read of the chapter and both wrong.** The C# box said
+Python “makes no thread-safety promise” about a module body. It does:
+`importlib._bootstrap._ModuleLock` is a lock per module, taken while a body
+runs, and it detects its own deadlocks — read out of the installed
+interpreter. So the box now says what is actually different, which is better
+material: not thread safety, but that a cycle lets a second module see this
+one half-built, which hands forward to §7.3. And the `-m` box said that
+invoking a .NET DLL directly “gives you whatever the directory happens to
+contain”, which is false — resolution is declared, by the project and by the
+deps file beside it. The corrected contrast is sharper than the wrong one:
+in .NET the directory you are standing in does not change which code loads,
+and in Python it does, because `sys.path[0]` is chosen by how you started the
+process. **A .NET claim in this book is the one a reader is most likely to
+know better than the author**, and neither of these would have been caught by
+any gate.
+
+**Two overfull hboxes, both the inherited long-`\api{}`-at-a-line-break
+class, and this book’s first.** 3.1 pt in English on
+`\api{importlib.import\_module}` and 7.3 pt in Polish on
+`\api{sys.modules}`. Neither hyphenates. The English one was cleared by
+starting a new paragraph with the token, which puts it at the left margin
+deterministically; the Polish one by moving the token earlier in its
+sentence. **Both editions were rebuilt after each fix**, because a reflow in
+one says nothing about the other.
+
+**The container had no TeX at all.** `latexmk` and TeX Live are not
+preinstalled in this sandbox, and `make en` fails with
+`make: latexmk: No such file or directory`. What this pass installed, and
+what was enough for a clean build of both editions:
+`latexmk texlive-latex-recommended texlive-latex-extra
+texlive-fonts-recommended texlive-fonts-extra texlive-science
+texlive-lang-polish texlive-lang-english tex-gyre texlive-plain-generic`.
+`tex-gyre` is on that list because of the trap already recorded above, and
+`texlive-fonts-extra` brings newtx and inconsolata — so the local build
+after it measures the same fonts CI does, which is why the two hbox figures
+above are worth trusting.
+
+**Three diagrams, measured before the captions were written**, as the rule
+says. The first drafts came out 775 and 797 pt wide and set their node text
+at about 6.3 pt, under the band the scaffold’s two diagrams occupy. Shorter
+node text — not wordier, which is the fix for a graph that is too NARROW —
+took them to 580 and 660 pt and 7.6 to 8.7 pt. `pdfinfo` is not installed
+here either; the page size reads out of the PDF’s `/MediaBox` with three
+lines of Python, which is what `pdfinfo` prints.
+
+---
+
+---
+
 ### Chapter 9 pass, September 2026 --- Services, and experiment E5
 
-Written out of order and, as it turned out, in parallel with Chapter 3:
-the two sessions took whichever issue came up first, and neither chapter
-needed the other. Chapter 9's measurement is free, its brief was the most
+Written out of order and, as it turned out, in parallel with Chapters 3
+and 7: the three sessions took whichever issue came up first, and none of
+the three chapters needed either of the others. Chapter 9's measurement is free, its brief was the most
 specific in the manifest, and a chapter with seven listings, five exercises,
 three figures and twenty-nine computed values is what tells you whether the
 gates hold against content rather than against a scaffold.
@@ -976,6 +1102,7 @@ not.
 - Parity came back clean on its first run, on a chapter of this size, which
   is what writing the English first and mirroring it macro by macro buys.
 
+
 ---
 
 ## After each pass
@@ -1002,20 +1129,18 @@ Tag from a local clone.
 
 ## What is left
 
-Two chapters of fourteen are written, 3 and 9. The outstanding work is
+Three chapters of fourteen are written: 3, 7 and 9. The outstanding work is
 tracked as GitHub issues under the `chapter`, `appendix`, `experiment` and
 `infrastructure` labels — **work from the labels, not from a list here**,
 because a list in this file is the class of claim nothing can check. In rough
 order:
 
-1. **Chapters 1, 2 and 4 to 7**, which complete v0.1. Chapter 3 is written
-   and was written third for a reason that did not survive: it was supposed
-   to follow 1 and 2, because every later chapter's listings assume the
-   reader trusts the environment. It does not depend on either in practice
-   — it names what it borrows and borrows almost nothing — so the ordering
-   is a preference rather than a constraint. Chapter 9, written out of
-   order in parallel with it, is the same finding a second time. Then 4 to
-   7 in order, each leaning on the last.
+1. **Chapters 1, 2, 4, 5 and 6**, which with the written Chapters 3 and 7
+   complete v0.1. The suggested order was 1, 2, 3 first, because every later
+   chapter's listings assume the reader trusts the environment — and three
+   chapters written out of that order did not suffer for it, because each
+   names what it borrows and borrows almost nothing. Treat the ordering as a
+   preference rather than a constraint.
 2. **Chapters 8, 10, 11 and 12** (v0.2), with the trace-assert stage 01 in
    Chapter 11 and experiments E4, E6 and E7. Chapter 9 is written; Chapter
    10 is the database session behind its `get_store`, which that chapter
