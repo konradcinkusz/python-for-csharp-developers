@@ -1,0 +1,11 @@
+Handed the same JSON, where port is the string '8080':
+  dataclass    port='8080'     type=str
+  TypedDict    port='8080'     type=str
+  NamedTuple   port='8080'     type=str
+  pydantic     port=8080       type=int
+What each one is at run time:
+  TypedDict  -> dict -- there is no class
+  NamedTuple -> True
+And the one that refuses nonsense:
+  pydantic      int_parsing
+  dataclass     'eighty'

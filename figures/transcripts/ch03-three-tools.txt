@@ -1,0 +1,9 @@
+ch03/defaults.py: one mutable default argument, correctly annotated.
+
+pyright 1.1.414: 0 error(s)
+
+mypy --strict 2.3.1: 0 error(s)
+
+ruff --ignore-noqa 0.16.7: 1 error(s)
+  line 13  B006
+    Do not use mutable data structures for argument defaults

@@ -1,41 +1,447 @@
-%% ch03 --- Typowanie: adnotacje, checkery i gdzie checker kłamie
+%% ch03 --- Typowanie: adnotacje, checkery i gdzie checker klamie
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie zalążkowego bloku (tego, który zaczyna się po
-%% linii \chapter) i zastąpienie go rozdziałem -- po czym ten plik nie jest
-%% już generowany.
+%% Napisany. Opis, ktory tu stal, jest w tools/chapters.json; to, czemu
+%% pisanie zaprzeczylo, jest w CLAUDE.md pod *Resolved questions*.
 
 \chapter{Typowanie: adnotacje, checkery i gdzie checker kłamie}
 \label{ch:typing}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\noindent
+Spędziłeś dekadę z kompilatorem, który odmawia. Napisz \code{int x =
+"8080";} i nie powstanie nic: żadnego assembly, żadnego przebiegu testów,
+żadnego wdrożenia. System typów nie jest poradą, jest bramką, a każdy twój
+nawyk dotyczący typów ukształtował się po jej drugiej stronie.
 
-Argument: a type hint is a claim the runtime never checks, and a checker is
-a second compiler you have to invite. The map: hints against the C\# type
-system (gradual against static, structural against nominal); \code{Protocol}
-against an interface; \code{dataclass}, \code{TypedDict}, \code{NamedTuple}
-and a pydantic model against a record, a DTO and a POCO; \code{T | None}
-against nullable reference types; generics in the PEP 695 syntax against C\#
-generics, variance included; \code{Literal} and \code{Enum};
-\code{TypeGuard} and \code{TypeIs}; \code{Any} against \code{dynamic} and
-\code{object}. Where the checker lies: \code{Any} propagation, untyped
-third-party packages, \code{cast}, \code{type: ignore}, and JSON arriving at
-a boundary \dash{} which is why pydantic exists, and where the LangChain
-book's chapter 2 stops. pyright against mypy: which to run in CI and why
-this book pins both. Payoff: a strictness configuration the reader can copy,
-and one rule \dash{} validate at the boundary, trust inside. Traps to
-elicit: nullable-reference-type thinking (\code{str} can be \code{None} at
-run time and nothing will say so); \code{List[int]} from a 2019 tutorial;
-assuming \code{@dataclass} validates; a mutable default argument. Listings:
-the same DTO four ways; a \code{Protocol} satisfied by a class that has
-never heard of it; a checker false negative reproduced on the pinned
-checker. Four exercises. Deferred: pydantic in depth belongs to chapters 9
-and 13.
+Python ma adnotacje i nie ma bramki. Adnotacja to twierdzenie zapisane w
+kodzie źródłowym, interpreter nigdy go nie czyta, a program i tak się
+wykonuje. Jeśli chcesz, żeby coś odmawiało, instalujesz to, konfigurujesz i
+uruchamiasz sam \dash{} drugi kompilator, którego musisz zaprosić. Ten
+rozdział jest o tym, co to zmienia, i o miejscach, w których zaproszony
+checker po cichu się z tobą zgadza i nie ma racji.
 
-\medskip
-\textbf{Budżet słów:} 3000.\\
-\textbf{Wydanie:} v0.1.
-}
+Pożycza z wcześniejszych rozdziałów jedno: środowisko zdolne uruchomić
+listing, czyli Rozdział~\ref{ch:packaging}. Nic więcej tutaj nie potrzebuje
+Rozdziałów \ref{ch:runtime} ani~\ref{ch:packaging}, a \pkg{pydantic}
+pojawia się tylko na tyle, na ile potrzebuje go argument tego rozdziału
+\dash{} głębia jest w Rozdziałach~\ref{ch:services}
+i~\ref{ch:aitoolkit}.
+
+\section{Adnotacja to twierdzenie}
+\label{sec:ch03-claim}
+\index{typowanie!adnotacja jako twierdzenie}
+
+Przeczytaj poniższy listing, zanim go uruchomisz, i zdecyduj, czego się
+spodziewasz. Trzy wywołania, każde łamiące adnotację nad sobą. Ile z nich
+rzuci wyjątek?
+
+\pyfile{code/ch03/hint_is_a_claim.py}{Trzy złamane adnotacje i to, co
+interpreter ma o nich do powiedzenia}{lst:ch03-claim}
+
+\noindent
+Żadne. Oto, co wypisuje:
+
+\transcript{ch03-hint-is-a-claim}
+
+\noindent
+\api{shout} jest zaadnotowane tak, by przyjmować \code{str}, i dostaje
+\code{int}; mimo to zwraca \code{str}, bo f-string sformatuje cokolwiek mu
+podasz. \api{port\_of} jest zaadnotowane tak, by zwracać \code{int}, a
+zwraca \code{str}, i wywołujący, który doda do tego tysiąc, dowie się o tym
+zupełnie gdzie indziej. A same adnotacje to zwykłe dane wiszące przy
+obiekcie funkcji, czytelne i zapisywalne w czasie wykonania \dash{} tak
+\pkg{pydantic} i \pkg{FastAPI} czytają twoje sygnatury \dash{} co znaczy
+też, że adnotację można po fakcie zastąpić kłamstwem i nic tego nie
+zauważy.
+
+\begin{csbox}
+Najbliższym odpowiednikiem w C\# nie jest \code{dynamic}. Jest nim baza
+kodu, w której każda nazwa typu jest komentarzem: nazwy są na miejscu, przez
+większość czasu są prawdziwe, a środowisko uruchomieniowe nigdy na żadną nie
+spojrzało. Nullable reference types to najbliższa rzecz, której już
+używałeś \dash{} adnotacja, o której rozumuje kompilator, a CLR nie.
+\end{csbox}
+
+\begin{trapbox}
+\textbf{\code{str} znaczy, że wartość jest napisem.} Nie znaczy. Znaczy, że
+ktoś miał na myśli napis. Parametr zaadnotowany \code{str} może w czasie
+wykonania być \code{None}, może być \code{int}, może być otwartym gniazdem, i
+nic w języku tego nie powie. Wszystko, co daje ci adnotacja, pochodzi z
+narzędzia, które sam uruchomiłeś, a następna sekcja jest o zaproszeniu go.
+\end{trapbox}
+
+\mermaidfig{ch03-two-compilers}{Twierdzenie, uruchomienie i drugi
+kompilator, którego trzeba zaprosić}{adnotacja, interpreter i checker}
+
+\section{Mapa}
+\label{sec:ch03-map}
+\index{typowanie!mapa z C\# na Pythona}
+
+Większość słownika przenosi się wprost i poniższa tabela jest tą częścią,
+którą czyta się raz i zatrzymuje. Dwa wiersze się nie przenoszą i dostają
+resztę tej sekcji.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{C\#} & \textbf{Python} \\
+\midrule
+\code{int}, \code{string}, \code{bool} & \code{int}, \code{str}, \code{bool}
+  \\
+\code{List<int>}, \code{Dictionary<string, int>} & \code{list[int]},
+  \code{dict[str, int]} \\
+\code{string?}, nullable reference types & \code{str | None}, prawdziwa unia,
+  którą trzeba zawęzić \\
+\code{IEnumerable<T>}, \code{IReadOnlyList<T>} & \api{Iterable[T]},
+  \api{Sequence[T]}, z \pkg{collections.abc} \\
+Interfejs, implementowany przez deklarację & \api{Protocol}, spełniany
+  kształtem \\
+\code{record}, DTO, POCO & \code{dataclass}, \api{TypedDict},
+  \api{NamedTuple}, model \pkg{pydantic} \\
+\code{enum} & \api{Enum} albo \api{Literal} dla zamkniętego zbioru wartości
+  \\
+Wzorzec \code{is}, \code{out var} & \code{isinstance} albo własny predykat
+  \api{TypeIs} \\
+\code{object} & \code{object}, który trzeba zawęzić przed użyciem \\
+\code{dynamic} & \api{Any}, co nie jest tym samym \\
+\code{where T : IComparable} & ograniczenie na parametrze typowym \\
+\code{in T}, \code{out T} & nic: wariancja jest wnioskowana \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent
+Generyki to pierwszy wiersz wart zatrzymania. Współczesny zapis deklaruje
+parametr na funkcji albo klasie, bez \api{TypeVar} i bez importu:
+
+\pyregion{code/ch03/the_map.py}{generics}{Dwie klasy generyczne i
+wariancja, której nikt nie zadeklarował}{lst:ch03-generics}
+
+\noindent
+Żadna z klas nie napisała \code{out} ani \code{in}. Checker czyta, w których
+pozycjach pojawia się parametr \dash{} \api{Reader} tylko zwraca \code{T},
+\api{Sink} tylko przyjmuje \dash{} i wnioskuje z tego kowariancję oraz
+kontrawariancję. Oba wywołania w \api{variance} są przyjęte, a zamiana
+argumentów miejscami jest odrzucana. To ta sama idea co słowa kluczowe w
+C\#, z usuniętą deklaracją, a rekompensatą jest to, że nie da się już
+pomylić adnotacji.
+
+\begin{trapbox}
+\textbf{\code{List[int]} i \code{Optional[str]}.} To zapis mniej więcej z
+roku 2019, to właśnie da ci wynik wyszukiwania, a wbudowane generyki
+zastąpiły go lata temu. Pisz \code{list[int]} i \code{str | None}. Jeśli
+czytasz tutorial, który importuje \api{List} z \pkg{typing}, załóż, że reszta
+strony jest w tym samym wieku.
+\end{trapbox}
+
+Zawężanie to drugi wiersz. \code{str | None} jest unią i checker nie pozwoli
+ci o tym zapomnieć, więc wartość jest naprawdę dwoma typami, dopóki gałąź
+ich nie rozdzieli \dash{} co jest ostrzejsze niż nullable reference types i
+znacznie łatwiejsze w życiu. Tam, gdzie zwykły \code{isinstance} nie
+wystarczy, możesz napisać własny predykat, a zapisy są dwa i różnią się
+jedną ważną rzeczą:
+
+\pyregion{code/ch03/the_map.py}{narrowing}{\api{TypeIs} zawęża obie gałęzie;
+\api{TypeGuard} zawęża jedną}{lst:ch03-narrowing}
+
+\noindent
+\api{TypeGuard} mówi checkerowi, co jest prawdą, gdy predykat zwróci prawdę,
+i nic o drugiej gałęzi, więc drugie sprawdzenie w
+\api{length\_with\_typeguard} nie jest ozdobą: usuń je, a linia przestanie
+przechodzić kontrolę typów. \api{TypeIs} zawęża obie gałęzie, co niemal
+zawsze jest tym, co miałeś na myśli.
+
+\begin{note}
+\api{TypeIs} kupuje to, żądając czegoś, czego \api{TypeGuard} nie żąda: typ,
+do którego zawężasz, musi być przypisywalny do typu, \emph{od} którego
+zawężasz. Dlatego listing przyjmuje \api{Sequence}, a nie \code{list}.
+\code{list} jest niezmienniczy, więc \code{list[str]} nie jest
+\code{list[object]}, a \code{list[object] -> TypeIs[list[str]]} zostaje
+odrzucone tam, gdzie para z \api{Sequence} przechodzi. Wariancja trzy
+akapity wyżej i zawężanie tutaj to ta sama reguła widziana dwa razy.
+\end{note}
+
+\begin{exercise}{e03_01_narrow}{Zawęź typ, a nie tylko odpowiedz na pytanie}
+Napisz predykat odpowiadający, czy każdy element sekwencji jest typu
+\code{str}. Test sprawdza odpowiedzi \emph{oraz} adnotację zwracaną, bo
+predykat zwracający \code{bool} nie mówi checkerowi nic: odpowiedź w czasie
+wykonania i statyczne zawężenie to dwie osobne prace, a to ćwiczenie chce
+obu. Sygnatura w pliku startowym jest celowo tą niewłaściwą.
+\end{exercise}
+
+\section{To samo DTO na cztery sposoby}
+\label{sec:ch03-dto}
+\index{typowanie!dataclass, TypedDict, NamedTuple}
+
+Rekord, DTO i POCO to w C\# jedna decyzja. W Pythonie są cztery, a wybór nie
+jest kwestią gustu. Zanim przeczytasz listing: ten sam JSON trafia do
+wszystkich czterech, a port jest w nim napisem \code{"8080"}. Zapisz, która z
+czwórki twoim zdaniem go odrzuci.
+
+\pyfile{code/ch03/dto_four_ways.py}{Jeden kształt, cztery sposoby na jego zadeklarowanie}{lst:ch03-dto}
+
+\transcript{ch03-dto-four-ways}
+
+\noindent
+Jedna z czterech. \code{@dataclass} generuje \api{\_\_init\_\_},
+\api{\_\_eq\_\_} i \api{\_\_repr\_\_}, a nie waliduje niczego;
+\api{TypedDict} to kształt słownika, który już istnieje, więc w czasie
+wykonania nie ma tam klasy ani instancji, tylko \code{dict};
+\api{NamedTuple} jest prawdziwą krotką, dlatego porównuje się równo z
+anonimową. Tylko model \pkg{pydantic} patrzy na wartość i tylko on z całej
+czwórki robi przy tworzeniu cokolwiek poza przypisaniem pól.
+
+Zwróć uwagę, co checker zobaczył, a czego nie. JSON przychodzi jako
+\api{Any}, więc żadna z tych czterech konstrukcji nie potrzebowała
+komentarza, żeby przejść przez \api{pyright}. Napisz tę samą błędną wartość
+jako literał, dwie linie niżej, a zostanie złapana w obu liniach. Nic w
+błędzie się nie zmieniło; zmieniło się tylko to, skąd przyszła wartość.
+
+\begin{trapbox}
+\textbf{\code{@dataclass} waliduje swoje pola, jak rekord z konstruktorem.}
+Nie waliduje, i to jest najdroższe założenie, jakie inżynier C\# przynosi do
+Pythona. Dataclass to generator boilerplate'u, nie bramka. Jeśli wartości
+przychodzą spoza procesu, sam dataclass jest złym narzędziem, a dobrym jest
+\pkg{pydantic} \dash{} o czym jest cała \S\ref{sec:ch03-boundary}.
+\end{trapbox}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}lXl@{}}
+\toprule
+\textbf{Kształt} & \textbf{Sięgnij po niego, gdy} & \textbf{Sprawdza?} \\
+\midrule
+\code{dataclass} & wartość jest już twoja i już poprawna & nie \\
+\api{TypedDict} & \code{dict} istnieje, a ty chcesz zapisać jego kształt &
+  nie \\
+\api{NamedTuple} & chcesz taniej krotki z nazwami & nie \\
+\pkg{pydantic} & wartość przyszła spoza tego procesu & tak \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Protocol jest spełniany kształtem}
+\label{sec:ch03-protocol}
+\index{typowanie!Protocol i typowanie strukturalne}
+
+Interfejs w C\# to kontrakt podpisany przez implementującego: klasa spełnia
+\code{IDisposable}, bo tak powiedziała. \api{Protocol} to kontrakt pisany
+przez \emph{konsumenta}, a klasa spełnia go, mając odpowiednie składowe.
+
+\pyfile{code/ch03/structural.py}{Interfejs, o którym implementujący nigdy nie słyszeli}{lst:ch03-protocol}
+
+\noindent
+\api{Connection} nie importuje \api{Closable} i nie robi tego również
+\api{StringIO}, który trafił do interpretera lata przed tym, jak napisałeś
+swój protokół. Oba przechodzą przez \api{close\_all}. To właśnie kupuje
+typowanie strukturalne, a C\# nie potrafi: możesz napisać interfejs dla typu,
+którego nie jesteś właścicielem, po fakcie i bez adaptera.
+
+Połowa działająca w czasie wykonania jest słabsza od statycznej, a wiedza o
+tym, jak dokładnie słabsza, jest warta więcej niż sama funkcja.
+\api{runtime\_checkable} sprawia, że \code{isinstance} działa wobec
+protokołu, a \code{isinstance} pyta wyłącznie o to, czy \emph{atrybuty są
+obecne}. Nie patrzy na sygnatury. Więc \api{Detonator}, którego
+\api{close} bierze parametr i przez to w ogóle protokołu nie spełnia,
+przechodzi sprawdzenie w czasie wykonania \dash{} a \api{pyright} nie
+przepuszcza tej linii po cichu, dlatego listing niesie komentarz
+wyciszający, który nazywa regułę. Używaj \code{isinstance} wobec protokołu
+jako zgrubnego filtra; po odpowiedź idź do checkera.
+
+\begin{exercise}{e03_02_protocol}{Interfejs, o którym implementujący nigdy nie słyszeli}
+Napisz protokół \api{Closable} sprawdzalny w czasie wykonania i funkcję,
+która zamyka każdy element go spełniający, resztę zostawia w spokoju i
+zwraca, ile zamknęła. Nic, co poda test, nie będzie dziedziczyć po twoim
+protokole, włącznie z jedną klasą z biblioteki standardowej. I o to chodzi.
+\end{exercise}
+
+\section{Gdzie checker kłamie}
+\label{sec:ch03-lies}
+\index{typowanie!propagacja Any}
+
+Zaproś checkera, a złapie bardzo dużo. Powie ci też, w czterech częstych
+sytuacjach, że plik jest czysty, kiedy nie jest. Poniższy listing ma
+\val{ch03.lies.functions} funkcje. Każda deklaruje, że zwraca \code{int}.
+Każda zwraca \code{str}.
+
+\pyfile{code/ch03/where_it_lies.py}{Cztery sposoby, żeby checker przestał widzieć}{lst:ch03-lies}
+
+\noindent
+Pierwsze dwa to \api{Any} przychodzące bez niczyjej decyzji.
+\api{json.loads} jest zaadnotowane tak, by zwracać \api{Any}, więc wszystko
+poniżej jest \api{Any}, a \api{Any} spełnia dowolny zadeklarowany typ
+\dash{} to znaczy to słowo w systemie typów, a nie błąd narzędzia. Pakiet,
+który nie dostarcza informacji o typach, robi to samo ze wszystkim, co ci
+poda. Ostatnie dwa to ty mówiący checkerowi, żeby przestał patrzeć:
+\api{cast} nie generuje kodu i niczego nie sprawdza, a \code{type: ignore}
+usuwa błąd z raportu, nie usuwając go z programu. Oba są uprawnione i oba
+przenoszą odpowiedzialność na ciebie.
+
+Co więc dwa checkery przypięte przez tę książkę robią z tym plikiem? To jest
+generowane przez \code{code/measure/checkers.py}, który uruchamia oba i
+zapisuje, co powiedział każdy z nich:
+
+\transcript{ch03-checkers}
+
+\noindent
+\api{pyright} w trybie strict raportuje \val{ch03.pyright.errors}.
+\api{mypy} pod \code{-{}-strict} raportuje \val{ch03.mypy.errors} \dash{}
+oba razy chodzi o te dwa zwroty \api{Any}, a żaden z nich nie dotyczy
+\api{cast} ani \code{type: ignore}, które w obu narzędziach milczą z
+założenia. Ta różnica nie jest wadą żadnego z nich. \api{pyright} stosuje
+system typów, w którym \api{Any} jest zgodne ze wszystkim; profil strict
+\api{mypy} dokłada opinię, której system typów nie ma: że funkcja
+deklarująca \code{int} nie powinna po cichu zwracać \api{Any}.
+
+\begin{trapbox}
+\textbf{\api{Any} jest jak \code{dynamic}: coś, co potrafię ogrodzić.}
+\api{Any} się propaguje. Jedna taka wartość zamienia wszystko, co z niej
+policzone, również w \api{Any}, po cichu, na całej drodze, a raport przez ten
+czas pozostaje czysty. \code{dynamic} w C\# przynajmniej wywraca się głośno w
+miejscu użycia. \api{Any} nie wywraca się wcale; zatrzymuje sprawdzanie, a
+program leci dalej, myląc się gdzieś później.
+\end{trapbox}
+
+A checker nie jest jedynym drugim kompilatorem, którego możesz zaprosić. Oto
+funkcja, której adnotacja jest poprawna, której checker jest zadowolony i
+która jest błędna:
+
+\pyfile{code/ch03/defaults.py}{Argument domyślny, wyliczany raz}{lst:ch03-defaults}
+
+\transcript{ch03-defaults}
+
+\begin{trapbox}
+\textbf{\code{def f(items: list[str] = [])} to opcjonalny parametr listowy.}
+Wartość domyślna jest wyliczana raz, gdy wykonuje się linia \code{def}, i ta
+jedna lista jest współdzielona przez każde wywołanie, które nie poda
+własnej. Adnotacja jest poprawna, a funkcja błędna. Podawaj \code{None} i
+buduj listę w środku.
+\end{trapbox}
+
+\noindent
+Żaden z przypiętych checkerów nie mówi o tym pliku nic. Linter mówi:
+
+\transcript{ch03-three-tools}
+
+\noindent
+\api{pyright} znajduje \val{ch03.defaults.pyright}, \api{mypy} znajduje
+\val{ch03.defaults.mypy}, a \pkg{ruff} znajduje \val{ch03.defaults.ruff}.
+Wniosek wychodzi poza tę jedną regułę: checker typów odpowiada na pytania o
+typy, a spora część tego, co psuje się w Pythonie, nie jest pytaniem o typy.
+Uruchamiaj oba.
+
+\begin{projectbox}
+Ten rozdział nie dokłada etapu do \code{trace-assert} \dash{} pierwszy jest
+w Rozdziale~\ref{ch:testing} \dash{} ale projekt płaci rachunek tego
+rozdziału od pierwszego commita. Otwórz
+\code{code/src/trace\_assert/\_\_init\_\_.py} i przeczytaj, dlaczego payload
+w \api{Event} używa nazwanej fabryki, a nie \code{default\_factory=dict}. Pod
+ścisłym checkerem goły \code{dict} jest typu \code{dict[Unknown, Unknown]}, a
+naprawą jest funkcja z typem zwracanym. Ta sama skarga padła znowu przy
+pisaniu \code{measure/checkers.py} i została załatwiona jednym
+udokumentowanym \api{cast} \dash{} jedną z czterech dziur wyżej, użytą
+celowo i w jednym miejscu.
+\end{projectbox}
+
+\begin{exercise}{e03_03_defaults}{Domyślna wartość, która nie jest tym, na co wygląda}
+To ćwiczenie zaczyna się błędne, a nie niedokończone: funkcja jest
+zaadnotowana dokładnie tak, jak zaadnotowałbyś ją w C\#, checker jest z niej
+zadowolony, a test wywraca się na drugim wywołaniu. Napraw ją tak, żeby dwaj
+wywołujący, którzy nic nie podadzą, nie dzielili jednej listy.
+\end{exercise}
+
+\section{Który checker i konfiguracja do skopiowania}
+\label{sec:ch03-config}
+\index{typowanie!pyright i mypy}
+
+Te dwa nie są wymienne i poprzednia sekcja mówi dlaczego. \api{pyright}
+prawdopodobnie już działa w twoim edytorze, a jego tryb strict jest naprawdę
+wysoko postawioną poprzeczką. \api{mypy} jest starszy z tej dwójki o ponad
+dekadę, a jego profil strict niesie garść opinii, których \api{pyright} nie
+ma, i z których \code{no-any-return} jest tą zmierzoną w tym rozdziale.
+Który z nich jest szybszy na twoim drzewie, tego ta książka nie zmierzyła,
+więc nie przyjmuj twierdzenia o szybkości od nikogo, kto też tego nie
+zrobił.
+
+Ta książka przypina oba i na każdym pushu puszcza \api{pyright} po całym
+drzewie. Rekomendacja, która wynika z pomiaru, a nie z gustu: uruchamiaj w CI
+jedno z nich po całym drzewie, a jeśli tym jednym jest \api{pyright}, wiedz,
+że \api{Any} wyciekające z zadeklarowanego typu zwracanego to klasa defektów,
+której nie zgłosi. Zacznij stąd, w \code{pyproject.toml}:
+
+\begin{tomlcode}
+[tool.pyright]
+typeCheckingMode = "strict"
+include = ["src", "tests"]
+
+[tool.mypy]
+strict = true
+files = ["src"]
+\end{tomlcode}
+
+\noindent
+Oba narzędzia biorą wersję interpretera ze środowiska, w którym działają,
+więc przypnij ją obok tych bloków, jeśli twój projekt potrzebuje innej;
+\code{code/pyproject.toml} tej książki jest wersją tego wszystkiego do
+skopiowania. Dwie uwagi o życiu z trybem strict, obie wyniesione z kodu tej
+książki. Włączaj go na starcie projektu albo pakiet po pakiecie; włączenie go
+naraz w istniejącej bazie kodu daje liczbę diagnostyk, której nikt nie
+przeczyta. A kiedy tryb strict skarży się, że typ jest \emph{częściowo
+nieznany}, prawie nigdy nie jest drobiazgowy \dash{} znalazł miejsce, w
+którym wydaje ci się, że masz typ, a nie masz.
+
+\section{Waliduj na granicy, ufaj w środku}
+\label{sec:ch03-boundary}
+\index{typowanie!walidacja na granicy}
+
+Wszystko powyżej zwija się do jednej reguły i jest to jedyna rzecz w tym
+rozdziale warta zapamiętania.
+
+\mermaidfig{ch03-boundary}{Jedno miejsce waliduje; wszędzie po nim adnotacje
+znaczą to, co mówią}{waliduj na granicy}
+
+\noindent
+Wewnątrz własnego kodu adnotacja jest warta bardzo dużo: checker ją czyta,
+edytor z niej podpowiada, a błędną łapie w miejscu, w którym ją piszesz. Na
+krawędziach \dash{} JSON, środowisko, formularz, wiadomość z kolejki,
+odpowiedź serwisu \dash{} adnotacja nie jest warta nic, bo wartość
+przychodzi jako \api{Any}, a checker przestał patrzeć linię wcześniej.
+
+Umieść więc sprawdzanie tam, gdzie wartości wchodzą, raz, w miejscu, które
+umiesz nazwać, a wszystko po nim niech będzie zwykłym typowanym Pythonem. Do
+tego służy \pkg{pydantic} i dlatego jest na każdej liście zależności w tej
+dziedzinie, i dlatego tabela w \S\ref{sec:ch03-dto} ma kolumnę
+odpowiadającą \emph{nie} trzy razy: pozostałe trzy kształty są dla wartości,
+które już są twoje. Rozdziały~\ref{ch:services} i~\ref{ch:aitoolkit} biorą to
+na poważnie; temu rozdziałowi wystarczy, że wiesz, gdzie przebiega linia.
+
+\begin{csbox}
+Stosujesz tę regułę od lat, nie umieszczając jej nigdzie, bo ASP.NET Core
+umieszcza ją za ciebie: model binding jest granicą, a związany model jest
+zwalidowany, zanim zobaczy go twoja metoda akcji. Nic w Pythonie nie stawia
+granicy nigdzie domyślnie. Reguła jest ta sama; nowe jest to, że jej miejsce
+jest teraz twoją decyzją, a baza kodu, która nigdy tej decyzji nie podjęła,
+ma granice rozsiane po całości.
+\end{csbox}
+
+\begin{exercise}{e03_04_boundary}{Waliduj na granicy}
+Zamień dokument JSON w typowany obiekt albo go odrzuć. Test podaje twojej
+funkcji taki JSON, jaki naprawdę przychodzi z granicy \dash{} port będący
+napisem, port niebędący w ogóle liczbą, dokument bez klucza \dash{} i
+sprawdza, że to, co wraca, ma typy, do których się przyznaje, albo że nie
+wraca nic. Napisz to ręcznie albo z \pkg{pydantic}; testowi zależy na
+zachowaniu, a nie na drodze.
+\end{exercise}
+
+\section{Co wynieść z tego rozdziału}
+\label{sec:ch03-summary}
+
+Adnotacja to twierdzenie, którego środowisko uruchomieniowe nigdy nie
+sprawdza, a checker to drugi kompilator, którego trzeba zaprosić,
+skonfigurować i uruchomić. Raz zaproszony zarabia na siebie: mapa wyżej
+przenosi się niemal w całości, \api{Protocol} robi rzecz, której interfejsy
+C\# nie potrafią, a tryb strict znajduje prawdziwe defekty. Ale przestaje
+patrzeć na \api{Any}, a dwa checkery, które możesz uruchomić, nie przestają w
+tym samym miejscu. Umieść walidację na granicy, trzymaj wnętrze typowane, a
+każdy \api{cast} i każdy \code{type: ignore} traktuj jak obietnicę, którą
+właśnie złożyłeś samemu sobie.
