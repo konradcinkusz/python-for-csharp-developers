@@ -541,7 +541,16 @@ are listed by name and their reasoning is in the companion books.
 | alembic | 1.20.0 | | | |
 
 `preamble.tex` is the record and `tools/check_versions.py` is the check;
-this table is a snapshot and will go stale first.
+this table is a snapshot and will go stale first. **It already has**: the
+Chapter 10 pass added `aiosqlite`, which is in `preamble.tex`,
+`code/pyproject.toml`, `tools/check_versions.py` and `uv.lock` but not in
+the table above. The table is left at what the scaffold pass verified on
+the day rather than quietly kept current, because a dated snapshot that is
+edited stops being evidence of anything. `check_structure.py --pins` is the
+figure that moves, and it moved from 19 to 20 — note that it counts
+distributions compared between the preamble and `pyproject.toml`, where the
+table above lists 21 things including Python and uv, which are pinned
+elsewhere and are not among them.
 
 **The brief said pytest 8; the pin is 9.1.1.** The current release on the
 day the pins were verified was 9.1.1, and pinning a major behind on day one
