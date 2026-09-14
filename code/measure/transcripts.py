@@ -35,8 +35,18 @@ OUT = CODE.parent / "figures" / "transcripts"
 WIDTH = 79
 
 # stem -> the listing whose stdout it is, relative to code/
+#
+# Only a listing whose output the book QUOTES belongs here. ch08/one_loop.py
+# is deliberately absent: it prints milliseconds, which differ on every
+# machine, so the chapter quotes E4's bounds instead and tells the reader to
+# run that listing themselves.
 TRANSCRIPTS = {
     "ch00-loop": "ch00/loop.py",
+    "ch08-cold": "ch08/cold.py",
+    "ch08-whenall": "ch08/whenall.py",
+    "ch08-cancelled": "ch08/cancelled.py",
+    "ch08-deadline": "ch08/deadline.py",
+    "ch08-boundary": "ch08/boundary.py",
 }
 
 
