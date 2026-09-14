@@ -1,0 +1,8 @@
+calling work('A') returned a coroutine
+  and the body has run: False
+  after awaiting it, the body has run: True
+after create_task the body has run: False
+  after the caller yields once: True
+forgetting the await: RuntimeWarning: coroutine 'work' was never awaited
+awaiting the same coroutine twice:
+  RuntimeError: cannot reuse already awaited coroutine
