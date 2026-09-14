@@ -1,0 +1,13 @@
+python shop/where.py
+  __name__     __main__
+  __package__  None
+  sys.path[0]  .../shop
+  relative import
+    ImportError: attempted relative import with no known parent package
+
+python -m shop.where
+  __name__     __main__
+  __package__  'shop'
+  sys.path[0]  .../ch07
+  relative import
+    worked, discount.RATE is 0.1
