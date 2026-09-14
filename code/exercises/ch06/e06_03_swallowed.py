@@ -1,4 +1,4 @@
-"""Exercise 6.4 -- the one your tools will not catch for you.
+"""Exercise 6.3 -- the one your tools will not catch for you.
 
 `total` sums a batch of rows that arrived as text. The draft this replaces
 wrapped the whole sum in `try` / `except Exception` and answered zero, so a

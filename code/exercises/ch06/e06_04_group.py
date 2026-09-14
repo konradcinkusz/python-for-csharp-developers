@@ -1,4 +1,4 @@
-"""Exercise 6.3 -- report every failure, not the first one.
+"""Exercise 6.4 -- report every failure, not the first one.
 
 `check_all` runs a list of checks over one record. The obvious version
 stops at the first failure, so a caller who fixes it has to run the job

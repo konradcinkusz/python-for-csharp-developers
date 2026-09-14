@@ -1,4 +1,4 @@
-"""Reference solution for exercise 6.3."""
+"""Reference solution for exercise 6.4."""
 
 from __future__ import annotations
 

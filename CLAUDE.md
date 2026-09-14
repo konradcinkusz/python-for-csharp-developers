@@ -792,6 +792,26 @@ page, in a listing, where the chapter can walk the reader into it. Weakening
 a test to make a starter fail would be the wrong fix and is worth naming as
 such.
 
+**An exercise's key ordinal must match its printed number, and nothing
+checks that.** `\theexercise` counts `\begin{exercise}` in document order,
+while the key is a file name chosen by hand, so the two agree only by
+discipline. This chapter's four were written 01, 02, 03, 04 and then placed
+in the order the argument needed --- the group exercise belongs in §6.5 and
+the swallowing one in §6.4 --- which printed **"Exercise 6.4"** above a box
+telling the reader to open `e06_03_group.py`. Found by reading the finished
+PDF, not by any gate: `check_structure.py --exercises` checks that the key's
+CHAPTER prefix matches (`key[1:3] == chap`) and says nothing about the
+ordinal. The files were renamed so the keys run in document order.
+
+**The check that would have caught it is not written, deliberately**, and is
+recorded here instead: `check_structure.py` would have to count the
+`\begin{exercise}` occurrences per chapter file in order and require the
+n-th to carry `_0n_`. That is a change to a shared tool while other chapters
+may be in flight, and it is one line of logic --- so it belongs to an
+infrastructure issue rather than to a chapter pass. Until it exists,
+**number an exercise's key by where it will PRINT, not by the order you
+wrote it.**
+
 **PEP 8 names an exception `...Error`, and ruff enforces it (N818).**
 `JobUnavailable` is a lint failure until it is `JobUnavailableError`. It is a
 clean C#-habit mapping --- the suffix there is `Exception` --- so it is in

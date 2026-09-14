@@ -309,7 +309,7 @@ first draft passes the happy-path test while leaking the handle on every
 other path.
 \end{exercise}
 
-\begin{exercise}{e06_04_swallowed}{Stop swallowing}
+\begin{exercise}{e06_03_swallowed}{Stop swallowing}
 \code{total} sums rows that arrived as text. The draft it replaces wrapped
 the whole sum in \code{except Exception} and answered zero, so a bad batch
 was indistinguishable from an empty one and no tool in this book's chain
@@ -350,7 +350,7 @@ that only one \code{catch} block can ever run.
 
 \mermaidfig{err-group}{One raise, several handlers, and a remainder that carries on}{ExceptionGroup and except*}
 
-\begin{exercise}{e06_03_group}{Report every failure, not the first}
+\begin{exercise}{e06_04_group}{Report every failure, not the first}
 Write \code{check\_all} so that it runs every check over a record and raises
 once, carrying all of the failures, in order \dash{} and raises nothing at
 all when every check passes.
