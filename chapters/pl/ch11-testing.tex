@@ -72,8 +72,9 @@ Uruchom ten sam plik na CI, a ostatnia linia będzie inna:
 zamiast \code{Use -v to get more diff} dostaniesz cały diff z
 \pkg{difflib}, a długie wyjście przestanie być przycinane.
 \api{running\_on\_ci} w \pkg{\_pytest.compat} jest prawdziwe, gdy
-\code{CI} albo \code{BUILD\_NUMBER} jest ustawione i niepuste, a czytają
-je dwa miejsca \dash{} porównanie sekwencji i przycinanie. To świadoma
+\code{CI} albo \code{BUILD\_NUMBER} jest ustawione i niepuste, a raportowanie
+czyta je w więcej niż jednym miejscu \dash{} porównanie sekwencji,
+przycinanie długiego wyjścia i skracanie linii podsumowania. To świadoma
 uprzejmość, bo na runnerze nie powtórzysz uruchomienia z \code{-v}.
 Znaczy też, że raport nie jest odtwarzalny między twoją maszyną a
 serwerem, dopóki nie powiesz, który chcesz, więc skrypt generujący każdy

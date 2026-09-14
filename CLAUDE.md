@@ -1568,10 +1568,15 @@ the only thing that would have failed on the shape that actually occurred.
 **A fourth cause, and only CI could find it, because CI is the cause.**
 The three above were found by running twice on one machine; this one cannot
 be. `_pytest.compat.running_on_ci()` is true when `CI` or `BUILD_NUMBER` is
-set and non-empty, and **two** places read it: `assertion/_compare_sequence.py`
-prints `Use -v to get more diff` when it is false and the whole `difflib`
-diff when it is true, and `assertion/truncate.py` truncates long output only
-when it is false. So the same failing test reports differently on a laptop
+set and non-empty, and the reporting reads it in more than one place —
+`assertion/_compare_sequence.py` prints `Use -v to get more diff` when it is
+false and the whole `difflib` diff when it is true,
+`assertion/truncate.py` truncates long output only when it is false, and
+`terminal.py` trims the short summary line only when it is false. **The
+first draft of this note said “two places” and there are three**, which is
+this book's own rule about a tally of occurrences, paid for inside the note
+recording a different one: name the behaviour, and let `grep running_on_ci`
+say how many. So the same failing test reports differently on a laptop
 and on a runner, deliberately --- and `make verify` failed on CI with a
 transcript that was correct on both machines and identical on neither.
 
