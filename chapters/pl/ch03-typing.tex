@@ -189,7 +189,7 @@ Jedna z czterech. \code{@dataclass} generuje \api{\_\_init\_\_},
 wykonania nie ma tam klasy ani instancji, tylko \code{dict};
 \api{NamedTuple} jest prawdziwą krotką, dlatego porównuje się równo z
 anonimową. Tylko model \pkg{pydantic} patrzy na wartość i tylko on z całej
-czwórki cokolwiek kosztuje przy tworzeniu.
+czwórki robi przy tworzeniu cokolwiek poza przypisaniem pól.
 
 Zwróć uwagę, co checker zobaczył, a czego nie. JSON przychodzi jako
 \api{Any}, więc żadna z tych czterech konstrukcji nie potrzebowała
@@ -355,12 +355,14 @@ wywołujący, którzy nic nie podadzą, nie dzielili jednej listy.
 \label{sec:ch03-config}
 \index{typowanie!pyright i mypy}
 
-Te dwa nie są wymienne i poprzednia sekcja mówi dlaczego. \api{pyright} jest
-szybki, prawdopodobnie już działa w twoim edytorze, a jego tryb strict jest
-naprawdę wysoko postawioną poprzeczką. \api{mypy} jest wolniejszy, jest
-starszym i szerzej wdrożonym z tej dwójki, a jego profil strict niesie garść
-opinii, których \api{pyright} nie ma, i z których \code{no-any-return} jest
-tą zmierzoną w tym rozdziale.
+Te dwa nie są wymienne i poprzednia sekcja mówi dlaczego. \api{pyright}
+prawdopodobnie już działa w twoim edytorze, a jego tryb strict jest naprawdę
+wysoko postawioną poprzeczką. \api{mypy} jest starszy z tej dwójki o ponad
+dekadę, a jego profil strict niesie garść opinii, których \api{pyright} nie
+ma, i z których \code{no-any-return} jest tą zmierzoną w tym rozdziale.
+Który z nich jest szybszy na twoim drzewie, tego ta książka nie zmierzyła,
+więc nie przyjmuj twierdzenia o szybkości od nikogo, kto też tego nie
+zrobił.
 
 Ta książka przypina oba i na każdym pushu puszcza \api{pyright} po całym
 drzewie. Rekomendacja, która wynika z pomiaru, a nie z gustu: uruchamiaj w CI

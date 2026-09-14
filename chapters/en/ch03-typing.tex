@@ -185,8 +185,8 @@ and \api{\_\_repr\_\_} and validates nothing; \api{TypedDict} is a shape for
 a dictionary that already exists, so at run time there is no class and no
 instance, only a \code{dict}; \api{NamedTuple} is a real tuple, which is why
 it compares equal to an anonymous one. Only the \pkg{pydantic} model looks at
-the value, and it is the only one of the four that costs anything to
-construct.
+the value, and it is the only one of the four that does anything at
+construction beyond assigning the fields.
 
 Note what the checker did and did not see. The JSON arrives as \api{Any}, so
 not one of those four constructions needed a comment to get past
@@ -354,11 +354,12 @@ nothing do not share a list.
 \index{typing!pyright and mypy}
 
 The two are not interchangeable and the previous section is why. \api{pyright}
-is fast, it is what your editor is probably already running, and its strict
-mode is a genuinely high bar. \api{mypy} is slower, is the older and more
-widely deployed of the two, and its strict profile carries a handful of
-opinions \api{pyright} does not have, of which \code{no-any-return} is the
-one this chapter measured.
+is what your editor is probably already running, and its strict mode is a
+genuinely high bar. \api{mypy} is the older of the two by more than a decade,
+and its strict profile carries a handful of opinions \api{pyright} does not
+have, of which \code{no-any-return} is the one this chapter measured. Which
+of them is quicker over your tree is a thing this book has not measured, so
+do not take a speed claim from anybody who has not either.
 
 This book pins both and runs \api{pyright} over everything on every push. The
 recommendation that follows from the measurement rather than from taste: run

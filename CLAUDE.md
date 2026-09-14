@@ -791,6 +791,20 @@ exercises by order of appearance, so `e03_01_` must be the one that appears
 first, and a key whose number disagrees with its position is confusing on the
 page and invisible to every gate.
 
+**Two unmeasured comparatives got into the prose and were caught on a
+re-read rather than by a gate.** Neither was a headline claim; both were
+connective tissue — *pydantic is the only one that costs anything to
+construct*, and *pyright is fast, mypy is slower*. The first is now a
+statement about behaviour (it is the only one that does anything beyond
+assigning the fields), which is checkable by reading. The second split: *the
+older of the two* is verified from PyPI release metadata (mypy's earliest
+release is 2009, pyright's 2021), and the speed half is **gone**, replaced by
+a sentence saying the book has not measured it and neither has whoever told
+you otherwise. The class is worth naming because a gate cannot see it: a
+comparative that arrives as a subordinate clause reads like prose rather than
+like a claim, and `grep -nE 'faster|slower|cheaper'` over a finished chapter
+is the cheapest audit in this repository.
+
 **Nothing in the brief turned out to be wrong.** All five of the trap
 catalogue's Chapter 3 entries are delivered and marked in `notes/02-traps.md`
 with the section that elicits each; the brief names four of them in its
