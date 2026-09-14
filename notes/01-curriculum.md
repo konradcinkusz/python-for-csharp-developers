@@ -101,8 +101,31 @@ restate a total here or in `CLAUDE.md`** — the math book's ledger said
 | E4 | 8 | One blocking call's degradation, in the TPL-against-asyncio framing | free; the LangChain book's Chapter 3 has the asyncio half already | **run**, Chapter 8 pass, `code/measure/e04_blocking.py`. Same shape as E3 and arrived at independently: what is committed is exact arithmetic on the script's own inputs, and the stopwatch is asserted against one-sided bounds derived from them |
 | E5 | 9 | uvicorn workers against concurrency: throughput, p50, p95, mocked upstream, calibrated the way the LangChain book's Chapter 13 recorded | free | not run |
 | E6 | 10 | The N+1 reproduced and counted from the engine's echo, before and after `selectinload`, on SQLite | free | **run**, Chapter 10 pass, `code/measure/e06_nplusone.py` |
-| E7 | 12 | Image size and cold start of three Dockerfile shapes | free; needs Docker, so CI rather than the sandbox | not run |
+| E7 | 12 | Image size and cold start of three Dockerfile shapes | free; needs Docker AND a reachable registry | **not run** — blocked, see the note below |
 | E8 | 13 | Validation cost of one structured output across pydantic strict, pydantic lax and a dataclass over `json` | free | **run**, the chapter 13 pass; `code/measure/e08_validation.py` |
+
+**E7 is blocked rather than merely unrun, and the blocker is not Docker.**
+The sandbox the chapter~12 pass ran in has a working Docker daemon; what it
+does not have is a route to any container registry. Docker Hub's blob CDN
+(`production.cloudfront.docker.com`) and GitHub's (`pkg-containers.
+githubusercontent.com`) both answer `403` to the egress proxy, so no base
+image can be fetched and `docker build` fails on its `FROM` line. The runner
+is written and committed as `code/measure/e07_images.py`; it is **off unless
+`PYBOOK_E7=1`**, on the same convention as `PYBOOK_SOLUTIONS`, because
+everything else under `measure/` runs on every build and a script that
+silently built three images would turn a forty-second job into a ten-minute
+one. It assembles its own build context and exports `requirements.txt` from
+`uv.lock`, so all three shapes install the same packages and the measurement
+moves one thing rather than two. Run it anywhere with a registry in reach and
+commit `figures/values/e07.tex`.
+
+Chapter~12 does carry one measurement, and it is deliberately **not** E7:
+`code/measure/deps_weight.py` totals the wheel bytes of the runtime
+dependency set against the full one, out of the committed `uv.lock`, which
+prices `--no-dev` exactly and needs no network at all. It settles one of the
+three differences between the Dockerfile shapes. The other two — the base
+image and the number of stages — are still E7's, and the chapter says so
+rather than implying its table is the answer.
 
 Each result goes into `code/measure/<experiment>.py`, which writes
 `figures/values/<experiment>.tex`; the chapter reads it with `\val{}` and

@@ -95,9 +95,9 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 | 50 | A test class per fixture, like `IClassFixture` | pytest fixtures are functions with a scope; the class is optional and usually absent | Ch. 11 — **delivered**, §11.2 |
 | 51 | Mock where the thing is defined | Patch where the name is *looked up* — the importing module — or the patch does nothing and the test passes for the wrong reason | Ch. 11 — **delivered**, §11.4, and the chapter's headline. The rule is one clause wider than this entry had it: which name the call resolves was decided by the IMPORT, so `import x` plus `x.y()` really is patched at `x.y`. Both halves are asserted in `code/ch11/test_patching.py` |
 | 52 | `assert` is for debug builds | pytest rewrites `assert` to explain itself; it is the assertion library | Ch. 11 — **delivered**, §11.1. Half of the habit is right and the entry did not say so: under `-O` an `assert` in the APPLICATION really does vanish, so it is for tests and invariants, never for validating input |
-| 53 | `logging.basicConfig` and I am done | The standard module's configuration is global, import-order-sensitive and the reason structlog exists | Ch. 12 |
-| 54 | Correlation id in a static field, like `AsyncLocal` | `contextvars` is `AsyncLocal`; a module-level variable is shared by every request on the loop | Ch. 12 |
-| 55 | `FROM python:3.14` and `pip install` in the Dockerfile | Multi-stage with `uv sync --frozen --no-dev`, a non-root user, and the two environment variables. E7 measures the three shapes | Ch. 12 |
+| 53 | `logging.basicConfig` and I am done | The standard module's configuration is global, import-order-sensitive and the reason structlog exists | Ch. 12 §12.1, delivered — the second `basicConfig` call is a silent no-op, elicited before it is named |
+| 54 | Correlation id in a static field, like `AsyncLocal` | `contextvars` is `AsyncLocal`; a module-level variable is shared by every request on the loop | Ch. 12 §12.3, delivered — two concurrent handlers, and the module-level column reports the same name twice |
+| 55 | `FROM python:3.14` and `pip install` in the Dockerfile | Multi-stage with `uv sync --frozen --no-dev`, a non-root user, and the two environment variables | Ch. 12 §12.5, delivered — the three shapes side by side. E7 would measure them and has not run: see `notes/01-curriculum.md` §4 |
 
 ## Part V — Python for AI work
 

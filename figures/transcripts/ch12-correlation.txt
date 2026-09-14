@@ -1,0 +1,4 @@
+ handler  module-level  contextvar
+       A             B           A
+       B             B           B
+  caller             B       unset

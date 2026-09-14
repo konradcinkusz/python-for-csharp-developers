@@ -157,6 +157,10 @@ TRANSCRIPTS: dict[str, Listing | Command] = {
     "ch11-coverage": Command(
         argv=[sys.executable, "-m", "coverage", "report", "-m"],
     ),
+    "ch12-correlation": Listing("ch12/correlation.py"),
+    "ch12-log-setup": Listing("ch12/log_setup.py"),
+    "ch12-logging-default": Listing("ch12/logging_default.py"),
+    "ch12-shutdown": Listing("ch12/shutdown.py"),
     "ch13-call-model": Listing("ch13/call_model.py"),
     "ch13-sdk-shape": Listing("ch13/sdk_shape.py"),
     "ch13-structured": Listing("ch13/structured.py"),
