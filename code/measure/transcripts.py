@@ -46,6 +46,10 @@ TRANSCRIPTS = {
     "ch05-pipeline": "ch05/pipeline.py",
     "ch05-generators": "ch05/generators.py",
     "ch05-matching": "ch05/matching.py",
+    "ch07-runs-once": "ch07/runs_once.py",
+    "ch07-two-ways": "ch07/two_ways.py",
+    "ch07-shadowing": "ch07/shadowing.py",
+    "ch07-cycles": "ch07/cycles.py",
 }
 
 
