@@ -751,10 +751,10 @@ fourth is caught by nothing.** Measured by running ruff with this book's own
 rule selection over the four shapes: a bare `except:` is E722; a `return` in
 `finally` is B012 and SIM107 (and the compiler's own warning); `raise New()`
 without `from` is B904. **Catching `Exception` to log and carry on is
-reported by nothing** --- and `raise e` is reported by nothing either, which
-is consistent with the measurement above, since there is nothing wrong with
-it. That asymmetry is the chapter's payoff and it is a measurement rather
-than an opinion.
+reported by nothing** --- and neither is `raise e`, which is consistent with
+the measurement above: it is a style point (a duplicate frame) rather than a
+defect, so there is nothing for a linter to be right about. That asymmetry is
+the chapter's payoff and it is a measurement rather than an opinion.
 
 **Experiment E3 is run, and it is committed as bytecode rather than as
 nanoseconds.** CI re-runs every script under `code/measure/` and fails on any
