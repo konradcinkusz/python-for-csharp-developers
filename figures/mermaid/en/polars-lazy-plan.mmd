@@ -1,0 +1,5 @@
+flowchart LR
+    A["<b>LazyFrame</b><br/>filter, group_by, agg, sort:<br/>this builds a plan and reads nothing"]
+    B["<b>the optimiser</b><br/>rewrites the plan, so the filter<br/>moves down into the file scan"]
+    C["<b>collect()</b><br/>runs it once and hands back a<br/>DataFrame. This is ToList()"]
+    A --> B --> C

@@ -33,6 +33,7 @@ PINS: dict[str, str] = {
     "uvicornver": "uvicorn",
     "sqlalchemyver": "sqlalchemy",
     "alembicver": "alembic",
+    "aiosqlitever": "aiosqlite",
     "pytestver": "pytest",
     "pytestasyncver": "pytest-asyncio",
     "hypothesisver": "hypothesis",
