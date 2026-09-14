@@ -481,6 +481,27 @@ are listed by name and their reasoning is in the companion books.
   names neither the font package nor the reason. CI uses a full TeX Live
   image and never sees it; this is a sandbox-setup fact, recorded because
   it cost a build.
+- **`make en pl` does not render diagrams, and latexmk will not notice one
+  appearing.** Only `make all` depends on `diagrams`, so a tree whose
+  figures were added by somebody else — a merge, a fresh clone — compiles
+  with `\mermaidfig`'s fallback in their place: the Mermaid source
+  typeset through `listings`, which is a different height from the render.
+  The page count is then a fact about a book two figures short. Running
+  `make diagrams` afterwards does **not** fix it: latexmk answers *All
+  targets are up-to-date* and does not recompile, because a file that was
+  absent on the previous run is not in its dependency list, so the
+  rebuild reports the same page count and the recorded
+  unchanged-page-count tell fires. `make clean` first.
+
+  **And the obvious detector is the wrong one.** The fallback's heading is
+  a language macro, so grepping the log for it matches nothing and returns
+  a reassuring zero. What is decisive is the opposite: a build in which
+  every figure rendered reads **no `.mmd` file at all**, so count
+  `figures/mermaid/<lang>/*.mmd` in the log and require zero — with
+  newlines stripped first, because pdfTeX hard-wraps the log at 79
+  columns and a path can be split across two lines. Both halves of this
+  were met in one pass and the reassuring instrument was believed first.
+
 - **`babel` with a missing language is fatal; `fancyhdr` overwrites
   `\chaptermark` at `\pagestyle{fancy}`; `amssymb` beside `newtxmath` is a
   fatal clash invisible on a bare machine; `\IfFileExists` branches need
