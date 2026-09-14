@@ -19,21 +19,21 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **3 of 14 written: Chapter 3, *Typing*, Chapter 7, *Imports and dependency injection*, and Chapter 14, *trace-assert, complete* — both editions** | 1, 2, 4–6, 8–13 |
+| Chapters | **4 of 14 written: Chapter 3, *Typing*, Chapter 6, *Errors*, Chapter 7, *Imports and dependency injection*, and Chapter 14, *trace-assert, complete* — both editions** | 1, 2, 4, 5, 8–13 |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: `trace-assert` **complete** (the trace model and all twelve assertions), Chapters 3, 7 and 14's listings and exercises, the measurement scripts, and CI runs all of it | every other chapter's listings and exercises; the eight experiments |
+| Code | `code/` is a locked uv project: `trace-assert` **complete** (the trace model and all twelve assertions), Chapters 3, 6, 7 and 14's listings and exercises, the measurement scripts, and CI runs all of it | every other chapter's listings and exercises; seven of the eight experiments |
 
-**The scaffold plus three chapters.** The scaffold existed so that the shape
-of the book could be argued with before any chapter was written, and so that
-the first one was written into a build that already had every gate. Chapters
-3, 7 and 14 were written in parallel, by separate passes, each against the
-issue that came up first rather than against the reading order — which is
-possible because a chapter names what it borrows and borrows little.
-Chapter 14 is the furthest out of order and deliberately so: it is the one
-chapter whose content is a port of a specification that could be read and
-copied rather than invented. The gates earned their keep on all three; see
-the three pass notes below. **Each pass note states the figures its own
-build reported, which are pre-merge**; the tables here are the merged tree.
+**The scaffold plus four chapters.** The scaffold existed so that the shape of
+the book could be argued with before any chapter was written, and so that the
+first one was written into a build that already had every gate. Chapters 3, 6,
+7 and 14 were written in parallel, by separate passes, each against the issue
+that came up first rather than against the reading order — which is possible
+because a chapter names what it borrows and borrows little. Chapter 14 is the
+furthest out of order and deliberately so: it is the one chapter whose content
+is a port of a specification that could be read and copied rather than
+invented. The gates earned their keep on all four; see the four pass notes
+below. **Each pass note states the figures its own build reported, which are
+pre-merge**; the tables here are the merged tree.
 
 **Two editions, one paper size.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
@@ -41,8 +41,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 80 | 0 | 0 | 3 · 15.6, 7.7, 5.5 pt | 0 |
-| `main-pl` | 82 | 0 | 0 | 3 · 28.1, 12.1, 2.3 pt | 0 |
+| `main-en` | 91 | 0 | 0 | 3 · 15.6, 7.7, 5.5 pt | 0 |
+| `main-pl` | 93 | 0 | 0 | 4 · 28.1, 12.1, 2.3, 1.1 pt | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -51,14 +51,16 @@ is why successive rows here are not comparable with one another. **These two
 were measured on a container with neither `newtx` nor `inconsolata` nor
 `lmodern`** — `kpsewhich` returns nothing for any of the three — so the
 preamble's `\IfFileExists` probes fall all the way through to Computer
-Modern, and `main-en.log` loads `T1/cmr` throughout. The Chapter 7 pass's
-67 and 67 were measured on an installation that HAS `newtx` and
-`inconsolata` (`texlive-fonts-extra`); Chapter 3's 53 and 56 on a third.
-Different fonts, different line breaks, different pagination.
+Modern, and `main-en.log` loads `T1/cmr` throughout. The Chapter 6 pass's
+78 and 79 and the Chapter 7 pass's 67 and 67 were measured on installations
+that HAVE `newtx` and `inconsolata` (`texlive-fonts-extra`); Chapter 3's 53
+and 56 on another. Different fonts, different line breaks, different
+pagination.
 
-**So the six overfull boxes in the table are the container talking, not a
-defect**: all six are in Chapters 3 and 7, in files CI compiled green on
-their own branches, and the 28.1 pt one fails `checklog` locally while CI
+**So the seven overfull boxes in the table are the container talking, not a
+defect**: every one is in Chapters 3, 6 or 7 — none in Chapter 14, the
+chapter the pass that measured them was writing — in files CI compiled green
+on their own branches, and the 28.1 pt one fails `checklog` locally while CI
 reports none. **Do not reword prose to satisfy a font the book is not
 typeset in** — that moves the box onto CI, which is the unwinnable loop the
 companion books record having entered once. CI compiles on a full TeX Live
@@ -70,17 +72,17 @@ for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **11 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **10 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 52 listing references, every file and region present · 12 exercises, each
-  with a starter, a solution and a test · 26 transcript references, every
-  file present · 83 code files, none over 79 columns · 19 pins agree between
+- 80 listing references, every file and region present · 16 exercises, each
+  with a starter, a solution and a test · 32 transcript references, every
+  file present · 103 code files, none over 79 columns · 19 pins agree between
   `preamble.tex` and `code/pyproject.toml`
 - **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
   reader that something was not run
-- 18 Mermaid sources, nine per language, all rendering, all placed
-- 18 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 80 labels in each edition,
+- 24 Mermaid sources, twelve per language, all rendering, all placed
+- 29 computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · 103 labels in each edition,
   0 mismatches
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
@@ -398,9 +400,9 @@ are listed by name and their reasoning is in the companion books.
   Modern and `make` goes red on prose nobody wrote that day.** `kpsewhich`
   returns nothing for all three on the container this note was written on,
   and the preamble probes, degrades and says nothing, which is what it is
-  supposed to do. Measured on the three-chapter merge: CM reports **six**
-  overfull boxes, three per edition, **every one of them in Chapters 3 and
-  7 and none in the chapter the pass was writing** — the worst 28.1 pt,
+  supposed to do. Measured on the four-chapter merge: CM reports **seven**
+  overfull boxes, **every one of them in Chapters 3, 6 and 7 and none in the
+  chapter the pass was writing** — the worst 28.1 pt,
   over the 15 pt budget, so `checklog` fails and `make en pl` exits 2 on
   files CI had compiled green on their own branches. The header's page
   table carries the figures and the reasoning; what belongs here is the
@@ -763,8 +765,9 @@ for reasons worth keeping rather than silently dropping:
 
 ### The Chapter 3 pass, September 2026
 
-The first chapter written into the scaffold, and the gates caught five things
-on the way. Every claim below was measured on the pinned versions rather than
+Written into the scaffold in parallel with Chapters 6 and 7, in sessions
+that did not know about each other; this one merged first. The gates caught
+five things on the way. Every claim below was measured on the pinned versions rather than
 recalled, and the scripts that measured them are in the tree.
 
 **The brief asked why the book pins two checkers; the answer is now a
@@ -877,10 +880,178 @@ trimmed first was not the widest one** — mermaid sizes a chain by the sum of
 its nodes' longest lines, so the render has to be measured again rather than
 reasoned about.
 
+### Chapter 6 pass, September 2026
+
+Written into the scaffold in parallel with Chapters 3 and 7, in sessions
+that did not know about each other; this one merged last of the three.
+Everything below was measured or
+executed against the pinned interpreter; where a claim is judgement it says
+so on the page.
+
+**The brief was wrong about `raise e`, and the correction is the chapter's
+best evidence.** The brief listed "`raise e` losing the traceback" among the
+traps to elicit, and `notes/02-traps.md` entry 27 spelled the same thing out:
+*it resets the traceback to the `raise` line, exactly as `throw ex;` does*.
+Measured, on 3.14.7, it does not. Python keeps the traceback on the exception
+**object**, so re-raising the same object keeps every frame under it and
+*adds* the re-raise line --- the re-raising frame then appears twice. Frame
+names, from `code/ch06/chaining.py`:
+
+| shape | frames the exception carries | `__cause__` | `__context__` |
+|---|---|---|---|
+| `raise exc` | `main>raise_exc>raise_exc>port` | -- | -- |
+| bare `raise` | `main>raise_bare>port` | -- | -- |
+| `raise New(...) from exc` | `main>wrap_from` | `KeyError` | `KeyError` |
+| `raise New(...)` | `main>wrap_plain` | -- | `KeyError` |
+
+Bare `raise` is still the better habit, because the duplicate frame is noise.
+But the C# rule does not transfer and neither does the anxiety, and what a
+re-raise *can* lose is the link rather than the stack: without `from`,
+`__cause__` stays `None` and the printed failure says another exception
+occurred *while handling* the first, which reads like an accident in the
+error handler. The manifest brief and trap 27 are both corrected; the entry
+keeps its number and says that it was wrong, which is what that file's own
+rule asks for.
+
+**PEP 765: the pinned interpreter warns about a `return` in a `finally`, and
+still honours it.** `SyntaxWarning: 'return' in a 'finally' block` at compile
+time, and the function still swallows the in-flight exception and returns.
+The brief listed the trap and could not have known the toolchain had moved;
+trap 28 now records both halves. The warning fires at **compile** time, so
+the demonstration cannot be a function in a listing --- `python
+ch06/swallow.py` would write to stderr before any of it ran, and
+`test_listings.py` asserts stderr is empty. The listing compiles a source
+string instead and prints what the compiler said, which is a better listing
+than the one that would have caused the warning.
+
+**Three of the chapter's four traps are caught by the toolchain, and the
+fourth is caught by nothing.** Measured by running ruff with this book's own
+rule selection over the four shapes: a bare `except:` is E722; a `return` in
+`finally` is B012 and SIM107 (and the compiler's own warning); `raise New()`
+without `from` is B904. **Catching `Exception` to log and carry on is
+reported by nothing** --- and neither is `raise e`, which is consistent with
+the measurement above: it is a style point (a duplicate frame) rather than a
+defect, so there is nothing for a linter to be right about. That asymmetry is
+the chapter's payoff and it is a measurement rather than an opinion.
+
+**Experiment E3 is run, and it is committed as bytecode rather than as
+nanoseconds.** CI re-runs every script under `code/measure/` and fails on any
+difference in `figures/values` or `figures/transcripts`, so a committed
+timing would fail the build on the first machine that is not this one. What
+is exact and platform-independent is the number of instructions each shape
+**executes**, counted by tracing at opcode level, because CPython's compiler
+does not depend on the hardware:
+
+| | key present | key absent |
+|---|---|---|
+| `rates[code]`, no guard | 3 | 2 |
+| `if code in rates` | 7 | 5 |
+| `try` / `except KeyError` | 4 | 12 |
+
+So a `try` costs **one** instruction on the path that does not raise --- a
+single `NOP`, because the handler compiles into a 12-byte exception table
+beside the code rather than onto the path --- and the check costs four, every
+call. The timing half is run on every build, printed, and **asserted as
+bounds that are decisions**: raising stays above 2x a normal return, and a
+`try` that does not fire stays under 1.25x the check. Measured here at 4.3x
+and 0.79x, and the same tree gave 3.9x and 0.78x under a heavier load an hour
+earlier, which is exactly why the nanoseconds are printed and not committed.
+
+**The exercise harness is stricter than "the starter has work in it": every
+test of an exercise must fail on the starter.** `conftest.py` marks *every*
+exercise test strict-xfail under `PYBOOK_STARTERS=fail`, so a starter that
+satisfies any one of its tests is an unexpected pass and fails the gate.
+Three of this chapter's four exercises were first written as broken code for
+the reader to fix, and their happy-path tests passed on the broken version
+--- five XPASSes. The shape that works is the one `e00_01_hello` already had
+and nothing had spelled out: **the starter raises `NotImplementedError` and
+the docstring carries the contract**, while the buggy version belongs on the
+page, in a listing, where the chapter can walk the reader into it. Weakening
+a test to make a starter fail would be the wrong fix and is worth naming as
+such.
+
+**An exercise's key ordinal must match its printed number, and nothing
+checks that.** `\theexercise` counts `\begin{exercise}` in document order,
+while the key is a file name chosen by hand, so the two agree only by
+discipline. This chapter's four were written 01, 02, 03, 04 and then placed
+in the order the argument needed --- the group exercise belongs in §6.5 and
+the swallowing one in §6.4 --- which printed **"Exercise 6.4"** above a box
+telling the reader to open `e06_03_group.py`. Found by reading the finished
+PDF, not by any gate: `check_structure.py --exercises` checks that the key's
+CHAPTER prefix matches (`key[1:3] == chap`) and says nothing about the
+ordinal. The files were renamed so the keys run in document order.
+
+**The check that would have caught it is not written, deliberately**, and is
+recorded here instead: `check_structure.py` would have to count the
+`\begin{exercise}` occurrences per chapter file in order and require the
+n-th to carry `_0n_`. That is a change to a shared tool while other chapters
+may be in flight, and it is one line of logic --- so it belongs to an
+infrastructure issue rather than to a chapter pass. Until it exists,
+**number an exercise's key by where it will PRINT, not by the order you
+wrote it.**
+
+**PEP 8 names an exception `...Error`, and ruff enforces it (N818).**
+`JobUnavailable` is a lint failure until it is `JobUnavailableError`. It is a
+clean C#-habit mapping --- the suffix there is `Exception` --- so it is in
+the chapter's csbox and is `notes/02-traps.md` entry 31a.
+
+**Two library facts, read out of the installed packages rather than
+remembered.** pydantic's `ValidationError` subclasses **`ValueError`**, so a
+handler written for bad input catches it without knowing the library exists;
+and httpx puts `HTTPStatusError` and every transport failure
+under one `HTTPError`, so one `except` covers a bad status and a connection
+that never opened. `raise_for_status()` is a pure function of the status
+line, so the listing that exercises it builds its own `httpx.Response` and
+needs no network --- which is what makes it a listing this book can print.
+
+**The diagrams, measured with `pdfinfo` before the captions were written**,
+as the scaffold pass's note requires. All six renders sit at mermaid's own
+wrap cap:
+
+| | width x height (en) | width x height (pl) |
+|---|---|---|
+| `err-cost` | 636 x 144 | 657 x 195 |
+| `err-chaining` | 657 x 144 | 655 x 161 |
+| `err-group` | 647 x 127 | 641 x 144 |
+
+At this geometry (`textwidth` 421.10 pt, `textheight` 685.71 pt, so a width
+cap of 400.05 pt) that is a scale of about 0.61 to 0.63 and node text of
+7.6 to 7.9 pt --- smaller than the scaffold's 524 pt `reading-loop` at 9.6 pt
+and comfortably inside the band, so none was redrawn. **No diagram carries a
+computed number**, deliberately: a figure is an image and cannot hold a
+`\val{}`, so a number in one is a second copy of a committed value with
+nothing able to see it drift.
+
+**One overfull box, and it was the recorded class.** `\code{contextlib.suppress}`
+is a twenty-character unbreakable run and it landed mid-paragraph in the
+Polish, which is the edition with the longer words: 51.3 pt, in `main-pl`
+alone, with `main-en` clean. The recorded fix applied --- start a line with it
+--- and it was applied to **both** editions rather than to the Polish alone,
+so the two still read alike. Both came back at 49 pages with zero boxes.
+
+**Parity came back clean on its first run**, which is worth recording because
+it was not luck: the English file's token stream was dumped with
+`parity.py`'s own tokeniser and the Polish was written against that list.
+Zero numeric literals in either edition, so C12 had nothing to disagree
+about --- every version number on the page is a macro and every measured
+number is a `\val{}`, which is what the conventions ask for and which also
+happens to make a translation cheap.
+
+**Index entries start here.** No chapter had used `\index{}` before, though
+`\makeindex` and `\printindex` were wired from the scaffold. The convention
+is the llm-book's: an API gets a sort key (`\index{ExceptionGroup@\texttt{ExceptionGroup}}`),
+a concept is lowercase with `!` subentries under a shared head (`exceptions!chaining`).
+`\index` payloads are not compared between editions by parity, but they are
+kept identical here, because a reader of either edition searches for the same
+identifier.
+
+---
+
 ### Chapter 7 pass, September 2026
 
-The first chapter written, and the brief held everywhere it made a claim
-about *what the chapter should contain*. What it got wrong was the framing
+Written into the scaffold in parallel with Chapters 3 and 6, in sessions
+that did not know about each other; this one merged second. The brief held
+everywhere it made a claim about *what the chapter should contain*. What it got wrong was the framing
 every book gets wrong, and a probe settled it in a minute.
 
 **A circular import is not an error, and the brief's “three ways out” are
@@ -1133,11 +1304,13 @@ no `async` or `Task<` at all, and *never published* is enforced rather than
 merely absent: `Directory.Build.props` sets `<IsPackable>false</IsPackable>`
 for the whole repository.
 
-**Three chapters were in flight at once, and `main` moved twice under this
-pass.** Chapter 3 (#46) landed after this branch was cut and Chapter 7 (#49)
-landed while the first merge was being resolved, so the branch merged `main`
-twice. Both merges hit the same three files and the resolution is the same
-each time: `code/measure/transcripts.py` and the CLAUDE.md ledgers are
+**Four chapters were in flight at once, and `main` moved three times under
+this pass.** Chapter 3 (#46) landed after this branch was cut, Chapter 7
+(#49) landed while the first merge was being resolved, and Chapter 6 (#44)
+landed while the second was, so the branch merged `main` three times — and
+the branches for 6 and 7 each merged it twice themselves, which is the
+established shape here rather than this pass being unlucky. Every merge hit
+the same small set of files and the resolution is the same each time: `code/measure/transcripts.py` and the CLAUDE.md ledgers are
 **additive** — take both sides, in chapter order — and
 `figures/values/ledgers.tex` is **generated**, so it is resolved by running
 `make numbers` and never by hand.
@@ -1232,18 +1405,22 @@ Tag from a local clone.
 
 ## What is left
 
-Three chapters of fourteen are written, and with Chapter 14 the guiding
+Four chapters of fourteen are written, and with Chapter 14 the guiding
 project is complete. The outstanding work is tracked as GitHub issues under
 the `chapter`, `appendix`, `experiment` and `infrastructure` labels — **work
 from the labels, not from a list here**, because a list in this file is the
 class of claim nothing can check. In rough order:
 
-1. **Chapters 1, 2, 4, 5 and 6**, which with the written Chapters 3 and 7
+1. **Chapters 1, 2, 4 and 5**, which with the written Chapters 3, 6 and 7
    complete v0.1. The suggested order was 1, 2, 3 first, because every later
-   chapter's listings assume the reader trusts the environment — and two
+   chapter's listings assume the reader trusts the environment — and three
    chapters written out of that order did not suffer for it, because each
    names what it borrows and borrows almost nothing. Treat the ordering as a
-   preference rather than a constraint.
+   preference rather than a constraint. Two things that cost Chapter 6 a
+   round are under *Resolved questions* and are worth reading first — the
+   exercise-harness paragraph before writing an exercise, and the note on
+   dumping the English token stream with `parity.py`'s own tokeniser before
+   writing the Polish.
 2. **Chapters 8 to 12** (v0.2), with the trace-assert stage 01 in Chapter 11
    and experiments E4 to E7.
 3. **Chapter 13 and Appendices A to D** (v1.0) — Chapter 14 is written.
@@ -1251,8 +1428,13 @@ class of claim nothing can check. In rough order:
    already delivered; Appendix C's version column prints from the
    preamble's macros and is never typed; Appendix D needs the open
    decision above settled first.
-4. **The eight experiments**, each free, each writing a value file that a
-   chapter reads with `\val{}`.
+4. **The experiments still marked *not run*** in
+   `notes/01-curriculum.md` §4 — each free, each writing a value file that a
+   chapter reads with `\val{}`. **The Status column is the ledger and no
+   total is stated here**, which is this file's own rule: it said *the eight*
+   while the table above it said *seven of the eight*, because E3 had been
+   run by the Chapter 6 pass and one of the two sentences had not been
+   swept.
 5. **The first Pages deployment**, which needs one human click.
 
 **Do not fill a measurement table with plausible numbers.** An empty table
