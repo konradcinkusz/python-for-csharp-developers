@@ -95,7 +95,7 @@ restate a total here or in `CLAUDE.md`** — the math book's ledger said
 
 | # | Chapter | What | Cost | Status |
 |---|---|---|---|---|
-| E1 | 1 | CPU-bound work, four threads, default build against `python3.14t`, on the pinned interpreter | free; needs the free-threaded build installed by `uv python install 3.14t` | not run |
+| E1 | 1 | CPU-bound work, four threads, default build against `python3.14t`, on the pinned interpreter | free; needs the free-threaded build installed by `uv python install 3.14.7+freethreaded` | **run, in the Chapter 1 pass** |
 | E2 | 2 | Cold `uv sync` against `pip install -r` on the same lockfile | free | not run |
 | E3 | 6 | Cost of a `try` against a check, happy path and unhappy path | free | not run |
 | E4 | 8 | One blocking call's degradation, in the TPL-against-asyncio framing | free; the LangChain book's Chapter 3 has the asyncio half already | not run |
@@ -106,7 +106,18 @@ restate a total here or in `CLAUDE.md`** — the math book's ledger said
 
 Each result goes into `code/measure/<experiment>.py`, which writes
 `figures/values/<experiment>.tex`; the chapter reads it with `\val{}` and
-`make verify` fails when the two drift. The three companion books' rule
+`make verify` fails when the two drift.
+
+**An experiment that measures TIME needs one more step than that, and E1
+found it.** CI re-runs every script under `measure/` on every push and fails
+the build when a committed value moves, which a wall time cannot survive on
+two machines — and a wall time rounded until it could would say nothing. So
+a timing script has two modes: `--record` measures and writes a committed
+JSON under `code/measure/data/`, with the machine and the date beside the
+numbers, and the default mode derives the value file from that JSON and is
+what `make numbers` runs. The drift gate then asks a question it can answer:
+does the page agree with the measurement that was taken? Re-recording is a
+deliberate act and reviews as a diff of the data. The three companion books' rule
 holds here without exception: **a number the reader cannot do in their head
 is computed, never typed**, and a machine-dependent residual is committed as
 a bound, never as a figure.
@@ -193,6 +204,12 @@ the starter run, and its experiments have run or their claims are labelled.
   solution has a test CI runs. The C# solutions are listings too, and
   compiling them needs a .NET SDK in the workflow. Recorded in `CLAUDE.md`;
   decide before Appendix D is written.
-- **Open: the free-threaded interpreter in CI.** E1 needs `python3.14t`. `uv`
-  can install it, but whether the `code` job installs two interpreters or E1
-  runs in a job of its own is undecided.
+- **Settled in the Chapter 1 pass: CI installs one interpreter.** E1 needs
+  `python3.14t` to *record*, and nothing else does. Because a timing is
+  recorded once into a committed JSON (above) and `make numbers` only
+  derives the value file from it, the `code` job never runs the
+  free-threaded build at all — proved by hiding `python3.14t` from `PATH`
+  and watching the emit mode exit 0 and `--record` exit 1 with the install
+  command in its message. A second interpreter in CI would buy a
+  re-measurement on a shared runner, which is the one machine whose timings
+  nobody should trust.

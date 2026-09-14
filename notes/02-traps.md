@@ -13,6 +13,10 @@ entries delivered with the section that carries them; when a chapter's
 brief changes, re-derive the owner from `tools/chapters.json` rather than
 from this file.
 
+A delivered entry names a section number, and a section number is a fact
+about a build. Re-derive one from `chapters/en/chNN-*.aux` after a
+renumbering rather than carrying it across; nothing here can check it.
+
 Numbered so a chapter can cite an entry. The numbering is by owning chapter
 and never reused; a retired entry keeps its number and says why. An owner
 reading `Ch. N §N.M, delivered` names the section that elicits the trap in
@@ -22,10 +26,10 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 
 | # | The habit, in the reader's voice | What Python does | Owner |
 |---|---|---|---|
-| 1 | Threads are useless in Python, so I will not bother with them | The GIL serialises *bytecode*; a thread blocked on I/O holds no lock. Threads are the right tool for I/O-bound work and the wrong one for CPU-bound work, and E1 measures both | Ch. 1 |
-| 2 | 3.14 is free-threaded now, so the GIL is gone | The free-threaded build is a separate binary, `python3.14t`, opt-in; the default build still has the lock | Ch. 1 |
-| 3 | Python has no compile step, so there is nothing like IL | Source is compiled to bytecode and cached in `__pycache__`; `python -m dis` shows it. There is no JIT you can count on by default | Ch. 1 |
-| 4 | `if __name__ == "__main__"` is boilerplate | It is the difference between a module that runs when imported and one that runs when executed — the reason a listing can be both importable and runnable | Ch. 1 |
+| 1 | Threads are useless in Python, so I will not bother with them | The GIL serialises *bytecode*; a thread blocked on I/O holds no lock. Threads are the right tool for I/O-bound work and the wrong one for CPU-bound work, and E1 measures both | Ch. 1, delivered in §1.4 |
+| 2 | 3.14 is free-threaded now, so the GIL is gone | The free-threaded build is a separate binary, `python3.14t`, opt-in; the default build still has the lock | Ch. 1, delivered in §1.5 |
+| 3 | Python has no compile step, so there is nothing like IL | Source is compiled to bytecode and cached in `__pycache__`; `dis.dis` on a function shows it. There is no JIT you can count on by default | Ch. 1, delivered in §1.2 |
+| 4 | `if __name__ == "__main__"` is boilerplate | It is the difference between a module that runs when imported and one that runs when executed — the reason a listing can be both importable and runnable | Ch. 1, delivered in §1.3 |
 | 5 | `pip install` puts the package on the machine, like a global tool | An environment is a directory; a global install is the one thing every later chapter's listings cannot survive | Ch. 2 |
 | 6 | I activate the environment and then run things | `uv run` resolves the environment per invocation; activation is the habit that ships the wrong interpreter to CI | Ch. 2 |
 | 7 | `requirements.txt` is the lockfile | It is a wish list with ranges; `uv.lock` is the lockfile, it is committed, and `uv sync --locked` refuses to drift from it | Ch. 2 |

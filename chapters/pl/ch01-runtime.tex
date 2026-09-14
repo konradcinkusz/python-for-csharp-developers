@@ -1,42 +1,391 @@
 %% ch01 --- CPython, GIL i wersja free-threaded
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie zalążkowego bloku (tego, który zaczyna się po
-%% linii \chapter) i zastąpienie go rozdziałem -- po czym ten plik nie jest
-%% już generowany.
+%% Napisane we wrzesniu 2026. Kazde twierdzenie w tym rozdziale pochodzi od
+%% interpretera, a nie z pamieci: zobacz code/ch01/, ktorego trzy listingi CI
+%% uruchamia przy kazdym pushu, oraz code/measure/e01_gil.py, czyli
+%% eksperyment E1 -- zapisuje on surowy wynik do zacommitowanego pliku JSON,
+%% bo czas zegarowy jest wlasnoscia maszyny i nie przejdzie bramki dryfu na
+%% dwoch maszynach naraz.
 
 \chapter{CPython, GIL i wersja free-threaded}
 \label{ch:runtime}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\noindent
+Masz już model środowiska uruchomieniowego. Proces hostuje jedno środowisko,
+IL jest kompilowany z wyprzedzeniem, a potem jeszcze raz przez JIT przy
+pierwszym wywołaniu, a pula wątków zamienia cztery rdzenie w czterokrotnie
+więcej pracy. To dobry model, dzięki niemu jesteś produktywny \dash{} i trzy
+z tych czterech zdań są tutaj nieprawdziwe. Nie przestają obowiązywać
+jednocześnie: przestają pojedynczo, każde ma swoją nazwę i każde ma
+jednolinijkowe pytanie, które możesz zadać interpreterowi stojącemu przed
+tobą.
 
-Argument: the assumptions a CLR engineer carries about the runtime stop
-holding one at a time, and each one has a name. There is no JIT you can
-count on by default (the one in 3.14 is experimental and off); one process
-is one interpreter with one global interpreter lock that serialises Python
-bytecode across threads; and the free-threaded build (PEP 703, officially
-supported since 3.14 under PEP 779) is a separate binary,
-\code{python3.14t}, rather than a flag. Bytecode and \code{\_\_pycache\_\_}
-against IL and the JIT; \code{python -m} against \code{dotnet run}; a module
-against an assembly; \code{sys.path} against assembly probing; what \code{if
-\_\_name\_\_ == "\_\_main\_\_"} is actually for. Payoff: the reader can say
-which of four workloads the GIL hurts and measure it \dash{} experiment E1,
-CPU-bound work on the default and the free-threaded build, four threads, on
-the pinned interpreter. Traps to elicit: \enquote{threads are useless in
-Python} (false for I/O), \enquote{the free-threaded build is the default
-now} (false), \enquote{Python has no compile step} (bytecode is compiled and
-cached). Listings: \code{python -m dis} on a five-line function; a thread
-pool on CPU-bound and on I/O-bound work, timed; detecting the free-threaded
-build from \code{sys}. Three exercises. Overlap rule: the LangChain book's
-chapter 3 covers the GIL in the context of an event loop; this chapter owns
-the runtime model and points there, in one sentence, for the async
-consequence.
+To jest metoda tego rozdziału i całej książki. Nic poniżej nie jest faktem,
+który masz przyjąć na wiarę: każdy to linia, którą możesz uruchomić, a każdy
+listing wypisuje swoją odpowiedź z działającego procesu, zamiast nieść ją
+jako napis.
+
+\section{Pięć pytań, na które interpreter odpowiada sam}
+\label{sec:ch01-questions}
+\index{CPython}\index{interpreter!introspekcja}
+
+\noindent
+Zacznij od pliku, który mówi, na czym stoisz.
+
+\pyregion{code/ch01/interpreter.py}{facts}{Pięć pytań, na każde odpowiada działający proces}{lst:ch01-interpreter}
+
+\noindent
+Uruchom go, a przypięty interpreter odpowie:
+
+\transcript{ch01-interpreter}
+
+\noindent
+Cztery z tych pięciu zmienią się w ciągu następnych czterech sekcji. Teraz
+przeczytaj czwartą. \api{sys.\_jit} jest nowe w \pyver{}, mówi, że ten plik
+wykonywalny został skompilowany \emph{z} kompilatorem just-in-time, i mówi,
+że ten kompilator jest wyłączony. Obie połowy mają znaczenie. JIT istnieje,
+więc kto twierdzi, że Python go nie ma, jest nieaktualny; jest domyślnie
+wyłączony, więc kto rozumuje o twoich opóźnieniach na produkcji tak, jakby
+JIT się rozgrzewał, myli się co do procesu, na który patrzy.
+
+\begin{versionbox}
+JIT w \pyver{} (PEP~744) jest eksperymentalny i domyślnie wyłączony, a noty
+wydawnicze samego CPythona mówią, że nie jest zalecany na produkcji.
+\code{PYTHON\_JIT=1} ustawia flagę włączenia; interpreter powyżej raportuje
+wtedy \emph{dostępny} i \emph{włączony} razem. Plik wykonywalny można zbudować
+tak, by niósł kompilator z wyłączoną flagą \dash{} i tym właśnie jest przypięty
+interpreter, dlatego obie odpowiedzi się różnią. Ta książka nie zmierzyła, co
+JIT robi z obciążeniem; uczciwie jest zacytować własne oszacowanie CPythona:
+od nieco wolniej do nieco szybciej, zależnie od tego, co uruchamiasz.
+\end{versionbox}
+
+\begin{csbox}
+\code{sys.\_is\_gil\_enabled()} i \code{sysconfig.get\_config\_var} to
+najbliższy odpowiednik \code{RuntimeInformation.FrameworkDescription}: opisują
+hosta, nie twój kod. Różnica polega na tym, że w Pythonie te odpowiedzi
+niosą ciężar. Dwie z nich decydują o tym, czy pula wątków jest właściwym
+narzędziem.
+\end{csbox}
+
+\section{Krok kompilacji istnieje i ma pamięć podręczną}
+\label{sec:ch01-bytecode}
+\index{bajtkod}\index{bajtkod!\_\_pycache\_\_}
+
+\noindent
+Zanim przeczytasz dalej, odpowiedz na to ze swojego obecnego modelu. Masz
+\code{app.py}, który importuje \code{helper.py}. Uruchamiasz \code{python
+app.py} dwa razy pod rząd. Ile razy kompilowany jest każdy z tych dwóch
+plików?
 
 \medskip
-\textbf{Budżet słów:} 3000.\\
-\textbf{Wydanie:} v0.1.\\
-\textbf{Pomiar:} E1.
-}
+\noindent
+Python kompiluje źródło do bajtkodu, zanim cokolwiek wykona, dokładnie tak
+jak \code{csc} kompiluje do IL. Różnica polega na tym, kiedy to robi i gdzie
+trzyma wynik. Kompilator uruchamia się przy imporcie, wynik ląduje obok
+źródła w katalogu \code{\_\_pycache\_\_}, a \pkg{dis} z biblioteki
+standardowej odczytuje go z powrotem.
+
+\pyregion{code/ch01/bytecode.py}{function}{Cztery linie źródła, a kompilator ma coś do powiedzenia o każdej}{lst:ch01-function}
+
+\noindent
+\code{dis.dis} na tej funkcji wypisuje bajtkod, który wyprodukował
+kompilator, z numerem linii źródła przy każdej instrukcji po lewej:
+
+\transcript{ch01-bytecode}
+
+\noindent
+Odpowiedź na pytanie powyżej brzmi więc: \emph{dwa razy i raz}.
+\code{helper.py} jest importowany, więc kompiluje się raz, a wynik trafia do
+pamięci podręcznej; każde kolejne uruchomienie czyta ten cache.
+\code{app.py} to plik, który podałeś w linii poleceń, a moduł podany w linii
+poleceń nigdy nie jest cache'owany \dash{} kompiluje się ze źródła przy
+każdym uruchomieniu. To niewielka praca, za którą płacisz za każdym razem, i
+dlatego duży skrypt startuje odrobinę wolniej niż ten sam kod schowany za
+importem.
+
+\begin{trapbox}
+\textbf{\enquote{Python nie ma kroku kompilacji, więc nie ma tu niczego jak
+IL.}} Krok kompilacji istnieje, produkuje bajtkod, a bajtkod jest zapisany na
+dysku, gdzie możesz go zobaczyć. Czego Python nie ma, to kroku kompilacji,
+który musisz uruchomić, ani artefaktu budowania, który wysyłasz zamiast
+źródła. Katalog \code{\_\_pycache\_\_} jest pamięcią podręczną i niczym
+więcej: usuń go, a następne uruchomienie go odtworzy; wyślij go, a następny
+interpreter może go zignorować; a \code{python -B} w ogóle go nie zapisuje.
+\end{trapbox}
+
+\mermaidfig{ch01-compile-step}{Te same dwa kroki w obu językach, w innym czasie i w inne miejsca}{od źródła do bajtkodu i do IL}
+
+\begin{note}
+Plik cache nosi nazwę interpretera, który go zapisał \dash{}
+\valtext{e01.default.tag} w \pyver{} \dash{} więc dwie wersje mogą dzielić
+katalog, nie czytając nawzajem swojego bajtkodu. Znacznik pochodzi z
+\code{sys.implementation.cache\_tag}, a ścieżka z
+\code{importlib.util.cache\_from\_source}, którą listing wypisuje, zamiast
+składać ścieżkę samemu.
+\end{note}
+
+\begin{exercise}{e01_01_disassemble}{Przeczytaj bajtkod funkcji, którą napisałeś}
+Zaimplementuj \code{instruction\_names}, które bierze funkcję i zwraca nazwy
+opkodów, do jakich się skompilowała, w kolejności. Test deasembluje dwie
+własne funkcje i sprawdza odpowiedź, więc musi ona pochodzić z obiektu
+funkcji, a nie z listy, którą wpisałeś. Zwróć uwagę, czego test \emph{nie}
+robi: nigdy nie wywołuje żadnej z tych funkcji. Bajtkod istnieje, odkąd moduł
+został skompilowany.
+\end{exercise}
+
+\section{Moduł, asembly i po co jest \code{\_\_main\_\_}}
+\label{sec:ch01-main}
+\index{moduł}\index{sys.path@\texttt{sys.path}}
+
+\noindent
+Moduł to plik. Asembly to jednostka wdrożeniowa, która może nieść setki typów
+z kilkudziesięciu plików, i niesie manifest. Prawie każda różnica w tej
+sekcji bierze się z tej jednej.
+
+Program można uruchomić na dwa sposoby i nie są one wymienne:
+
+\begin{shellcmd}
+python pkg/mod.py     # by path
+python -m pkg.mod     # by module name
+\end{shellcmd}
+
+\noindent
+Oba ustawiają \code{\_\_name\_\_} na \code{"\_\_main\_\_"} w module, który
+uruchamiają. Różnią się tym, co trafia na ścieżkę importu. Pierwszy kładzie
+tam katalog samego skryptu, więc na ścieżce jest \code{pkg/}, a
+\code{import pkg} zawodzi. Drugi kładzie tam katalog bieżący, więc
+\code{pkg} da się zaimportować, a moduł jest odnajdywany przez system
+importu \dash{} i dlatego pod \code{-m} plik, który podałeś, dostaje wpis w
+cache, a podany ścieżką nie dostaje.
+
+\begin{csbox}
+\code{python -m pkg.mod} to najbliższy odpowiednik \code{dotnet run}:
+nazywasz rzecz, a nie jej plik, a środowisko ją rozwiązuje. \code{sys.path}
+to sondowanie asemblatów, z tą różnicą, że jest zwykłą listą napisów, którą
+możesz wypisać, zmienić i popsuć. Nie ma manifestu, nie ma silnej nazwy i nie
+ma GAC; jest lista, a wygrywa pierwsze trafienie.
+\end{csbox}
+
+\begin{trapbox}
+\textbf{\enquote{\code{if \_\_name\_\_ == "\_\_main\_\_"} to szablonowa
+wstawka.}} To jedyna rzecz, która dzieli moduł dający się zaimportować od
+modułu, który uruchamia swój program, gdy cokolwiek go zaimportuje. Zestaw
+testów importuje twój plik, żeby dostać się do jednej funkcji; bez tej osłony
+uruchamia też twoje \code{main}. Z osłoną ten sam plik jest i biblioteką, i
+programem \dash{} dlatego każdy listing w tej książce ją ma.
+\end{trapbox}
+
+\begin{exercise}{e01_02_entrypoint}{Jeden plik, moduł i program}
+Dokończ \code{main} i dodaj osłonę. Test importuje moduł i żąda, by nic się
+nie wykonało, potem wywołuje \code{main} i żąda, by się wykonało, a na koniec
+uruchamia ten sam plik jako program w podprocesie i żąda, by coś wypisał.
+Jedna z tych trzech rzeczy zawodzi na pliku startowym z powodu, który warto
+zauważyć: połowa z importem przechodzi na niedokończonym pliku, więc nie może
+być testem samym w sobie.
+\end{exercise}
+
+\section{Jedna blokada i to, co naprawdę blokuje}
+\label{sec:ch01-gil}
+\index{GIL}\index{GIL!co szereguje}\index{wątki}
+
+\noindent
+Jeden proces CPythona to jeden interpreter z jedną blokadą. Wątek musi ją
+trzymać, żeby wykonywać bajtkod, więc na domyślnej wersji dokładnie jeden
+wątek wykonuje Pythona w danej chwili, niezależnie od tego, ile rdzeni
+kupiłeś.
+
+Zanim przyjdą liczby: cztery wątki, cztery rdzenie, każdy wątek liczy tę samą
+czysto pythonową pętlę arytmetyczną. Ile, twoim zdaniem, zajmą te cztery
+wątki w porównaniu z jednym wątkiem liczącym jedną pętlę?
+
+\medskip
+\noindent
+Listing mierzy trzy rodzaje pracy na jednym wątku i na czterech. Oto te
+obciążenia, a trzeciego ludzie nie przewidują:
+
+\pyregion{code/ch01/workloads.py}{cpu}{Czysty Python: każdy krok tego trzyma blokadę}{lst:ch01-cpu}
+
+\pyregion{code/ch01/workloads.py}{digest}{Ta sama praca co do kształtu, tyle że wykonana w rozszerzeniu C}{lst:ch01-digest}
+
+\pyregion{code/ch01/workloads.py}{io}{Prawdziwy odczyt z gniazda, a nie uśpienie: wątek stoi w recv}{lst:ch01-io}
+
+\noindent
+Eksperyment E1 uruchamia ten plik na obu wersjach. Na wersji domyślnej, na
+maszynie \valtext{e01.machine}, przy \val{e01.threads} wątkach:
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}Xrrr@{}}
+\toprule
+\textbf{Obciążenie} & \textbf{1 wątek} & \textbf{4 wątki} & \textbf{stosunek} \\
+\midrule
+\code{cpu}, czysty Python & \val{e01.default.cpu.one}\,s & \val{e01.default.cpu.many}\,s & \val{e01.default.cpu.ratio}$\times$ \\
+\code{io}, odczyt z gniazda & \val{e01.default.io.one}\,s & \val{e01.default.io.many}\,s & \val{e01.default.io.ratio}$\times$ \\
+\code{digest}, rozszerzenie C & \val{e01.default.digest.one}\,s & \val{e01.default.digest.many}\,s & \val{e01.default.digest.ratio}$\times$ \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent
+Cztery wątki czystego Pythona zajmują \val{e01.default.cpu.ratio} razy tyle
+co jeden. Nie pobiegły równolegle; pobiegły jeden po drugim i zapłaciły za
+przełączanie. Pozostałe dwa wiersze nie kosztują nic, i to z tego samego
+powodu w obu przypadkach: wątek stojący w \code{recv} nie wykonuje bajtkodu,
+a wątek wewnątrz \pkg{hashlib} też nie \dash{} ta biblioteka zwalnia blokadę
+na czas pracy i bierze ją z powrotem po niej.
+
+\mermaidfig{ch01-one-lock}{Blokada jest trzymana, gdy biegnie bajtkod, i zwalniana wszędzie indziej}{co szereguje blokada}
+
+\begin{trapbox}
+\textbf{\enquote{Wątki w Pythonie są bezużyteczne, więc nie będę się nimi
+zajmował.}} Dwa z trzech wierszy powyżej mówią co innego. Blokada szereguje
+\emph{bajtkod}, a wątek, który czeka na gniazdo, plik albo bazę danych, lub
+który jest w rozszerzeniu C i wykonuje pracę w C, nie trzyma niczego. Wątki
+są właściwym narzędziem do pracy ograniczonej wejściem-wyjściem i
+niewłaściwym do pracy ograniczonej procesorem \dash{} a to jest zdanie o
+obciążeniu, nie o wątkach.
+\end{trapbox}
+
+\begin{note}
+Konsekwencja tej blokady dla pętli zdarzeń \dash{} jedno blokujące wywołanie
+w kodzie \code{async} zamraża wszystkie pozostałe korutyny, bez błędu i bez
+wpisu w logu \dash{} należy do tomu towarzyszącego, \emph{LangChain,
+LangGraph and Async Python}, który mierzy ją w swoim rozdziale~3. Ten
+rozdział posiada model środowiska uruchomieniowego i na tym kończy.
+\end{note}
+
+\section{Wersja free-threaded to inny plik wykonywalny}
+\label{sec:ch01-freethreaded}
+\index{wersja free-threaded}
+
+\noindent
+Czytałeś, że \pyver{} usunął blokadę. Wróć do transkryptu w
+\S\ref{sec:ch01-questions}: powstał na \pypatch{} i mówi, że blokada jest
+włączona. Które z tych dwóch zdań jest nieprawdziwe?
+
+\medskip
+\noindent
+Żadne. Free-threaded CPython to PEP~703, pojawił się jedną wersję wcześniej
+jako eksperyment, a PEP~779 uczynił go wspieraną opcją budowania w
+\pyver{}. \emph{Wspierana opcja budowania} to całe zdanie: są dwa pliki
+wykonywalne. Ten, który instaluje prawie każdy i który ta książka przypina,
+to wersja domyślna, z blokadą. Drugi to \code{python\pyver{}t}, budowany
+osobno, instalowany osobno i rozpoznawalny po literze \code{t} w
+\code{sys.abiflags} \dash{} stamtąd bierze się jego nazwa. Ten sam listing
+uruchomiony pod każdym z nich daje:
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}Xll@{}}
+\toprule
+& \textbf{\code{python\pyver{}}} & \textbf{\code{python\pyver{}t}} \\
+\midrule
+raportowana wersja & \valtext{e01.default.version} & \valtext{e01.freethreaded.version} \\
+wersja free-threaded & \valtext{e01.default.ft} & \valtext{e01.freethreaded.ft} \\
+GIL włączony teraz & \valtext{e01.default.gil} & \valtext{e01.freethreaded.gil} \\
+JIT dostępny / włączony & \valtext{e01.default.jit} & \valtext{e01.freethreaded.jit} \\
+znacznik cache bajtkodu & \valtext{e01.default.tag} & \valtext{e01.freethreaded.tag} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent
+Przy dwóch wierszach warto się zatrzymać. Obie wersje raportują ten sam
+znacznik cache, więc czytają i zapisują te same pliki
+\code{\_\_pycache\_\_}: bajtkod jest identyczny, a różni się tylko środowisko
+pod nim. A JIT nie jest na wersji free-threaded jedynie wyłączony \dash{} go
+tam nie ma. To nie przypadek tego konkretnego pliku: noty wydawnicze
+CPythona dla \pypatch{} mówią, że wersje free-threaded nie wspierają
+kompilacji JIT, więc te dwa eksperymenty \pyver{} nie składają się ze sobą.
+
+Teraz te same trzy obciążenia, na \code{python\pyver{}t}:
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}Xrrr@{}}
+\toprule
+\textbf{Obciążenie} & \textbf{1 wątek} & \textbf{4 wątki} & \textbf{stosunek} \\
+\midrule
+\code{cpu}, czysty Python & \val{e01.freethreaded.cpu.one}\,s & \val{e01.freethreaded.cpu.many}\,s & \val{e01.freethreaded.cpu.ratio}$\times$ \\
+\code{io}, odczyt z gniazda & \val{e01.freethreaded.io.one}\,s & \val{e01.freethreaded.io.many}\,s & \val{e01.freethreaded.io.ratio}$\times$ \\
+\code{digest}, rozszerzenie C & \val{e01.freethreaded.digest.one}\,s & \val{e01.freethreaded.digest.many}\,s & \val{e01.freethreaded.digest.ratio}$\times$ \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent
+Pierwszy wiersz to cały eksperyment. Cztery wątki czystego Pythona kosztują
+teraz \val{e01.freethreaded.cpu.ratio} raza tyle co jeden wątek, zamiast
+\val{e01.default.cpu.ratio}, a ta sama praca kończy się
+\val{e01.cpu.wallclock.gain} raza szybciej w czasie zegarowym. W kodzie nie
+zmieniło się nic; zmienił się interpreter.
+
+\begin{warning}
+Czytaj obie tabele z rozrzutem w pamięci. Żaden stosunek nie trzymał się tu
+stabilniej niż mniej więcej \val{e01.spread} procent w
+\val{e01.repeats} przebiegach stojących za każdym wierszem, więc w tych
+sześciu wierszach są dwie odpowiedzi, a nie sześć: wszystko w okolicach
+\val{e01.freethreaded.cpu.ratio} i jeden wiersz z
+\val{e01.default.cpu.ratio}. Czasy bezwzględne należą do maszyny
+\valtext{e01.machine} w dniu \valtext{e01.recorded}; to, co się przenosi, to
+stosunki, bo wynikają z blokady, a nie ze sprzętu.
+
+Jest tu jedna liczba, którą ten eksperyment podaje i z której odmawia
+wyciągania wniosków. Ile free-threading kosztuje pojedynczy wątek? O to każdy
+pyta najpierw. Obie kolumny jednowątkowe różnią się o
+\val{e01.cpu.singlethread.diff} procent, a noty wydawnicze samego CPythona
+dla \pypatch{} szacują karę jednowątkową na mniej więcej pięć do dziesięciu
+procent, zależnie od platformy i kompilatora \dash{} więc jedno zgadza się z
+drugim, a ta zgodność nic nie znaczy, bo \val{e01.cpu.singlethread.diff}
+procent przy rozrzucie \val{e01.spread} procent nie jest pomiarem. W kolejnych
+zapisach na tej maszynie ta sama różnica wychodziła jeden, siedem i jedenaście
+procent. Spokojniejsza maszyna i obciążenie zaprojektowane wyłącznie pod to
+pytanie by to rozstrzygnęły; póki nikt tego nie uruchomił, cytowana liczba
+jest ich, nie tej książki.
+\end{warning}
+
+\mermaidfig{ch01-two-binaries}{Jeden numer wersji, dwa pliki wykonywalne i jeden cache bajtkodu między nimi}{dwie wersje, jeden cache bajtkodu}
+
+\begin{trapbox}
+\textbf{\enquote{\pyver{} jest teraz free-threaded, więc GIL zniknął.}}
+Zniknął w wersji, o którą trzeba poprosić. \code{uv python install
+\pyver{}t} ją pobiera, \code{python\pyver{}t} ją uruchamia, a dopóki nie
+wpiszesz jednego z tych poleceń, każdy proces na maszynie wciąż ma blokadę.
+Wersja i proces to też osobne pytania: uruchom \code{python\pyver{}t} z
+\code{PYTHON\_GIL=1}, a dostaniesz plik free-threaded z blokadą włączoną z
+powrotem \dash{} dlatego listing w \S\ref{sec:ch01-questions} pyta o jedno i
+o drugie.
+\end{trapbox}
+
+\section{Decyzja, którą to kupuje}
+\label{sec:ch01-decision}
+\index{wątki!wybór puli}
+
+\noindent
+Cztery wiersze pomiaru zwijają się w jedną regułę, którą stosujesz bez
+mierzenia czegokolwiek ponownie: \textbf{blokada kosztuje cię dokładnie
+wtedy, gdy kilka wątków naraz wykonuje bajtkod Pythona}. Wszystko inne
+\dash{} czekanie na sieć, czekanie na dysk, czekanie na bazę danych albo
+spędzanie czasu w bibliotece napisanej w C \dash{} jest już równoległe i było
+takie przed \pyver{}.
+
+Jest więc jedna komórka tabeli, w której wątki są złą odpowiedzią, a na
+wersji domyślnej odpowiada się na nią procesami, z których każdy ma własną
+blokadę. To właśnie ostatnie ćwiczenie każe ci zapisać.
+
+\begin{exercise}{e01_03_which_pool}{Wątki czy procesy, i na której wersji}
+Zaimplementuj \code{pick\_pool}, które bierze jeden z trzech rodzajów
+obciążenia i zwraca \code{"threads"} albo \code{"processes"}. Wersję bierze
+jako parametr, domyślnie taką, jaką raportuje działający interpreter, więc
+test może zadać ci obie, choć masz zainstalowaną jedną. Tylko jedna z sześciu
+komórek mówi \enquote{procesy}, a ćwiczenie polega na tym, żeby wiedzieć
+która.
+\end{exercise}
+
+\noindent
+Dwa wątki tej reguły podjęte są później. Rozdział~\ref{ch:asyncio} wykonuje
+tę samą pracę jednym wątkiem i pętlą zdarzeń, co jest inną odpowiedzią na to
+samo pytanie o czekanie. A powód, dla którego proces jest kosztownym wyjściem
+awaryjnym \dash{} że to osobny interpreter z osobną pamięcią i kosztem
+serializacji na granicy \dash{} jest pytaniem o pakowanie, zanim stanie się
+pytaniem o współbieżność, i od tego zaczyna się następny rozdział.

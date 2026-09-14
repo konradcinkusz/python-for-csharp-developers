@@ -1,0 +1,3 @@
+flowchart LR
+    A["Four threads,<br/>four cores,<br/>one lock"] --> B["Running bytecode<br/>holds the lock:<br/>the other three wait"]
+    B --> C["Waiting on a socket,<br/>or inside a C extension,<br/>drops it: all four run"]
