@@ -14,7 +14,9 @@ brief changes, re-derive the owner from `tools/chapters.json` rather than
 from this file.
 
 Numbered so a chapter can cite an entry. The numbering is by owning chapter
-and never reused; a retired entry keeps its number and says why.
+and never reused; a retired entry keeps its number and says why. An owner
+reading `Ch. N §N.M, delivered` names the section that elicits the trap in
+the written chapter; an owner reading a bare `Ch. N` is still a promise.
 
 An owner reading **Ch. 6 §6.4 (delivered)** means that chapter is written and
 that section elicits the trap. An owner with no section is a promise the
@@ -31,11 +33,11 @@ chapter still has to keep.
 | 5 | `pip install` puts the package on the machine, like a global tool | An environment is a directory; a global install is the one thing every later chapter's listings cannot survive | Ch. 2 |
 | 6 | I activate the environment and then run things | `uv run` resolves the environment per invocation; activation is the habit that ships the wrong interpreter to CI | Ch. 2 |
 | 7 | `requirements.txt` is the lockfile | It is a wish list with ranges; `uv.lock` is the lockfile, it is committed, and `uv sync --locked` refuses to drift from it | Ch. 2 |
-| 8 | A type hint is a type | It is a claim the runtime never checks; `str` can be `None` at run time and nothing says so. A checker is a second compiler you have to invite | Ch. 3 |
-| 9 | `List[int]`, `Optional[str]`, `Dict[str, Any]` | 2019 spellings; `list[int]`, `str | None` and `dict[str, Any]` on the pinned interpreter, and PEP 695 for generics | Ch. 3 |
-| 10 | `@dataclass` validates its fields, like a record with a constructor | It generates `__init__`, `__eq__` and `__repr__` and checks nothing; validation at a boundary is pydantic's job | Ch. 3 |
-| 11 | `def f(items=[])` — an optional list parameter | The default is evaluated once, at definition, and shared by every call. `None` and construct inside | Ch. 3 |
-| 12 | `Any` is like `dynamic`, a thing I can contain | `Any` propagates: one `Any` in a chain turns everything downstream into `Any`, and the checker reports nothing | Ch. 3 |
+| 8 | A type hint is a type | It is a claim the runtime never checks; `str` can be `None` at run time and nothing says so. A checker is a second compiler you have to invite | Ch. 3 §3.1, delivered |
+| 9 | `List[int]`, `Optional[str]`, `Dict[str, Any]` | 2019 spellings; `list[int]`, `str | None` and `dict[str, Any]` on the pinned interpreter, and PEP 695 for generics | Ch. 3 §3.2, delivered |
+| 10 | `@dataclass` validates its fields, like a record with a constructor | It generates `__init__`, `__eq__` and `__repr__` and checks nothing; validation at a boundary is pydantic's job | Ch. 3 §3.3, delivered |
+| 11 | `def f(items=[])` — an optional list parameter | The default is evaluated once, at definition, and shared by every call. `None` and construct inside | Ch. 3 §3.5, delivered |
+| 12 | `Any` is like `dynamic`, a thing I can contain | `Any` propagates: one `Any` in a chain turns everything downstream into `Any`, and the checker reports nothing | Ch. 3 §3.5, delivered |
 
 ## Part II — The language, mapped
 
