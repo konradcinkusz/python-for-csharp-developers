@@ -6,10 +6,17 @@ and that nobody can tell from one that was never run. So every quoted output
 is a file under figures/transcripts/, written here by running the listing on
 the pinned interpreter, and pulled onto the page with \\transcript{stem}.
 
-Two guards, and both were watched failing before they were believed:
+Three guards, and each was watched failing before it was believed:
 
   * ASCII only. The transcript goes through `listings`, which aborts the
     build on a multi-byte character it has no literate mapping for.
+  * No control characters. `ord(ch) > 127` alone lets an ESC byte (an ANSI
+    colour code) or a raw tab through -- both are under 128 and both are
+    real: a library that colours its output writes ESC, and `listings`
+    prints an ANSI sequence as visible mojibake rather than colour, or
+    expands a tab past the 79-column budget the width check below has
+    already cleared it against. Reproduced with a two-line probe carrying
+    "\x1b[31m" and a literal tab; the old guard passed both.
   * 79 columns. `listings` is set to wrap a long line silently, printing an
     arrow into the middle of what the reader is meant to paste back into a
     terminal; zero overfull boxes is not evidence that anything fits.
@@ -48,6 +55,11 @@ def guard(stem: str, text: str) -> None:
     for n, line in enumerate(text.splitlines(), start=1):
         if any(ord(ch) > 127 for ch in line):
             raise SystemExit(f"{stem}: line {n} is not ASCII: {line!r}")
+        if any(ord(ch) < 32 for ch in line):
+            raise SystemExit(
+                f"{stem}: line {n} has a control character (an ANSI "
+                f"escape or a tab, most likely): {line!r}"
+            )
         if len(line) > WIDTH:
             raise SystemExit(
                 f"{stem}: line {n} is {len(line)} columns, over {WIDTH}: "

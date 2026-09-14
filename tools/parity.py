@@ -46,7 +46,7 @@ TREES = ("chapters", "appendices", "frontmatter")
 # misconceptions, which is a content difference wearing a translation's
 # clothes.
 BOXES = (
-    "note warning csbox versionbox trapbox verifybox exercisebox projectbox "
+    "note warning csbox versionbox trapbox verifybox exercisebox projectbox exercise "
     "enumerate itemize description tabularx figure"
 ).split()
 
@@ -74,7 +74,6 @@ KEYED: dict[str, tuple[str, int, tuple[int, ...]]] = {
     "csfile": ("LISTFILE", 3, (0, 2)),
     "pyregion": ("LISTREGION", 4, (0, 1, 3)),
     "transcript": ("TRANSCRIPT", 1, (0,)),
-    "exercise": ("EXERCISE", 3, (0,)),
     "chapterstub": ("STUB", 1, ()),
     "index": ("INDEX", 1, ()),
 }
@@ -241,6 +240,16 @@ def tokenise(path: Path) -> Doc:
                     inner = inner[_optional(inner, 0):] if inner.startswith("[") else inner
                     emit("LISTING", f"{body}:{_digest(inner.strip())}", i)
                     i = j + len(endtok)
+                    continue
+                if body == "exercise":
+                    # \begin{exercise}{key}{title}: the key is a file stem and
+                    # must be identical in both editions; the title is prose.
+                    key, pos = _balanced(src_nc, nxt)
+                    _title, pos = _balanced(src_nc, pos)
+                    doc.exercises.append(key.strip())
+                    emit("EXERCISE", key.strip(), i)
+                    emit("BEGIN", body, i)
+                    i = pos
                     continue
                 if body in BOXES:
                     emit("BEGIN", body, i)
@@ -459,7 +468,14 @@ def check_notation(rep: Report, path: Path) -> None:
                     f"use \\transcript{{}} for output written by code/measure")
 
     if path.parts[-2] == "pl":
+        # A straight quote INSIDE \code{} is code, and a Polish quotation mark
+        # there would be wrong: \code{if \_\_name\_\_ == "\_\_main\_\_"} is
+        # what the reader types. Only prose owes \enquote{}.
+        code_spans = [(c.start(), c.end())
+                      for c in re.finditer(r"\\code\{[^{}]*\}", src)]
         for m in re.finditer(r'(?<![\\%])"', src):
+            if any(a <= m.start() < b for a, b in code_spans):
+                continue
             if not in_listing(m.start()):
                 rep.soft("C10-notation",
                          f"{rel}:{src.count(chr(10), 0, m.start())+1} "
@@ -583,8 +599,33 @@ def check_main_files(rep: Report) -> None:
     if missing:
         rep.bad("C15-mainfiles",
                 f"body.tex is missing: {', '.join(sorted(missing))}")
+        return
+    # The four-macro check above is necessary and not sufficient: it is a
+    # count over CATEGORIES of step, so a specific \input line -- the
+    # introduction, say -- can be deleted from body.tex and every category
+    # still has at least one member from somewhere else, with the two main
+    # files still identical to each other because they share the ONE
+    # mutated body.tex. That is exactly the defect this check exists for
+    # (a sibling repository's main file once shipped with the introduction
+    # dropped), now possible again because body.tex replaced the two
+    # separate main files it used to compare. So every file physically
+    # present under frontmatter/en/ must be \input somewhere in body.tex --
+    # reproduced by deleting the introduction's \input line and confirming
+    # this reports it missing.
+    # body.tex reads through the \booklang MACRO (frontmatter/\booklang/x),
+    # never a literal "en"/"pl" -- the /(en|pl)/ normalisation above is for
+    # the two main files' own paths and never fires on this string, so
+    # match the macro form directly rather than assume it was normalised.
+    wanted = {f"frontmatter/\\booklang/{p.stem}"
+              for p in (ROOT / "frontmatter" / "en").glob("*.tex")}
+    got = {b for a, b in steps if a in ("input", "include")}
+    missing_fm = sorted(wanted - got)
+    if missing_fm:
+        rep.bad("C15-mainfiles",
+                f"body.tex never \input{{}}s: {', '.join(missing_fm)}")
     else:
-        rep.good("C15-mainfiles", f"body.tex wires up {len(steps)} steps")
+        rep.good("C15-mainfiles", f"body.tex wires up {len(steps)} steps, "
+                 f"including every frontmatter/en/*.tex file")
 
 
 # --------------------------------------------------------------------------

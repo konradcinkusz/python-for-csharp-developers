@@ -9,7 +9,8 @@
 #
 #  Run from this directory:
 #      uv sync --locked          # the environment, exactly as CI has it
-#      uv run pytest             # every listing and every exercise solution
+#      PYBOOK_SOLUTIONS=1 uv run pytest   # every listing, every exercise SOLUTION
+#      PYBOOK_STARTERS=fail uv run pytest exercises   # every starter must fail
 #      uv run ruff check .       # lint, 79 columns, because the page is
 #      uv run pyright            # the checker the book pins first
 # ============================================================
@@ -74,7 +75,11 @@ select = ["E", "F", "W", "I", "UP", "B", "N", "SIM"]
 [tool.pyright]
 pythonVersion = "3.14"
 typeCheckingMode = "strict"
-include = ["src", "ch00", "measure", "tests", "exercises"]
+include = ["src", "ch*", "measure", "tests", "exercises"]
+# "ch*" rather than the exact chapter list, deliberately: pyright's
+# glob matches ch00 through ch14 as they arrive. A hard-coded "ch00"
+# left every future chapter's listings out of strict type-checking
+# while the CI step stayed green -- proved on a scratch ch01/probe.py.
 
 [tool.mypy]
 python_version = "3.14"
