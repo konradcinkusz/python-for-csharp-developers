@@ -1,0 +1,6 @@
+the caller sees:      TimeoutError
+the body saw:         CancelledError
+asyncio.TimeoutError is the builtin TimeoutError: True
+a body that swallows: swallowed the cancellation the deadline sent
+httpx.AsyncClient() default timeout: Timeout(timeout=5.0)
+  connect 5.0, read 5.0, write 5.0, pool 5.0

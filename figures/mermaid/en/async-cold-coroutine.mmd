@@ -1,0 +1,3 @@
+flowchart LR
+    A["c = fetch(url)<br/>builds a coroutine object<br/>and runs none of the body"] --> B["create_task(c)<br/>hands it to the loop<br/>and still runs none of it"]
+    B --> C["the caller awaits<br/>or yields, and only now<br/>does the body run"]
