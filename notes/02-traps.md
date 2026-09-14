@@ -56,10 +56,10 @@ and never reused; a retired entry keeps its number and says why.
 | 29 | A method's hint tells me what it raises | Nothing in the type system carries exceptions; a docstring does, and Python has no checked exceptions | Ch. 6 |
 | 30 | `KeyError` means something went wrong | `KeyError`, `StopIteration` and `AttributeError` are protocol: a `dict` lookup, an iterator's end and `getattr` all speak through them | Ch. 6 |
 | 31 | Truthiness is `bool`, like C# | Empty containers, zero, `None` and empty strings are false; `if items:` is idiomatic and `if items is not None:` is a different question | Ch. 6 |
-| 32 | A module is a namespace; importing it is free and pure | A module is an object that runs once, top to bottom; a side effect at import runs for every importer, and a circular import is two modules half-run | Ch. 7 |
-| 33 | `from x import *` is `using x;` | It copies every public name into the importing module and hides where anything came from; `import x` and `from x import name` | Ch. 7 |
-| 34 | I can name a variable `list`, `id` or `type` | It shadows the builtin for the rest of the scope, and the failure arrives three functions later | Ch. 7 |
-| 35 | I need a DI container | A composition root is a function; `functools.partial` and a `Protocol` do what the container did, and FastAPI's `Depends` is the one container most readers will meet | Ch. 7 |
+| 32 | A module is a namespace; importing it is free and pure | A module is an object that runs once, top to bottom; a side effect at import runs for every importer, and a circular import is two modules half-run | Ch. 7 §7.1, delivered |
+| 33 | `from x import *` is `using x;` | It copies every public name into the importing module and hides where anything came from; `import x` and `from x import name` | Ch. 7 §7.2, delivered |
+| 34 | I can name a variable `list`, `id` or `type` | It shadows the builtin for the rest of the scope, and the failure arrives three functions later | Ch. 7 §7.2, delivered, at module level as well as at name level |
+| 35 | I need a DI container | A composition root is a function; `functools.partial` and a `Protocol` do what the container did, and FastAPI's `Depends` is the one container most readers will meet | Ch. 7 §7.5, delivered |
 
 ## Part III — Concurrency
 
