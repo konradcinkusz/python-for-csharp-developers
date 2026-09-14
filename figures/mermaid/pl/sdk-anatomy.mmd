@@ -1,0 +1,5 @@
+flowchart LR
+    M["<b>Model pydantic</b><br/>zadanie, ktore budujesz, i<br/>odpowiedz sa podklasami<br/>BaseModel"]
+    H["<b>Klient httpx</b><br/>trzymany przez proces, z Twoimi<br/>limitami czasu i ponowieniami --<br/>z httpx2, nie z httpx"]
+    S["<b>Iterator strumienia</b><br/>to samo wywolanie, oddajace<br/>zdarzenia az do calej odpowiedzi"]
+    M --> H --> S
