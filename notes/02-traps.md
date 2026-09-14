@@ -18,10 +18,6 @@ and never reused; a retired entry keeps its number and says why. An owner
 reading `Ch. N §N.M, delivered` names the section that elicits the trap in
 the written chapter; an owner reading a bare `Ch. N` is still a promise.
 
-An owner reading **Ch. 6 §6.4 (delivered)** means that chapter is written and
-that section elicits the trap. An owner with no section is a promise the
-chapter still has to keep.
-
 ## Part I — Runtime and toolchain
 
 | # | The habit, in the reader's voice | What Python does | Owner |
@@ -55,18 +51,18 @@ chapter still has to keep.
 | 22 | A closure in a loop captures the loop variable's value | It captures the variable, late-bound; every closure sees the last value. Bind with a default argument or `functools.partial` | Ch. 5 |
 | 23 | `s += piece` in a loop is fine, strings are strings | Quadratic; `"".join(pieces)` is linear | Ch. 5 |
 | 24 | A generator is `yield return` | It is, and it also has `send()`, `close()` and a `return` value carried in `StopIteration` — a coroutine before `async` existed | Ch. 5 |
-| 25 | `except:` catches everything, like `catch {}` | It catches `KeyboardInterrupt` and `SystemExit` too, which is why the process cannot be stopped. `except Exception:` at most, and log the traceback. ruff reports it as E722 | Ch. 6 §6.4 (delivered) |
-| 26 | Catch `Exception`, log it, continue — defensive | It converts a crash into a silent wrong answer; EAFP means catching the exception you expect, not every one. **The one trap in this chapter that nothing in the book's toolchain reports**, which is why it is the one that reaches production | Ch. 6 §6.4 (delivered) |
-| 27 | `raise e` inside `except` re-throws, like `throw ex;` | **This entry was wrong, and the chapter that owns it measured the correction.** Python keeps the traceback on the exception OBJECT, so `raise e` truncates nothing: every frame under it survives and the re-raise line is *added*, so the re-raising frame appears twice. Bare `raise` is still the better habit — the duplicate frame is noise — but the C# rule does not transfer and neither does the anxiety. What a re-raise can lose is the *link*: `raise New(...)` without `from` sets `__context__` rather than `__cause__` | Ch. 6 §6.4 (delivered) |
-| 28 | `return` in `finally` is harmless | It swallows any in-flight exception and returns as if nothing happened. Not silently on the pinned interpreter: PEP 765 has the compiler emit `SyntaxWarning: 'return' in a 'finally' block`, and ruff reports B012 and SIM107 — and it still swallows, because a warning is not an error | Ch. 6 §6.4 (delivered) |
-| 29 | A method's hint tells me what it raises | Nothing in the type system carries exceptions; a docstring does, nothing verifies it, and Python has no checked exceptions — nor does C#, so what transfers badly is the tooling around them rather than the language | Ch. 6 §6.3 (delivered) |
-| 30 | `KeyError` means something went wrong | `KeyError`, `StopIteration` and `AttributeError` are protocol: a `dict` lookup, an iterator's end and `getattr` all speak through them | Ch. 6 §6.2 (delivered) |
-| 31 | Truthiness is `bool`, like C# | Empty containers, zero, `None` and empty strings are false; `if items:` is idiomatic and `if items is not None:` is a different question | Ch. 6 §6.2 (delivered) |
-| 31a | An exception class is a `FooException` | Python's suffix is `Error`, and ruff's N818 reports a class without it. `JobUnavailable` fails the lint until it is `JobUnavailableError` | Ch. 6 §6.3 (delivered) |
-| 32 | A module is a namespace; importing it is free and pure | A module is an object that runs once, top to bottom; a side effect at import runs for every importer, and a circular import is two modules half-run | Ch. 7 |
-| 33 | `from x import *` is `using x;` | It copies every public name into the importing module and hides where anything came from; `import x` and `from x import name` | Ch. 7 |
-| 34 | I can name a variable `list`, `id` or `type` | It shadows the builtin for the rest of the scope, and the failure arrives three functions later | Ch. 7 |
-| 35 | I need a DI container | A composition root is a function; `functools.partial` and a `Protocol` do what the container did, and FastAPI's `Depends` is the one container most readers will meet | Ch. 7 |
+| 25 | `except:` catches everything, like `catch {}` | It catches `KeyboardInterrupt` and `SystemExit` too, which is why the process cannot be stopped. `except Exception:` at most, and log the traceback. ruff reports it as E722 | Ch. 6 §6.4, delivered |
+| 26 | Catch `Exception`, log it, continue — defensive | It converts a crash into a silent wrong answer; EAFP means catching the exception you expect, not every one. **The one trap in this chapter that nothing in the book's toolchain reports**, which is why it is the one that reaches production | Ch. 6 §6.4, delivered |
+| 27 | `raise e` inside `except` re-throws, like `throw ex;` | **This entry was wrong, and the chapter that owns it measured the correction.** Python keeps the traceback on the exception OBJECT, so `raise e` truncates nothing: every frame under it survives and the re-raise line is *added*, so the re-raising frame appears twice. Bare `raise` is still the better habit — the duplicate frame is noise — but the C# rule does not transfer and neither does the anxiety. What a re-raise can lose is the *link*: `raise New(...)` without `from` sets `__context__` rather than `__cause__` | Ch. 6 §6.4, delivered |
+| 28 | `return` in `finally` is harmless | It swallows any in-flight exception and returns as if nothing happened. Not silently on the pinned interpreter: PEP 765 has the compiler emit `SyntaxWarning: 'return' in a 'finally' block`, and ruff reports B012 and SIM107 — and it still swallows, because a warning is not an error | Ch. 6 §6.4, delivered |
+| 29 | A method's hint tells me what it raises | Nothing in the type system carries exceptions; a docstring does, nothing verifies it, and Python has no checked exceptions — nor does C#, so what transfers badly is the tooling around them rather than the language | Ch. 6 §6.3, delivered |
+| 30 | `KeyError` means something went wrong | `KeyError`, `StopIteration` and `AttributeError` are protocol: a `dict` lookup, an iterator's end and `getattr` all speak through them | Ch. 6 §6.2, delivered |
+| 31 | Truthiness is `bool`, like C# | Empty containers, zero, `None` and empty strings are false; `if items:` is idiomatic and `if items is not None:` is a different question | Ch. 6 §6.2, delivered |
+| 31a | An exception class is a `FooException` | Python's suffix is `Error`, and ruff's N818 reports a class without it. `JobUnavailable` fails the lint until it is `JobUnavailableError` | Ch. 6 §6.3, delivered |
+| 32 | A module is a namespace; importing it is free and pure | A module is an object that runs once, top to bottom; a side effect at import runs for every importer, and a circular import is two modules half-run | Ch. 7 §7.1, delivered |
+| 33 | `from x import *` is `using x;` | It copies every public name into the importing module and hides where anything came from; `import x` and `from x import name` | Ch. 7 §7.2, delivered |
+| 34 | I can name a variable `list`, `id` or `type` | It shadows the builtin for the rest of the scope, and the failure arrives three functions later | Ch. 7 §7.2, delivered, at module level as well as at name level |
+| 35 | I need a DI container | A composition root is a function; `functools.partial` and a `Protocol` do what the container did, and FastAPI's `Depends` is the one container most readers will meet | Ch. 7 §7.5, delivered |
 
 ## Part III — Concurrency
 
