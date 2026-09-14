@@ -1,0 +1,8 @@
+flowchart TB
+    M["Jeden model sladu, przeniesiony<br/>dwukrotnie: wywolania, zdarzenia<br/>i tury na jednej osi pozycji"]
+    D[".NET, agent-eval-bench<br/>dwanascie asercji<br/>oraz sedzia z rubryka"]
+    T["TypeScript, judge-worker<br/>tylko sedzia z rubryka,<br/>nad schematem zod"]
+    P["Python, trace-assert<br/>tylko dwanascie asercji,<br/>nad zamrozonymi dataclass"]
+    M --> D
+    M --> T
+    M --> P

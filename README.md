@@ -15,12 +15,15 @@ Both editions are built from one source and published on every push to
 
 ## Status
 
-**This is the scaffold.** The structure, the build, every gate and the front
-matter exist and compile in both languages, and each of the fourteen chapters
-is a brief printed where the chapter will go. No chapter is written. The
-outstanding work is tracked as GitHub issues under the `chapter`, `appendix`,
-`experiment` and `infrastructure` labels, and printed for a reader in
-Appendix E, which the build computes rather than anybody types.
+**The scaffold, plus Chapter 14.** The structure, the build, every gate and
+the front matter exist and compile in both languages. **Chapter 14 is
+written**, and with it the guiding project `trace-assert` is complete: the
+trace model and all twelve deterministic assertions, built and run by the
+repository's own CI. Every other chapter is a brief printed where the
+chapter will go. The outstanding work is tracked as GitHub issues under the
+`chapter`, `appendix`, `experiment` and `infrastructure` labels, and printed
+for a reader in Appendix E, which the build computes rather than anybody
+types.
 
 `CLAUDE.md` is the working record: what is done, the conventions, the build
 traps already hit, and what is left. Read it before touching a chapter.

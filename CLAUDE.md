@@ -19,14 +19,16 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **0 of 14 written.** Every chapter is a brief printed where the chapter will go | all fourteen |
+| Chapters | **1 of 14 written: Chapter 14.** Every other chapter is a brief printed where the chapter will go | Chapters 1 to 13 |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: the `trace-assert` skeleton, the first listing, the first exercise, the two measurement scripts, and CI runs all of it | every chapter's listings and exercises; the eight experiments |
+| Code | `code/` is a locked uv project: `trace-assert` **complete** (the trace model and all twelve assertions), Chapter 14's three listings, four exercises, three measurement scripts, and CI runs all of it | Chapters 1 to 13's listings and exercises; the eight experiments |
 
-**This is the scaffold.** It exists so that the shape of the book can be
-argued with before Chapter 1 is written, and so that the first chapter is
-written into a build that already has every gate. Nothing in it teaches
-Python yet.
+**The scaffold plus one chapter.** The scaffold exists so that the shape of
+the book can be argued with before Chapter 1 is written, and so that the
+first chapter is written into a build that already has every gate.
+Chapter 14 is written, out of order and deliberately, because it is the one
+chapter whose content is a port of a specification that could be read and
+copied rather than invented; see its pass note below for what that cost.
 
 **Two editions, one paper size, both clean.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
@@ -34,8 +36,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 37 | 0 | 0 | 0 | 0 |
-| `main-pl` | 37 | 0 | 0 | 0 | 0 |
+| `main-en` | 49 | 0 | 0 | 0 | 0 |
+| `main-pl` | 50 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -46,17 +48,17 @@ for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **14 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **13 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 2 listing references, every file and region present · 1 exercise, with a
-  starter, a solution and a test · 2 transcript references, every file
-  present · 14 code files, none over 79 columns · 19 pins agree between
-  `preamble.tex` and `code/pyproject.toml`
+- 16 listing references, every file and region present · 4 exercises, each
+  with a starter, a solution and a test · 8 transcript references, every
+  file present · 30 code files, none over 79 columns · 19 pins agree
+  between `preamble.tex` and `code/pyproject.toml`
 - **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
   reader that something was not run
-- 4 Mermaid sources, two per language, all rendering, both placed
-- 9 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 26 labels in each edition,
+- 8 Mermaid sources, four per language, all rendering, all placed
+- 12 computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · 44 labels in each edition,
   0 mismatches
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
@@ -295,16 +297,19 @@ put to the reader before it is named.
 
 `trace-assert`, under `code/src/trace_assert/`: a Python port of the first
 layer of [agent-eval-bench](https://github.com/konradcinkusz/agent-eval-bench),
-deterministic assertions over an execution trace, in pytest. The skeleton
-(`Event`, `Trace`, one test) is in the tree and CI runs it; stage 01 lands
-in Chapter 11, stage 02 in Chapter 13, and Chapter 14 completes, packages
-and publishes it and compares the three ports.
+deterministic assertions over an execution trace, in pytest. **The trace
+model and all twelve assertions are in the tree and CI runs them**, with
+18 tests that watch every assertion produce a known answer in both
+directions. Stage 01 lands in Chapter 11 and stage 02 in Chapter 13;
+Chapter 14 is written and carries the full set, the packaging and the
+comparison.
 
-**The assertion list is that project's own and must be copied from its
-specification when Chapter 14 is written, never reconstructed from
-memory.** The count printed in the book is whatever the specification says.
-The repository was not consulted while scaffolding, so nothing here names
-an assertion type.
+**The assertion list is that project's own and was copied from its
+specification, never reconstructed from memory.** It is **twelve**, and
+`notes/01-curriculum.md` §5 now carries the list, the three files in that
+repository that declare it and the commit they were read at. Never extend
+it here: a thirteenth assertion in this port is a thirteenth that two other
+ports of the same design do not have.
 
 ---
 
@@ -702,6 +707,140 @@ for reasons worth keeping rather than silently dropping:
   general (`\pysettingsver` names `pydantic-settings`, not
   `pysettings`), so the dict is the one place that mapping can live.
 
+### Chapter 14 pass, September 2026
+
+**Written out of order, before Chapters 11 and 13.** Its content is a port
+of a specification that can be read and copied, so it is the one chapter
+whose material does not have to be invented; that is the whole reason it
+went first. Everything below is what reading the specification, and the
+other two ports, contradicted.
+
+**The brief was wrong about TypeScript, and the correction is a better
+chapter.** The brief, the introduction and `notes/01-curriculum.md` §5 all
+say the same instrument exists in .NET and TypeScript, so Chapter 14 can
+compare three ports of one design. Opening the repositories:
+
+- `agent-eval-bench` (commit `12b1bbd`) is the .NET port and carries **both**
+  layers — the twelve deterministic assertions and the rubric judge. It
+  contains **no `.ts` file at all**; its `package.json` says in as many
+  words that it is a .NET repository whose Node packages are documentation
+  tooling (markdownlint, a link checker, an ajv scenario validator).
+- The TypeScript project is `judge-worker` (commit `96dce14`), and it is
+  **Layer 2**: a BullMQ worker that runs LLM-as-a-judge grading. It has no
+  assertion evaluator. What it *does* port is the trace: its
+  `src/types/trace.ts` opens with *"Trace shape ported from
+  agent-eval-bench's TraceRecording"*.
+
+So **the trace model is what exists in three languages and the assertion
+layer exists in two** — and no language carries both layers plus the
+model's third port. That is a sharper claim than the one it replaces, and
+§14.6 makes it the section's finding rather than a footnote: what travels
+between ports is the data shape, and each language re-implements its layer
+in its own idiom. The brief in `tools/chapters.json` is corrected, §5 of the
+curriculum notes carries the correction with its evidence, and the chapter
+carries a `note` box saying the brief was corrected rather than the chapter
+written to it. **The introduction's sentence survives** — it promises a
+table comparing what the instrument cost to build in three languages, and
+that is what the table does.
+
+**The count is twelve, and three files in that repository agree.** The
+schema's `$defs.assertion.oneOf`, the C# evaluator's twelve-arm switch
+(whose doc comment opens *"Twelve assertion types"*) and
+`docs/diagrams/c2-layer1-assertions.mmd` all declare the same twelve. The
+list, the arguments each takes and the commit are now in
+`notes/01-curriculum.md` §5, which is the first item of the infrastructure
+issue Chapter 14 could not be written without.
+
+**The scaffold's trace model was a guess and it did not survive.** The
+skeleton had `Event(kind, name, payload)` and `Trace(events)` — a flat log
+with a discriminator — written deliberately without opening the
+specification. A trace in that specification is three parallel records with
+tool calls and contract events sharing **one position index**, and the
+reason is `order`: comparing a tool call against an event needs one ruler,
+and a single list has none until you invent one. Replaced rather than kept
+beside the real model, because a finished package with two trace types is a
+package whose public names are not all claims about it. §14.2 makes the
+wrong model the elicited trap.
+
+**The C# port's own three disciplines were worth porting and one of them is
+load-bearing.** Nothing matches prose; **no assertion passes vacuously**;
+an unrecognised assertion is an error rather than a pass. The middle one is
+the chapter's best idea and is exercise 14.2: `call_attempts` written the
+obvious way is green on a run where the tool was never called, because the
+maximum of nothing is zero and zero is under every bound — so a suite
+asserting restraint passes on the one run it should be loudest about.
+
+**Where a contract can live differs between the ports, and that is not a
+language difference.** The .NET port refuses a malformed assertion with a
+JSON schema because its assertions arrive from hand-written YAML; the
+Python port has no file in the loop, so `tool_called(..., times=1,
+at_least=1)` raises `ValueError` rather than silently preferring one bound.
+The schema's own comment says the C# evaluator reads `times` and ignores
+`at_least`, which is the slack this port closes.
+
+**The suite's run time is committed as a ceiling, not a figure.** The
+seconds this machine took are a property of this machine, and a committed
+wall-clock time makes `make verify` go red on every run until somebody
+switches it off — which is how a drift gate stops being read.
+`code/measure/trace_assert.py` asserts the run clears a five-second ceiling
+and commits the ceiling; the page says *under `\val{ta.ceiling}` seconds*.
+The assertion count and the test count are read from the package and from
+pytest's own summary rather than typed. Inherited from the math book's rule
+that a measured residual is committed as a bound.
+
+**`uv build` on this book's own project does not build `trace-assert`, and
+the chapter says so.** Measured by building it and reading the wheel's
+metadata back: the distribution is `python-for-dotnet-engineers`, requires
+`>=3.14, <3.15`, and declares **twelve** runtime dependencies that
+`trace_assert` imports none of — every import in the package is from the
+standard library. That is not a defect to hide: `code/` exists to hold
+fourteen chapters of listings, and what you publish is a project, which is
+its metadata. Renaming `[project]` to `trace-assert` was tried on a scratch
+copy (the lock regenerates cleanly, a 116-line diff that is the root entry
+moving alphabetically) and **not taken**, because it would publish the
+book's workspace README as the package's PyPI page and its Python pin as
+the library's. §14.7 reports the measurement and exercise 14.3 has the
+reader write the table that would be right.
+
+**Publishing itself needs a human and the chapter says which part.**
+`uv publish --trusted-publishing automatic` is verified to exist (`uv
+publish --help` lists `automatic`, `always`, `never`), and the one-time
+configuration is on the index's side, outside this repository. It is an
+open infrastructure issue, and the chapter states that rather than
+implying the step was completed.
+
+#### Two things measured on the way
+
+**pytest 9's `--collect-only -q` prints a per-FILE count**
+(`tests/test_trace_assert.py: 18`) where pytest 8 printed one node id per
+line — so counting collected tests by counting lines silently returns zero,
+which it did on the measurement script's first run. The stable thing to
+parse is the run's own `N passed` summary. And `-q` on top of the project's
+own `addopts = "-q"` is not idempotent: pytest reads the pair as quieter
+still and drops that summary, so the script clears `addopts` with
+`-o addopts=` first.
+
+**Both figures were drawn as `flowchart LR` and were height-bound.** Three
+branches off one node stack vertically in an LR flowchart: 410 x 356 pt and
+415 x 306 pt, aspect ratios 1.15 and 1.36, both under the ~1.4 crossover
+the scaffold pass recorded, so the height cap binds and the figure takes
+its full `0.42\textheight`. Redrawn as `flowchart TB` — the same three
+branches side by side — they came out 636 x 233 and 581 x 233 in English,
+654 x 250 and 589 x 233 in Polish: ratios 2.49 to 2.73, all width-bound,
+node text 7.7 to 8.7 pt by the recorded formula, which is the band the
+scaffold's own figures sit in. Measured with `pdfinfo` before the captions
+were written.
+
+#### Two Polish overfull boxes, both the recorded class
+
+50.0 pt and 22.2 pt, both from a long `\code{}` run mid-paragraph in
+Polish where the English is clean — `tool\_called\_with` and
+`trace\_assert` — because Polish words are longer and the line has less
+slack. `checklog.py`'s own message names the remedy and it worked without a
+detour: **start a sentence with the identifier** rather than rewording
+around it. The English edition had zero overfull boxes throughout, which is
+this book's standing reason to build both.
+
 ---
 
 ## After each pass
@@ -728,20 +867,22 @@ Tag from a local clone.
 
 ## What is left
 
-Nothing in the book is written. The outstanding work is tracked as GitHub
-issues under the `chapter`, `appendix`, `experiment` and `infrastructure`
-labels — **work from the labels, not from a list here**, because a list in
-this file is the class of claim nothing can check. In rough order:
+Chapter 14 is written and the guiding project is complete; nothing else in
+the book is. The outstanding work is tracked as GitHub issues under the
+`chapter`, `appendix`, `experiment` and `infrastructure` labels — **work
+from the labels, not from a list here**, because a list in this file is the
+class of claim nothing can check. In rough order:
 
 1. **Chapters 1 to 7**, which are v0.1. Suggested order: 1, 2, 3 first,
    because every later chapter's listings assume the reader trusts the
    environment; then 4 to 7 in order, each leaning on the last.
 2. **Chapters 8 to 12** (v0.2), with the trace-assert stage 01 in Chapter 11
    and experiments E4 to E7.
-3. **Chapters 13 and 14 and Appendices A to D** (v1.0). Appendix B is
-   written from `notes/02-traps.md`; Appendix C's version column prints
-   from the preamble's macros and is never typed; Appendix D needs the
-   open decision above settled first.
+3. **Chapter 13 and Appendices A to D** (v1.0) — Chapter 14 is written.
+   Appendix B is written from `notes/02-traps.md`, and its entry 59 is
+   already delivered; Appendix C's version column prints from the
+   preamble's macros and is never typed; Appendix D needs the open
+   decision above settled first.
 4. **The eight experiments**, each free, each writing a value file that a
    chapter reads with `\val{}`.
 5. **The first Pages deployment**, which needs one human click.

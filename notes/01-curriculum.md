@@ -122,25 +122,98 @@ A Python port of the first layer of
 [agent-eval-bench](https://github.com/konradcinkusz/agent-eval-bench):
 deterministic assertions over an execution trace, expressed as pytest
 fixtures and functions. It is the book's one running thread and it exists
-for three reasons: the reader ships a package by the end; the same
-instrument exists in .NET and TypeScript, so Chapter 14 can compare three
+for three reasons: the reader ships a package by the end; **the same trace
+model exists in .NET and in TypeScript**, so Chapter 14 can compare three
 ports of one design; and the book's own CI runs it from the scaffold
 onward, which is what makes the *tests pass without a model* rule
 verifiable rather than stated.
 
+> **Corrected in the Chapter 14 pass, September 2026.** This paragraph said
+> *the same instrument exists in .NET and TypeScript*. What exists in three
+> languages is the **trace model**; the assertion layer exists in two. The
+> TypeScript project is
+> [judge-worker](https://github.com/konradcinkusz/judge-worker), and its
+> `src/types/trace.ts` says in its own docstring that the shape was ported
+> from `agent-eval-bench`'s `TraceRecording` — but what it builds on top is
+> Layer 2, the rubric judge. There is no TypeScript port of Layer 1:
+> `agent-eval-bench` carries no `.ts` file at all and its `package.json`
+> says in as many words that it is a .NET repository whose Node packages
+> are documentation tooling. So each language carries the trace and one
+> layer, and no language carries both — which is a better sentence than the
+> one it replaces, and is what Chapter 14 §14.6 says.
+
 | Stage | Chapter | Adds |
 |---|---|---|
-| skeleton | scaffold | `Event(kind, name, payload)`, `Trace(events)` with `of_kind` and `names`; one test |
+| skeleton | scaffold | a placeholder trace model and one test; **superseded, see below** |
 | 01 | 11 | the `trace` fixture and the first two assertions, with failure messages that name the offending event |
 | 02 | 13 | recording a model call as trace events, from the Chapter 13 client |
 | final | 14 | the full assertion set, packaged with `uv build`, published by trusted publishing |
 
-**The assertion list is agent-eval-bench's, and it must be copied from that
-project's specification when Chapter 14 is written, never reconstructed from
-memory.** The count is whatever that specification says. This note
-deliberately does not list them, because a list written here from
-recollection would be the next thing to go stale, and the whole point of the
-project is that three ports implement one design.
+> **Chapter 14 was written before Chapters 11 and 13, and two consequences
+> are worth having in writing rather than rediscovering.**
+>
+> The scaffold's `Event(kind, name, payload)` / `Trace(events)` was a guess
+> made without opening the specification — deliberately, because the
+> scaffold said it would not name an assertion type it had not read. The
+> guess did not survive contact: a trace is not a flat event log, it is
+> three parallel records with tool calls and events on one shared position
+> index, because `order` compares a call against an event and needs one
+> ruler. The placeholder is replaced rather than kept beside the real
+> model, since a finished package with two trace types is a package whose
+> public names are not all claims.
+>
+> And the full assertion set lands in stage `final`, which means the two
+> assertions stage 01 was to add are already in `assertions.py` when
+> Chapter 11 comes to be written. Chapter 11's listings should point at
+> them by region rather than adding them, and the fixture is still its own
+> to build. **Rows 01 and 02 above are deliberately not rewritten from
+> inside the Chapter 14 pass**: rewriting another chapter's contract from
+> outside it is how a brief stops being a contract.
+
+### The assertion list, copied
+
+**The list is agent-eval-bench's and was copied from that project's
+specification, never reconstructed from memory.** The count is whatever
+that specification says, and it says **twelve**. Three files in that
+repository declare the same twelve and they agree:
+
+- `evals/schema/scenario.schema.json`, `$defs.assertion.oneOf` — twelve
+  branches, each a `const` on the `assert` key, with the arguments each
+  takes and a `description` on several saying why;
+- `tests/AbsenceConcierge.Evals/Assertions/AssertionEvaluator.cs` — a
+  twelve-arm switch whose own doc comment opens *"Twelve assertion types"*,
+  with a default arm that throws rather than grading an unknown type as a
+  pass;
+- `docs/diagrams/c2-layer1-assertions.mmd` — the same twelve, drawn in the
+  three families below.
+
+Read at commit `12b1bbd` (the tip of `main` on 14 September 2026).
+
+| Family | Assertion | Arguments |
+|---|---|---|
+| presence | `tool_called` | `tool`, and `times` **or** `at_least` |
+| presence | `tool_called_with` | `tool`, `args`, `match` = `subset`\|`exact` |
+| presence | `event_emitted` | `event`, and `times` **or** `at_least` |
+| presence | `span_attribute` | `attribute`, `equals`, optional `span` |
+| presence | `call_attempts` | `tool`, `max_attempts` |
+| absence | `tool_not_called` | `tool` |
+| absence | `event_not_emitted` | `event` |
+| shape | `order` | `first`, `then` (each a tool or an event) |
+| shape | `argument_grounded` | `tool`, `arg`, `source_tool` |
+| shape | `outcome` | `value`, `turn` (default `last`) |
+| shape | `termination` | `reason` = `decision`\|`iteration_cap`\|`error` |
+| shape | `output_excludes_internal_ids` | none |
+
+`times` and `at_least` together is forbidden by the schema and the schema
+says why: the C# evaluator reads `times` and ignores the other, so an
+author who wrote both would believe a bound nobody checked. The Python port
+has no schema in the loop, so `trace_assert` raises `ValueError` on the
+pair itself.
+
+Three disciplines run through all twelve and are in the C# evaluator's own
+doc comment: nothing matches prose; no assertion passes vacuously; an
+unrecognised assertion is an error rather than a pass. Chapter 14 §14.4
+carries them.
 
 The rule that keeps the stages honest is the LangChain book's: every stage's
 tests pass with no network, no database server and no model.
