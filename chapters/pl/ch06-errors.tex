@@ -135,10 +135,10 @@ jest tu ozdobą \dash{} sekcja~\ref{sec:ch06-keywords} mówi, po co jest.
 \label{sec:ch06-protocol}
 \index{exceptions!as protocol}
 
-\code{KeyError}, \code{StopIteration} i \code{AttributeError} nie są stanami
-błędu. Tak trzy protokoły Pythona mówią \emph{nie}, i każdy z nich jest
-normalnie zgłaszany, przechwytywany i wyrzucany piętro wyżej, tak że niczyj
-kod go nie widzi.
+\code{KeyError}, \code{StopIteration} i \code{AttributeError} to trzy nazwy
+klas, które log Pythona pokazuje najczęściej, a instynkt z C\# każe widzieć w
+każdej z nich usterkę z błędem w tle. Zanim na tym oprzesz decyzję, zobacz,
+skąd się biorą.
 
 Najczystszym przykładem jest pętla. Instrukcja \code{for} nie sprawdza flagi
 \enquote{są jeszcze elementy}, bo takiej flagi nie ma. Woła \code{next},
@@ -152,6 +152,11 @@ dopóki \code{next} nie zgłosi wyjątku.
 sięga po atrybut, przechwytuje i wyrzuca odpowiedź.
 
 \pyregion{code/ch06/protocol.py}{getattr}{hasattr, rozpisane}{lst:ch06-getattr}
+
+\noindent
+Żadna z tych trzech rzeczy nie jest stanem błędu. Tak trzy protokoły Pythona
+mówią \emph{nie}, i każdy z nich jest normalnie zgłaszany, przechwytywany i
+wyrzucany piętro wyżej, tak że niczyj kod go nie widzi.
 
 \begin{trapbox}
 \textbf{\enquote{\code{KeyError} w logu znaczy, że coś poszło źle.}}
