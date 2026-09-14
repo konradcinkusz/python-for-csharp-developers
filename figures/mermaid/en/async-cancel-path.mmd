@@ -1,0 +1,3 @@
+flowchart LR
+    C["task.cancel()<br/>records the request<br/>and returns immediately"] --> A["at the coroutine's next await<br/>CancelledError is raised<br/>inside it"]
+    A --> E["it inherits from BaseException,<br/>so it passes through except Exception<br/>and stops at except BaseException"]
