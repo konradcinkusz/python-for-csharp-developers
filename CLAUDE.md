@@ -104,7 +104,7 @@ does not:
 - Prose words against a budget of 3,000, and `csbox` translation boxes,
   English first: Chapter 1 at 2,399 / 2,098 with 2 boxes, Chapter 2 at
   2,721 / 2,330 with 5, Chapter 3 at 2,915 / 2,516 with 2, Chapter 5 at
-  2,540 / 2,258 with 2, Chapter 6 at 2,638 / 2,311 with 3, Chapter 7 at
+  2,535 / 2,258 with 2, Chapter 6 at 2,638 / 2,311 with 3, Chapter 7 at
   2,581 / 2,242 with 3, Chapter 8 at 2,269 / 1,990 with 2, Chapter 10 at
   2,386 / 2,069 with 3, Chapter 13 at 2,543 / 2,223 with 2. These are what
   `--words` and `--csbox` print and they move with any prose edit, so

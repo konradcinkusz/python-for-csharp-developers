@@ -52,12 +52,13 @@ a new kind of thing.
 \section{A decorator runs; an attribute does not}
 \label{sec:ch05-decorators}
 
-This is the chapter's headline, and of the mappings in this chapter it is
-the one that costs most to get wrong. \code{[Timed]} in C\# is metadata.
-The compiler records it, it changes nothing, and it does something only when a framework
-reflects over it and decides to act. Reading \code{@timed} the same way is
-reading it as inert, and it is not: \code{@timed} is a function call that
-happens the instant the \code{def} statement finishes.
+This is the chapter's headline, and of its mappings the one that costs
+most to get wrong. \code{[Timed]} in C\# is metadata. The compiler
+records it, it changes nothing, and it does something only when a
+framework reflects over it and decides to act. Reading \code{@timed} the
+same way is reading it as inert, and it is not: \code{@timed} is a
+function call that happens the instant the \code{def} statement
+finishes.
 
 \pyregion{code/ch05/decorators.py}{definition_time}{The decorator runs at definition time; the body runs at call time}{lst:ch05-deftime}
 
