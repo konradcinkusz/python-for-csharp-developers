@@ -1,0 +1,3 @@
+flowchart LR
+    A["main() runs build()<br/>once, at the edge"] --> B["build() is the only function<br/>that names a concrete class,<br/>and it binds them with partial"]
+    B --> C["every other function takes<br/>what it needs as an argument,<br/>so a test hands it anything"]

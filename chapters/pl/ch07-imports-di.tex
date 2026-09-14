@@ -1,36 +1,401 @@
-%% ch07 --- Importy i wstrzykiwanie zależności: moduły, cykle i korzeń kompozycji
+%% ch07 --- Importy i wstrzykiwanie zależności: moduły, cykle i korzeń
+%% kompozycji.
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie zalążkowego bloku (tego, który zaczyna się po
-%% linii \chapter) i zastąpienie go rozdziałem -- po czym ten plik nie jest
-%% już generowany.
+%% Napisany. Bliźniak angielski musi mieć tę samą strukturę, te same liczby w
+%% tej samej kolejności i te same klucze listingów, rysunków i ćwiczeń;
+%% sprawdzenia C4, C12 i C14 porównują wszystkie trzy.
+%%
+%% Decyzja tłumaczeniowa: lifetime to "czas życia", nie "cykl życia" --
+%% "cykl" w tym rozdziale znaczy cykl importów i kolizja byłaby niepotrzebna.
 
 \chapter{Importy i wstrzykiwanie zależności: moduły, cykle i korzeń kompozycji}
 \label{ch:imports}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\noindent
+Dyrektywa \code{using} w C\# jest instrukcją dla kompilatora, gdzie szukać
+nazw. Niczego nie uruchamia. Nic w wskazanym przez nią zestawie nie dzieje
+się dlatego, że ją napisałeś, kolejność dyrektyw na górze pliku nie ma
+znaczenia, a napisanie jednej dwa razy jest kwestią stylu, nie zachowania.
 
-Argument: a module is an object that runs once, and most import pain is a
-consequence of that one sentence. The import system against namespaces and
-assemblies: \code{sys.modules}, packages, \code{\_\_init\_\_.py}, relative
-against absolute imports, \code{importlib}, side effects at import time,
-circular imports and the three ways out; \code{python -m} and the
-\code{src/} layout seen again from this side. Dependency injection: the
-composition root without a container (plain functions,
-\code{functools.partial}, a \code{Protocol}) and with one \dash{} which
-library, if any, verified against what is maintained on the day of writing
-rather than remembered \dash{} against
-\code{Microsoft.Extensions.DependencyInjection}: singleton, scoped and
-transient lifetimes and what Python does instead; FastAPI's \code{Depends}
-previewed as the one container most readers will meet, and handed to chapter
-9. Payoff: a package structured so that nothing global is mutated at import
-and a test can substitute anything. Listings: a circular import reproduced
-and fixed three ways; a composition root in thirty lines. Four exercises.
+Nic z tego nie jest prawdą w Pythonie i prawie wszystko, co psuje się przy
+importach, wynika z jednego zdania, które to zastępuje:
+\textbf{moduł jest obiektem, zbudowanym przez wykonanie pliku, raz}.
+\code{import} jest wyrażeniem, które go buduje. Ten rozdział traktuje to
+zdanie poważnie przez pięć sekcji, a na końcu okazuje się, że rozstrzygnęło
+pytanie, które wygląda na niezwiązane: gdzie podziewa się wstrzykiwanie
+zależności, gdy język nie ma kontenera.
 
-\medskip
-\textbf{Budżet słów:} 3000.\\
-\textbf{Wydanie:} v0.1.
-}
+\begin{csbox}
+Najbliższą konstrukcją C\# nie jest wcale \code{using}. Jest nią klasa
+statyczna ze statycznym konstruktorem: jedna instancja na proces,
+zainicjowana przez wykonanie kodu, przy pierwszym kontakcie. Wersja
+Pythona różni się dwiema rzeczami, które mają znaczenie. Wyzwala ją
+\emph{import}, a nie pierwsze użycie; a różnicą, która gryzie, nie jest
+bezpieczeństwo wątkowe, bo CPython bierze blokadę na moduł na czas
+wykonywania ciała i wykrywa własne zakleszczenia, tylko to, że cykl
+pozwala drugiemu modułowi zobaczyć ten w połowie zbudowany, o czym jest
+\S\ref{sec:cycles}.
+\end{csbox}
+
+\section{Moduł jest obiektem, który wykonuje się raz}
+\label{sec:module-object}
+\index{moduły!jako obiekty}
+
+Oto moduł, którego ciało robi coś, co widać.
+
+\pyfile{code/ch07/greeting.py}{Ciało modułu to kod i on się wykonuje}{lst:ch07-greeting}
+
+\noindent
+Teraz drugi plik importuje go trzy razy. Zanim to uruchomisz: ile razy ciało
+coś wypisze i czy te trzy nazwy to ten sam obiekt?
+
+\pyfile{code/ch07/runs_once.py}{Trzy importy jednego modułu}{lst:ch07-runs-once}
+
+\transcript{ch07-runs-once}
+
+\noindent
+Raz, i tak. Mechanizmem jest słownik. \code{import x} szuka klucza
+\code{"x"} w \api{sys.modules}; pudło wykonuje plik od góry do dołu i wstawia
+powstały obiekt modułu do cache pod tym kluczem, a trafienie zwraca to, co
+już tam jest, i nie wykonuje niczego. \api{importlib.import\_module} to ta
+sama operacja zapisana jako funkcja, i dlatego listing może nią zastąpić
+drugiego i trzeciego importującego.
+
+\mermaidfig{ch07-import-once}{Co robi \code{import x}. Ciało \code{x} wykonuje się przy pudle i nigdy więcej}{instrukcja importu jako zajrzenie do cache}
+
+\noindent
+Wynikają z tego natychmiast trzy konsekwencje i wszystkie trzy inżynierowie
+przychodzący z .NET rozumieją opacznie.
+
+\begin{itemize}[leftmargin=1.4em, itemsep=3pt]
+  \item \textbf{Import nie jest darmowy.} Cokolwiek robi ciało \dash{}
+        czyta plik, otwiera połączenie, zadaje pytanie środowisku \dash{}
+        robi to przy czyimś pierwszym imporcie, którym zwykle jest
+        najwolniejsza komenda, jaką masz, a nie ta, która tego
+        potrzebowała.
+  \item \textbf{Nazwa na poziomie modułu jest globalna dla procesu.} Obiekt
+        jest jeden, więc rzecz mutowalna związana na poziomie modułu jest
+        dzielona przez wszystkich importujących. To pole statyczne, bez
+        żadnej ceremonii, która kazałaby je uznać za decyzję.
+  \item \textbf{Kolejność importów staje się obserwowalna.}
+        \code{SALUTATION} z listingu~\ref{lst:ch07-greeting} czyta
+        środowisko w czasie importu, więc to, co trzyma, zależy od tego,
+        kiedy nastąpił pierwszy import, a test, który ustawi zmienną
+        później, nie zmieni niczego.
+\end{itemize}
+
+\begin{trapbox}
+\textbf{\enquote{Moduł to przestrzeń nazw; zaimportowanie go jest darmowe i
+czyste.}} Jest obiektem, a zbudowanie go wykonuje plik. Efekt uboczny na
+poziomie modułu zdarza się raz na cały proces, w momencie wyznaczonym przez
+kolejność importów, a nie przez ciebie \dash{} i najtańszą poprawką jest
+prawie zawsze przeniesienie pracy do funkcji, gdzie o momencie decyduje
+wołający.
+\end{trapbox}
+
+\begin{exercise}{e07_01_import_time_work}{Wynieś pracę poza czas importu}
+Plik startowy buduje słownik ustawień ze środowiska na poziomie modułu.
+Usuń go i daj modułowi funkcję \code{build\_settings()}, która wykona tę
+samą pracę, gdy zostanie wywołana. Jeden z testów importuje moduł, zmienia
+środowisko i \emph{dopiero potem} woła funkcję: wyrażenie słownikowe na
+poziomie modułu nie ma szans go przejść i o to właśnie chodzi.
+\end{exercise}
+
+\section{Pakiety i dwa sposoby uruchomienia pliku}
+\label{sec:packages}
+\index{moduły!pakiety}
+
+Pakiet to katalog z plikiem \code{\_\_init\_\_.py}, a użytecznie jest myśleć
+o nim tak, że pakiet też jest modułem: \code{\_\_init\_\_.py} \emph{jest}
+ciałem pakietu, wykonuje się raz, zanim cokolwiek w środku, a to, co zwiąże,
+jest tym, co \code{from shop import x} może znaleźć. Plik
+\code{\_\_init\_\_.py}, który dla wygody wołających importuje własne
+podmoduły, każe każdemu importującemu którykolwiek z nich zapłacić za
+wszystkie \dash{} i dlatego domyślnie w tej książce ten plik jest pusty.
+
+Zostają dwa pytania, które czytelnik naprawdę już spotkał: importy
+bezwzględne kontra względne oraz po co istnieje \code{python -m}. Mają jedną
+odpowiedź. Ten moduł melduje, za co interpreter go uważa.
+
+\pyregion{code/ch07/shop/where.py}{relative}{Import względny, próbowany w czasie importu}{lst:ch07-relative}
+
+\noindent
+A ten uruchamia ten sam plik na oba sposoby.
+
+\pyfile{code/ch07/two_ways.py}{Ten sam plik, uruchomiony jako plik i jako moduł}{lst:ch07-two-ways}
+
+\transcript{ch07-two-ways}
+
+\noindent
+Uruchomiony jako plik, moduł nie ma pakietu \dash{} \code{\_\_package\_\_}
+to \code{None} \dash{} więc import względny nie ma \emph{względem} czego
+być, a porażką jest \code{ImportError} mówiący o pakiecie nadrzędnym, a nie
+o brakującym pliku. Uruchomiony przez \code{-m}, interpreter importuje go
+jako część pakietu \code{shop} i import względny się rozwiązuje. Zwróć
+uwagę na drugą różnicę, bo to ona gryzie później: na czele \api{sys.path}
+stoi \emph{katalog samego skryptu} w pierwszym przypadku, a katalog, z
+którego uruchamiasz, w drugim.
+
+\begin{csbox}
+\code{-m} nie ma dokładnego odpowiednika w C\#, i to właśnie jest użyteczne.
+W .NET to, względem czego rozwiązuje się zestaw, jest zadeklarowane \dash{}
+przez projekt, a w czasie działania przez plik deps zapisany obok \dash{}
+więc katalog, w którym akurat stoisz, nie zmienia tego, jaki kod się
+ładuje. W Pythonie zmienia, bo \api{sys.path} zaczyna się od katalogu
+wybranego przez sposób uruchomienia procesu. Układ \code{src/} z
+rozdziału~\ref{ch:packaging} istnieje po to, by przestało to mieć
+znaczenie, a ta sekcja jest mechanizmem pod nim.
+\end{csbox}
+
+\noindent
+Ten wpis w \api{sys.path} jest \emph{pierwszy}, więc twój plik wygrywa z
+czymkolwiek o tej samej nazwie niżej, z biblioteką standardową włącznie.
+Cztery linie poniżej nie są błędne. Skopiuj je do katalogu pod jedną nazwą i
+działają; pod inną nie.
+
+\pyfile{code/ch07/shadow/innocent.py}{Cztery linie, które nie zależą od nazwy swojego pliku}{lst:ch07-innocent}
+
+\pyfile{code/ch07/shadowing.py}{Te same cztery linie, pod dwiema nazwami}{lst:ch07-shadowing}
+
+\transcript{ch07-shadowing}
+
+\noindent
+\code{import random} w pliku nazwanym \code{random.py} znajduje ten właśnie
+plik, wiąże moduł z nazwą, a moduł nie ma na sobie funkcji \code{random}.
+Komunikat nie nazywa ani przesłonięcia, ani pliku, który je spowodował.
+
+\begin{trapbox}
+\textbf{\enquote{Mogę nazwać plik albo zmienną \code{list}, \code{id},
+\code{type} czy \code{random}.}} Na poziomie modułu nazwa wygrywa z
+biblioteką standardową dla wszystkiego niżej w \api{sys.path}; wewnątrz
+funkcji wygrywa z nazwą wbudowaną do końca zasięgu. Oba psują się w pewnej
+odległości od linii, która je spowodowała, a komunikat nazywa objaw.
+\end{trapbox}
+
+\noindent
+Ostatnim kawałkiem publicznej powierzchni modułu jest ten, który C\# zapisuje
+modyfikatorem dostępu. Python nie ma \code{internal}: wiodące podkreślenie
+jest konwencją, a \code{\_\_all\_\_} jest jedyną rzeczą, która nadaje
+\code{from module import *} określone znaczenie. Bez niego gwiazdka kopiuje
+każdą nazwę niezaczynającą się od podkreślenia, w tym moduły, które ten plik
+zaimportował \dash{} więc import z gwiazdką potrafi wręczyć ci cudzy
+\code{os}.
+
+\begin{exercise}{e07_02_public_surface}{Powiedz, co moduł eksportuje}
+Daj plikowi startowemu \code{\_\_all\_\_} wymieniające tylko te dwie
+funkcje, których powinni używać wołający z zewnątrz. Testy sprawdzają, co
+skopiowałby import z gwiazdką, a także to, że pomocnicze funkcje wciąż są
+dostępne po nazwie, bo \code{\_\_all\_\_} rządzi gwiazdką i niczego nie
+ukrywa.
+\end{exercise}
+
+\begin{trapbox}
+\textbf{\enquote{\code{from x import *} to \code{using x;}.}} Kopiuje nazwy
+do twojego modułu, zamiast czynić je widocznymi, więc na pytanie, skąd
+wzięła się dana nazwa, nie da się już odpowiedzieć czytaniem pliku. Wybieraj
+\code{import x} albo \code{from x import name} dla garstki nazw, których
+używasz bez przerwy.
+\end{trapbox}
+
+\section{Cykliczny import to nie ten błąd, o którym myślisz}
+\label{sec:cycles}
+\index{moduły!importy cykliczne}
+\index{diagnostyka!import cykliczny}
+
+Dwa moduły importujące się nawzajem to kształt, którego wszystkim kazano się
+bać. Zanim przeczytasz dalej, rozstrzygnij, która z tych par zawiedzie: ta,
+w której każdy robi \code{import} drugiego, czy ta, w której każdy robi
+\code{from} drugiego \code{import} nazwy.
+
+Pierwsza działa. Sam cykl nigdy nie jest błędem, bo do
+\api{sys.modules} trafia \emph{obiekt} modułu, zanim wykona się jego ciało
+\dash{} taka jest kolejność i to ona zatrzymuje rekurencję. Zawodzi proszenie
+półwykonanego modułu o coś, czego jeszcze nie związał, a \code{from x import
+y} prosi dokładnie o to, w czasie importu.
+
+\pyfile{code/ch07/cycles.py}{Ten sam cykl, na cztery sposoby}{lst:ch07-cycles}
+
+\transcript{ch07-cycles}
+
+\mermaidfig{ch07-cycle-break}{Gdzie cykl pęka, a gdzie nie: obiekt modułu wiąże się od razu, nazwa w nim nie}{cykl i linia, na której zawodzi}
+
+\noindent
+Wszystkie trzy wyjścia są więc sposobami na przesunięcie wyszukania poza
+czas importu i tylko ostatnie z nich usuwa cykl.
+
+\begin{enumerate}[leftmargin=1.6em, itemsep=3pt]
+  \item \textbf{Trzymaj moduł, a nie nazwę.} \code{import x}, a potem
+        \code{x.NAME} tam, gdzie jest używane. Związanie modułu udaje się
+        zawsze; zanim cokolwiek odczyta z niego atrybut, ciało już się
+        skończy.
+  \item \textbf{Importuj wewnątrz funkcji.} Po pierwszym wywołaniu to
+        zajrzenie do słownika, a całe pytanie wychodzi poza kolejność
+        importów. Kosztem jest to, że czytelnik musi tego poszukać, więc
+        umieść to w najmniejszym zasięgu, który działa.
+  \item \textbf{Wynieś do trzeciego modułu to, czego chciały obie strony.}
+        To wyjście jest zwykle właściwe, a cykl zwykle jest dowodem, że było
+        należne: dwa moduły, które siebie potrzebują, na ogół dzielą coś
+        trzeciego, czego żaden z nich nie jest właścicielem.
+\end{enumerate}
+
+\begin{warning}
+\textbf{Diagnoza zależy od tego, gdzie leży plik, a nie od tego, co poszło
+źle.} Dwa ostatnie wpisy w powyższym zapisie to ta sama usterka. Wewnątrz
+pakietu CPython mówi \emph{partially initialized module \dots{} most likely
+due to a circular import}, co nazywa przyczynę. W dwóch plikach obok
+uruchamianego skryptu mówi \emph{consider renaming \dots{} if it has the
+same name as a library you intended to import}, co dotyczy pułapki z
+\S\ref{sec:packages}, a nie tej. Oba zostały uruchomione, żeby ten zapis
+powstał. Drugi komunikat pojawia się dokładnie w tym układzie, który
+przyjmuje pierwszy projekt w Pythonie, więc jeśli kiedyś goniłeś kolizję
+nazw, której nie było, to właśnie dlatego.
+\end{warning}
+
+\begin{trapbox}
+\textbf{\enquote{Import cykliczny to błąd.}} To fakt o twoim grafie modułów
+i Python go toleruje. Błędem jest \emph{nazwa} czytana z modułu, którego
+ciało do niej nie doszło, i dlatego zamiana \code{from x import y} na
+\code{import x} czasem naprawia build bez żadnej innej zmiany \dash{} i
+dlatego ta poprawka, wzięta sama, zostawia cykl na miejscu.
+\end{trapbox}
+
+\begin{exercise}{e07_03_defer_the_import}{Płać za import wtedy, gdy jest używany}
+Plik startowy importuje moduł z biblioteki standardowej na górze i używa go
+w jednej funkcji, do której większość wołających nigdy nie dociera. Przenieś
+import do wnętrza tej funkcji. Testy czyszczą cache, importują moduł i
+sprawdzają, że nic nie przyszło, a potem wołają funkcję i sprawdzają, że
+przyszło.
+\end{exercise}
+
+\section{Korzeń kompozycji jest funkcją}
+\label{sec:composition-root}
+\index{wstrzykiwanie zależności!korzeń kompozycji}
+
+Nic z poprzednich trzech sekcji nie dotyczy wstrzykiwania zależności i
+wszystko z nich dotyczy. Kontener istnieje po to, by obiekty nie sięgały
+same po swoich współpracowników; w Pythonie sięgają po nazwę na poziomie
+modułu, o której \S\ref{sec:module-object} pokazała, że jest globalna dla
+procesu i wiązana w niewygodnym momencie. Zabierz to, a temu, co zostanie,
+nie będzie potrzebna żadna maszyneria.
+
+Zacznij od tego, czego potrzebuje praca, wyrażonego jako \code{Protocol}:
+strukturalnie, więc klasa spełnia go kształtem i nigdy tego nie deklaruje.
+
+\pyregion{code/ch07/composition.py}{ports}{Dwa protokoły: czego potrzebuje usługa i nic ponadto}{lst:ch07-ports}
+
+\noindent
+Praca bierze swoich współpracowników jako argumenty, jak wszystko inne.
+
+\pyregion{code/ch07/composition.py}{service}{Usługa nie nazywa żadnego konkretnego typu}{lst:ch07-service}
+
+\noindent
+Implementacje są zwykłymi klasami. Żadna nie dziedziczy po protokole i żadna
+o nim nie wspomina.
+
+\pyregion{code/ch07/composition.py}{adapters}{Prawdziwe implementacje, które niczego nie deklarują}{lst:ch07-adapters}
+
+\noindent
+A korzeń kompozycji to jedna funkcja: jedyne miejsce w programie, w którym
+pada nazwa konkretnej klasy.
+
+\pyregion{code/ch07/composition.py}{root}{Korzeń kompozycji, w całości}{lst:ch07-root}
+
+\mermaidfig{ch07-composition-root}{Montaż bez kontenera: jedna funkcja na brzegu zna konkretne typy i nic poza nią}{korzeń kompozycji}
+
+\noindent
+\api{functools.partial} wiąże początkowe argumenty i zostawia resztę
+sygnatury w spokoju, więc wraca usługa z już wykonanym montażem. To właśnie
+wręcza kontener, złożone ręcznie, w jednej linii, którą da się przeczytać
+\dash{} a ponieważ \code{build()} ma adnotację mówiącą, że zwraca zwykły
+obiekt wywoływalny, nic dalej nie sięgnie przez nią i nie zapyta, czym to
+naprawdę jest. Checker tego pilnuje.
+
+\begin{csbox}
+\code{IServiceCollection} jest rejestrem, a rejestracja jest drugim opisem
+programu, który trzeba utrzymywać w prawdzie. Korzeń kompozycji jest
+programem: jeśli brakuje współpracownika, wywołanie nie przechodzi przez
+checker i nie przechodzi przez test. Nic nie jest rozwiązywane w czasie
+działania, więc nie ma tu czegoś takiego jak kontener, który wstaje, a
+potem rzuca wyjątkiem przy pierwszym żądaniu.
+\end{csbox}
+
+\begin{exercise}{e07_04_composition_root}{Napisz korzeń kompozycji}
+Plik startowy ma protokoły, pracę i funkcję \code{build}, która rzuca
+wyjątkiem. Napisz ją. Test montuje wtedy usługę z atrapą zegara i listą,
+z których żadne po niczym nie dziedziczy, i sprawdza, że dwa osobne montaże
+nie dzielą niczego.
+\end{exercise}
+
+\section{Czasy życia i kontener, który naprawdę spotkasz}
+\label{sec:lifetimes}
+\index{wstrzykiwanie zależności!czasy życia}
+
+Trzy czasy życia to pierwsze, czego inżynierowi .NET zabraknie. Każdy ma
+odpowiedź po stronie Pythona i żadna z nich nie jest rejestracją.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{C\#} & \textbf{Python} \\
+\midrule
+\code{AddSingleton} & Obiekt zbudowany raz w korzeniu kompozycji i
+  przekazywany w dół. Obiekt na poziomie modułu to drugi sposób i ten, z
+  którym trzeba uważać: powstaje w czasie importu, wedle reguł z
+  \S\ref{sec:module-object}. \\
+\code{AddScoped} & Parametr. Zasięgiem jest ta funkcja, która trzyma obiekt
+  \dash{} obsługa żądania, zadanie, test \dash{} a blok \code{with} go
+  zamyka. \\
+\code{AddTransient} & Zawołaj fabrykę. \code{partial} wiąże fabrykę
+  równie chętnie jak instancję. \\
+\code{IServiceProvider} & Zwykle nic. Tam, gdzie framework go potrzebuje,
+  przynosi własny. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent
+Zostaje uczciwe pytanie, o które prosił opis tego rozdziału: czy jest
+kontener wart użycia? Wyszukane na PyPI, a nie odtworzone z pamięci, w
+\pinnedon{}: odpowiedź brzmi, że kilka jest utrzymywanych i aktywnie
+wydawanych \dash{} między innymi \pkg{dependency-injector}, \pkg{injector},
+\pkg{punq}, \pkg{svcs}, \pkg{wireup} i \pkg{kink} \dash{} i że żaden z nich
+nie jest tym, którego używają wszyscy. To jest ustalenie. W .NET kontener
+przychodzi z platformą, więc jego użycie jest domyślne, a nie decyzją; w
+Pythonie przyjęcie któregoś jest decyzją, której będziesz bronić przed
+następną osobą, przeciwko korzeniowi kompozycji, który jest funkcją.
+
+\begin{trapbox}
+\textbf{\enquote{Potrzebuję kontenera DI.}} Potrzebujesz tego, po co
+kupiono kontener, czyli tego, żeby obiekty nie sięgały same po swoich
+współpracowników. Robi to funkcja i \api{functools.partial}, typuje to
+\code{Protocol}, a test podstawia cokolwiek bez rejestrowania. Sięgnij po
+kontener, kiedy umiesz nazwać, co ci tutaj kupi \dash{} i zauważ, że ten,
+którego większość czytelników naprawdę spotka, wcale nie jest kontenerem
+ogólnego przeznaczenia.
+\end{trapbox}
+
+\noindent
+Jest nim \api{Depends} z FastAPI i jest to kontener o bardzo wąskim
+zakresie: montuje argumenty funkcji obsługującej żądanie, na żądanie. Warto
+go tu zapowiedzieć tylko po to, by powiedzieć, czym jest, bo wszystko, co
+czyni go interesującym \dash{} jakie naprawdę ma czasy życia, co robi
+zależność z \code{yield}, gdzie idzie stan o czasie życia aplikacji \dash{}
+należy do rozdziału~\ref{ch:services}, w którym mieszka ten framework.
+
+\begin{versionbox}
+\api{Depends} w \pkg{fastapi}~\fastapiver{} bierze obiekt wywoływalny oraz
+\code{use\_cache} i \code{scope}. Czytaj tę sygnaturę z zainstalowanego
+pakietu, a nie z tutoriala, bo tutorial jest twierdzeniem o jakiejś wersji;
+rozdział~\ref{ch:services} tak robi.
+\end{versionbox}
+
+\noindent
+Zysk, który rozdział obiecał, da się teraz wyrazić jednym zdaniem i jest to
+własność strukturalna, a nie kwestia stylu: \textbf{pakiet, w którym żaden
+moduł nie zmienia niczego globalnego w czasie importu i w którym jedyną
+funkcją nazywającą konkretną klasę jest ta na brzegu, to pakiet, w którym
+test podstawi cokolwiek bez łatania}. Obie połowy należą do tego rozdziału.
+Pierwsza jest tym, po co były \S\ref{sec:module-object} do
+\S\ref{sec:cycles}; druga to \S\ref{sec:composition-root}, która ma
+trzydzieści linii dlatego, że pierwsza połowa odwaliła robotę.
