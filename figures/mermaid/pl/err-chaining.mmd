@@ -1,0 +1,5 @@
+flowchart LR
+    A["<b>raise New(...) from exc</b><br/>ustawia __cause__, a wydruk mowi,<br/>ze poprzedni wyjatek byl<br/>bezposrednia przyczyna tego"]
+    B["<b>raise New(...)</b><br/>ustawia tylko __context__, a wydruk<br/>mowi, ze inny wyjatek wystapil<br/>podczas obslugi poprzedniego"]
+    C["<b>raise albo raise exc</b><br/>ten sam wyjatek leci dalej.<br/>Traceback siedzi na obiekcie,<br/>wiec zaden go nie obcina"]
+    A --- B --- C
