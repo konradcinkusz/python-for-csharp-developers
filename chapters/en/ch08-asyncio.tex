@@ -206,9 +206,9 @@ an \code{ExceptionGroup}, which is the closest thing Python has to
 \begin{trapbox}
 \textbf{\api{gather} is \code{Task.WhenAll}.} It is \code{WhenAll} without
 the part where the failure stops the batch. Choose between them on failure
-semantics, never on speed: they do not differ on speed, and anybody who
-tells you \api{TaskGroup} is faster is quoting a difference that is not
-there.
+semantics, never on speed: the companion volume measures the two as
+indistinguishable, and anybody who tells you \api{TaskGroup} is faster is
+quoting a difference that is not there.
 \end{trapbox}
 
 \begin{exercise}{e08_03_when_all}{Port a WhenAll with a CancellationToken}
