@@ -1,0 +1,3 @@
+flowchart LR
+    Q["kolejka gotowych<br/>trzyma kazda korutyne,<br/>ktora moze ruszyc dalej"] --> T["jeden watek bierze<br/>dokladnie jedna z nich<br/>i wykonuje do nastepnego await"]
+    T --> B["blokujace wywolanie tutaj<br/>nie dojdzie do await, wiec<br/>cala kolejka czeka na nie"]

@@ -98,7 +98,7 @@ restate a total here or in `CLAUDE.md`** — the math book's ledger said
 | E1 | 1 | CPU-bound work, four threads, default build against `python3.14t`, on the pinned interpreter | free; needs the free-threaded build installed by `uv python install 3.14.7+freethreaded` | **run, in the Chapter 1 pass** |
 | E2 | 2 | Cold `uv sync` against `pip install -r` on the same lockfile | free | not run |
 | E3 | 6 | Cost of a `try` against a check, happy path and unhappy path | free | **run**, Chapter 6 pass. Committed as executed-bytecode counts, which are exact on the pinned interpreter; the wall-clock half is asserted as bounds and printed rather than committed, because CI re-runs every measurement script and compares |
-| E4 | 8 | One blocking call's degradation, in the TPL-against-asyncio framing | free; the LangChain book's Chapter 3 has the asyncio half already | not run |
+| E4 | 8 | One blocking call's degradation, in the TPL-against-asyncio framing | free; the LangChain book's Chapter 3 has the asyncio half already | **run**, Chapter 8 pass, `code/measure/e04_blocking.py`. Same shape as E3 and arrived at independently: what is committed is exact arithmetic on the script's own inputs, and the stopwatch is asserted against one-sided bounds derived from them |
 | E5 | 9 | uvicorn workers against concurrency: throughput, p50, p95, mocked upstream, calibrated the way the LangChain book's Chapter 13 recorded | free | not run |
 | E6 | 10 | The N+1 reproduced and counted from the engine's echo, before and after `selectinload`, on SQLite | free | not run |
 | E7 | 12 | Image size and cold start of three Dockerfile shapes | free; needs Docker, so CI rather than the sandbox | not run |
@@ -108,16 +108,34 @@ Each result goes into `code/measure/<experiment>.py`, which writes
 `figures/values/<experiment>.tex`; the chapter reads it with `\val{}` and
 `make verify` fails when the two drift.
 
-**An experiment that measures TIME needs one more step than that, and E1
-found it.** CI re-runs every script under `measure/` on every push and fails
-the build when a committed value moves, which a wall time cannot survive on
-two machines — and a wall time rounded until it could would say nothing. So
-a timing script has two modes: `--record` measures and writes a committed
-JSON under `code/measure/data/`, with the machine and the date beside the
-numbers, and the default mode derives the value file from that JSON and is
-what `make numbers` runs. The drift gate then asks a question it can answer:
-does the page agree with the measurement that was taken? Re-recording is a
-deliberate act and reviews as a diff of the data. The three companion books' rule
+**An experiment that measures TIME needs one more step than that, and there
+are two shapes for it.** `make verify` re-runs every script here on a
+machine nobody controls, so a wall time in the value file fails the build on
+its first green run, and a wall time rounded until it could not would say
+nothing.
+
+*Assert against bounds*, which E3 and E4 arrived at independently: commit
+only exact arithmetic on the script's own inputs -- the serialised cost of
+K blocking calls is K times B, because that is what one thread means -- and
+assert the stopwatch against one-sided bounds derived from them, in the
+direction a slow machine makes easier to clear. A machine that disagrees
+fails the script by name instead of drifting a digit. Prefer this shape:
+nothing machine-dependent is committed at all.
+
+*Record once*, which E1 needed because its headline number IS a measured
+ratio and no exact arithmetic produces it: `--record` measures and writes a
+committed JSON under `code/measure/data/`, with the machine and the date
+beside the numbers, and the default mode derives the value file from that
+JSON and is what `make numbers` runs. The gate then asks a question it can
+answer -- does the page agree with the measurement that was taken? --
+re-recording is a deliberate act that reviews as a diff of the data, and CI
+never needs the second interpreter because nothing in CI records.
+
+The test for which to reach for is whether the claim can be stated as
+arithmetic with a bound around it. If it can, bound it. If the number itself
+is the finding, record it and name the machine.
+
+The three companion books' rule
 holds here without exception: **a number the reader cannot do in their head
 is computed, never typed**, and a machine-dependent residual is committed as
 a bound, never as a figure.

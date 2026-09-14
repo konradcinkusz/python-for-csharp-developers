@@ -1,0 +1,7 @@
+task.result() before it finishes:
+  InvalidStateError: Result is not set.
+asyncio.run() inside a running loop:
+  RuntimeError: asyncio.run() cannot be called from a running event loop
+task.result() after awaiting it: 42
+await at module level: SyntaxError: 'await' outside function
+asyncio has ConfigureAwait: False

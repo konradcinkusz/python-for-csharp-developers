@@ -35,11 +35,15 @@ OUT = CODE.parent / "figures" / "transcripts"
 WIDTH = 79
 
 # stem -> the listing whose stdout it is, relative to code/
-# NOTE what is NOT here: ch01/workloads.py. It prints wall-clock times,
-# which are a property of the machine, so a committed transcript of it could
-# not survive the drift gate on two machines. Its numbers reach the page
-# through measure/e01_gil.py instead, which records them once, into a
-# committed JSON, with the machine named beside them.
+#
+# Only a listing whose output the book QUOTES belongs here, and a listing
+# that prints a wall-clock time never does: the number differs on every
+# machine, so a committed transcript of it could not survive the drift gate.
+# Two are deliberately absent for that reason. ch01/workloads.py prints
+# seconds; its numbers reach the page through measure/e01_gil.py, which
+# records them once into a committed JSON with the machine named beside
+# them. ch08/one_loop.py prints milliseconds; its chapter quotes E4's
+# bounds instead and tells the reader to run the listing themselves.
 TRANSCRIPTS = {
     "ch00-loop": "ch00/loop.py",
     "ch01-bytecode": "ch01/bytecode.py",
@@ -54,6 +58,11 @@ TRANSCRIPTS = {
     "ch07-two-ways": "ch07/two_ways.py",
     "ch07-shadowing": "ch07/shadowing.py",
     "ch07-cycles": "ch07/cycles.py",
+    "ch08-cold": "ch08/cold.py",
+    "ch08-whenall": "ch08/whenall.py",
+    "ch08-cancelled": "ch08/cancelled.py",
+    "ch08-deadline": "ch08/deadline.py",
+    "ch08-boundary": "ch08/boundary.py",
 }
 
 
