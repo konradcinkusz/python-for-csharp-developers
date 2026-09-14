@@ -887,6 +887,18 @@ each, which is this repository's standing class.
   PDF and run: `where_am_i.py` reproduces its transcript, `lockfile.py`
   reproduces its three numbers when run from where the listing lives, and
   neither carries a single non-ASCII byte.
+- **And a third form of the same artefact, met again after three merges had
+  moved the pagination.** A transcript whose labels and numbers are COLUMN
+  ALIGNED comes out of `pdftotext` as two text runs --- every label, then
+  every number --- so a check that compares whole lines reports all three of
+  `lockfile.py`'s as absent from a page that carries them. The page is right;
+  the comparison is not. **Normalise whitespace AND compare tokens rather
+  than lines** when asking whether a transcript reached the page. In the same
+  pass the other listing reported not reproducing its transcript, because the
+  probe ran it on the system `python3` rather than `uv run python` --- and
+  `where_am_i.py` is a script about `sys.prefix`, so outside the project's
+  environment it correctly says something else. Two wrong instruments in one
+  check, both returning a plausible answer, which is the standing class.
 
 #### Also
 
