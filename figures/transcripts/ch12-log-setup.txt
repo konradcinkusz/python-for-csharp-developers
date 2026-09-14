@@ -1,0 +1,3 @@
+{"event": "charge ok", "level": "info", "order_id": 7, "request_id": "4c1f"}
+{"event": "retrying POST /charge", "level": "warning", "request_id": "4c1f"}
+{"event": "worker idle", "level": "info"}

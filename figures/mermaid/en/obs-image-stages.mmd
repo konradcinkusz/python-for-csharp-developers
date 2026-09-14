@@ -1,0 +1,5 @@
+flowchart LR
+    A["builder stage:<br/>uv, pyproject.toml, uv.lock,<br/>uv sync --frozen --no-dev"]
+    B["What crosses:<br/>/app/.venv and the source.<br/>No uv, no lockfile, no cache"]
+    C["runtime stage:<br/>python:slim, a numeric<br/>non-root user, PYTHON* set"]
+    A --> B --> C
