@@ -19,15 +19,17 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **1 of 14 written: Chapter 3, both editions.** The other thirteen are briefs printed where the chapter will go | 1, 2 and 4 to 14 |
+| Chapters | **2 of 14 written: Chapters 3 and 9, both editions.** The other twelve are briefs printed where the chapter will go | 1, 2, 4 to 8, and 10 to 14 |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapter 3's seven listings, five exercises, three measurement scripts, and CI runs all of it | every other chapter's listings and exercises; the eight experiments |
+| Code | `code/` is a locked uv project: the `trace-assert` skeleton, those two chapters' listings and exercises, experiment E5, and CI runs all of it | every other chapter's listings and exercises; the experiments that have not run |
 
-**The scaffold plus one chapter.** The scaffold existed so that the shape of
-the book could be argued with before Chapter 1 was written, and so that the
-first chapter was written into a build that already had every gate. Chapter 3
-is the first chapter written into it, and the gates earned their keep on the
-first pass — see *The Chapter 3 pass* below.
+**The scaffold plus two chapters, written in parallel.** The scaffold existed
+so that the shape of the book could be argued with before Chapter 1 was
+written, and so that the first chapters were written into a build that
+already had every gate. Chapters 3 and 9 were written against whichever
+issue came up first rather than in reading order, and both held: each names
+what it borrows and borrows almost nothing. The gates earned their keep on
+both passes — see *The Chapter 3 pass* and *The Chapter 9 pass* below.
 
 **Two editions, one paper size, both clean.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
@@ -35,8 +37,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 53 | 0 | 0 | 0 | 0 |
-| `main-pl` | 56 | 0 | 0 | 0 | 0 |
+| `main-en` | PAGES_EN | 0 | 0 | 0 | 0 |
+| `main-pl` | PAGES_PL | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -54,15 +56,16 @@ does not:
 
 - **13 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 16 listing references, every file and region present · 5 exercises, each
-  with a starter, a solution and a test · 12 transcript references, every
-  file present · 34 code files, none over 79 columns · 19 pins agree between
-  `preamble.tex` and `code/pyproject.toml`
+- L_LISTINGS listing references, every file and region present · L_EXERCISES
+  exercises, each with a starter, a solution and a test · L_TRANSCRIPTS
+  transcript references, every file present · L_CODEFILES code files, none
+  over 79 columns · 19 pins agree between `preamble.tex` and
+  `code/pyproject.toml`
 - **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
   reader that something was not run
-- 8 Mermaid sources, four per language, all rendering, all placed
-- 15 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 44 labels in each edition,
+- L_MERMAID Mermaid sources, L_MERMAID_HALF per language, all rendering, all placed
+- L_VALUES computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · L_LABELS labels in each edition,
   0 mismatches
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
@@ -408,6 +411,13 @@ are listed by name and their reasoning is in the companion books.
   0.12.13 installs 3.14.7. The Makefile takes `UV ?= uv`, so a newer binary
   on `PATH` is enough, and CI pins the uv version in `setup-uv`.
 - **`siunitx` is in `texlive-science` on Debian**, not in `texlive-latex-extra`.
+- **`binhex.tex` is in `texlive-plain-generic`**, and `newtxmath` reaches for
+  it: without that package the build dies with ``LaTeX Error: File
+  `binhex.tex' not found`` on a machine carrying every other package this
+  preamble asks for. And a build that failed for a missing package fails
+  again after the package is installed, from its own aux tree rather than
+  from the source; `make clean` clears it, `latexmk -C` alone does not,
+  because it leaves the per-`\include` `.aux` files under `chapters/`.
 - **A background `make ... > log 2>&1; echo "MAKE_EXIT $?"` is reported as
   exit 0 whatever make did** (inherited). Read the log's own `MAKE_EXIT`
   line, and treat an unchanged page count as a failed build.
@@ -826,6 +836,140 @@ reasoned about.
 
 ---
 
+### Chapter 9 pass, September 2026 --- the first chapter, and experiment E5
+
+Written out of order on purpose: Chapter 9's measurement is free, its brief
+was the most specific in the manifest, and a chapter with seven listings,
+five exercises, three figures and thirty computed values is what tells you
+whether the gates hold against content rather than against a scaffold.
+
+**The brief was right about the framework and wrong about nothing**, which
+has not been true of the first chapter of either companion volume. What was
+wrong was the folklore around it, and all of it was settled by reading the
+installed package.
+
+#### Three claims a .NET habit gets backwards, each checked in the package
+
+- **`Field(alias=...)` is not `JsonPropertyName`.** It renames the field on
+  the way IN as well, so a model carrying `alias="incidentId"` can no longer
+  be built as `Model(incident_id=...)`: the call raises a validation error
+  naming a missing `incidentId`, and pyright says so statically, because the
+  synthesised `__init__` takes the alias. `serialization_alias` is the
+  output-only one and is what the chapter uses. A model whose input and
+  output shapes differ makes FastAPI emit **two** OpenAPI schemas, suffixed
+  `-Input` and `-Output`, where Swashbuckle emits one.
+- **`extra="forbid"` does not police the environment.** It rejects an
+  unknown key in a `.env` file (`extra_forbidden`) and an unknown keyword
+  passed to the constructor, and it ignores an unknown `OPS_` variable in
+  the environment entirely, at every value of `extra`, because the
+  environment source only looks up names the model declares. The prefix is
+  real isolation in the other direction: a bare `DATABASE_URL` does not
+  reach a model declared with `env_prefix="OPS_"`.
+- **A secret file's NAME carries the env prefix**, case-insensitively. With
+  `env_prefix="OPS_"`, `api_key` in the secrets directory is not found and
+  `ops_api_key` or `OPS_API_KEY` is. Measured across four spellings.
+
+And one mechanism read out of starlette rather than remembered: **the last
+middleware registered is the outermost**, because `add_middleware` does
+`self.user_middleware.insert(0, ...)`. That is the reverse of ASP.NET Core
+and nothing warns. It is trap 60.
+
+#### Experiment E5, and what the calibration guard was worth
+
+The brief said to calibrate the way the LangChain book's chapter 13 recorded.
+It was the instruction that paid for itself twice.
+
+**The first run flagged four cells as client-bound and they were not
+quoted.** Driving the service through `httpx.AsyncClient` put the no-op
+ceiling at 282 requests a second, and the awaited cells at concurrency 40
+read 309 -- above their own calibration cell, which is not a number about a
+server. Replacing the driver with raw asyncio sockets took the ceiling to
+several thousand and no cell has reached half of it since.
+
+**Then the multi-worker rows carried a constant +44 ms and it was real.**
+Reproduced with a raw socket client, so not an artefact of the HTTP library;
+located by timing the first byte against the last (headers at 0.9 ms, body at
+44.0 ms); and explained by reading two installed packages. `--workers N`
+makes uvicorn bind the listening socket itself, in `Config.bind_socket`, with
+`socket.socket(family=AF_INET)`, whose `proto` is **0**; accepted sockets
+inherit that; and `asyncio.base_events._set_nodelay` sets `TCP_NODELAY` only
+when `sock.proto == socket.IPPROTO_TCP`. So Nagle stays on in multiprocess
+mode and off in single-worker mode, where the socket comes from `getaddrinfo`
+with `proto` 6. The body is a second write and waits out the client's delayed
+ACK.
+
+**`TCP_QUICKACK` cancels it, and WHERE it is set is the whole of it**: before
+the request it does nothing (44.01 ms) and after the response headers have
+been read it takes the same exchange to 0.45 ms. It is not a mode; it fires
+an ACK the kernel is already sitting on, so it has to be set while that ACK
+is pending. The driver therefore re-arms after each header read, which is why
+the table in the chapter measures workers rather than TCP -- and the chapter
+prints the artefact separately, in a `versionbox`, because no ordinary client
+sets that option.
+
+**The CPU row still did not scale, and the reason is not the GIL.** Four
+workers on four cores moved CPU-bound throughput by 1.07. Workers share one
+listening socket, so the worker that is in `accept()` first takes the
+connection and keeps it: measured over forty keep-alive connections, three of
+four workers got any at all and one took thirty-three. Balancing is per
+CONNECTION, not per request, which is the difference from Kestrel's thread
+pool and is trap 62. The survey is a cell of the experiment rather than a
+hypothesis in the prose.
+
+**The absolute numbers are this machine's and the ratios are the finding.**
+Between two runs on the same tree the CPU service time moved 26 ms to 19 ms
+and the calibration ceiling 3067 to 4666, while the awaited ratio stayed at
+1.00 and the memory ratio at 4.2.
+
+#### A latency benchmark cannot be re-run by `make numbers`
+
+`make numbers` runs every script under `code/measure/` on every build and
+`make verify` fails when a committed value would change. A benchmark re-run
+on every build drifts by construction, so `make verify` would have failed on
+a tree nobody had edited.
+
+So `e05_workers.py` has two modes. `--run` measures and writes
+`code/measure/data/e05_workers.json`, which is committed; with no argument it
+DERIVES `figures/values/e05.tex` from that JSON, deterministically, and
+touches nothing else. Re-measuring is a deliberate act with a date on it, and
+the drift gate still covers everything the book prints. **Any experiment
+whose result is a time needs this shape**; one whose result is a count does
+not.
+
+#### Two build traps, and one deprecation
+
+- **`binhex.tex` is in `texlive-plain-generic`.** Without it the build dies
+  with ``LaTeX Error: File `binhex.tex' not found`` on a machine that has
+  every other package this preamble asks for. It is what `newtxmath` reaches
+  for.
+- **A failed build leaves an aux tree that fails the next one.** After the
+  missing package was installed the build failed again with the same error,
+  from state rather than from source; `make clean` -- which removes the
+  per-`\include` `.aux` files under `chapters/` that `latexmk -C` leaves --
+  cleared it. Same class as the stale-`.toc` trap already recorded above: an
+  error that survives the fix for it is state.
+- **`@asynccontextmanager` with a `-> AsyncIterator[...]` annotation is
+  deprecated** at the pinned pyright and reported under strict. Use
+  `AsyncGenerator`.
+
+#### Also
+
+- Five exercises, as the brief asked. The starter of each fails its own test
+  and `make starters` proves it; the third test of 9.1 is the one that
+  catches a dependency that returns instead of yielding.
+- Three figures per edition. The first drafts rendered 732 to 1115 pt wide,
+  which is node text at 4.0 to 6.2 pt against the 8.1 to 9.8 pt of the
+  diagrams already in the book; three nodes with short lines took them to 572
+  to 701 pt and 6.4 to 7.9 pt. `pdfinfo` is not installed in this sandbox, so
+  the widths were read out of each PDF's own `/MediaBox`.
+- The overlap rule held without effort: streaming, SSE and the per-thread
+  lock are the LangChain volume's chapter 13 and are named as handed on, not
+  summarised.
+- Parity came back clean on its first run, on a chapter of this size, which
+  is what writing the English first and mirroring it macro by macro buys.
+
+---
+
 ## After each pass
 
 1. `python3 tools/parity.py`, `python3 tools/check_structure.py --all`,
@@ -850,8 +994,8 @@ Tag from a local clone.
 
 ## What is left
 
-One chapter of fourteen is written. The outstanding work is tracked as
-GitHub issues under the `chapter`, `appendix`, `experiment` and
+Two chapters of fourteen are written, 3 and 9. The outstanding work is
+tracked as GitHub issues under the `chapter`, `appendix`, `experiment` and
 `infrastructure` labels — **work from the labels, not from a list here**,
 because a list in this file is the class of claim nothing can check. In rough
 order:
@@ -861,16 +1005,20 @@ order:
    to follow 1 and 2, because every later chapter's listings assume the
    reader trusts the environment. It does not depend on either in practice
    — it names what it borrows and borrows almost nothing — so the ordering
-   is a preference rather than a constraint. Then 4 to 7 in order, each
-   leaning on the last.
-2. **Chapters 8 to 12** (v0.2), with the trace-assert stage 01 in Chapter 11
-   and experiments E4 to E7.
+   is a preference rather than a constraint. Chapter 9, written out of
+   order in parallel with it, is the same finding a second time. Then 4 to
+   7 in order, each leaning on the last.
+2. **Chapters 8, 10, 11 and 12** (v0.2), with the trace-assert stage 01 in
+   Chapter 11 and experiments E4, E6 and E7. Chapter 9 is written; Chapter
+   10 is the database session behind its `get_store`, which that chapter
+   names as handed on.
 3. **Chapters 13 and 14 and Appendices A to D** (v1.0). Appendix B is
    written from `notes/02-traps.md`; Appendix C's version column prints
    from the preamble's macros and is never typed; Appendix D needs the
    open decision above settled first.
-4. **The eight experiments**, each free, each writing a value file that a
-   chapter reads with `\val{}`.
+4. **The experiments that have not run**, each free, each writing a value
+   file that a chapter reads with `\val{}`. The Status column in
+   `notes/01-curriculum.md` §4 says which; do not restate a total here.
 5. **The first Pages deployment**, which needs one human click.
 
 **Do not fill a measurement table with plausible numbers.** An empty table

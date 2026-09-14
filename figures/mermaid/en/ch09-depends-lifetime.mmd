@@ -1,0 +1,5 @@
+flowchart LR
+    A["<b>Singleton</b><br/>built in the lifespan,<br/>once per process,<br/>reached through<br/>request.state"]
+    B["<b>Scoped (the default)</b><br/>Depends(fn): one instance<br/>per REQUEST, however many<br/>parameters ask for it.<br/>With yield, the code after<br/>it runs as the Dispose."]
+    C["<b>Transient</b><br/>Depends(fn,<br/>use_cache=False):<br/>one instance per ASK,<br/>which you must opt into"]
+    A --> B --> C

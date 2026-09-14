@@ -40,6 +40,10 @@ TRANSCRIPTS = {
     "ch03-hint-is-a-claim": "ch03/hint_is_a_claim.py",
     "ch03-dto-four-ways": "ch03/dto_four_ways.py",
     "ch03-defaults": "ch03/defaults.py",
+    "ch09-depends": "ch09/depends_scope.py",
+    "ch09-middleware": "ch09/middleware_order.py",
+    "ch09-validation": "ch09/validation.py",
+    "ch09-serialisation": "ch09/serialisation.py",
 }
 
 

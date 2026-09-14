@@ -1,0 +1,5 @@
+flowchart LR
+    A["<b>Gniazdo, potem middleware</b><br/>uvicorn czyta zadanie<br/>i podaje je do stosu.<br/>OSTATNI zarejestrowany<br/>middleware dziala PIERWSZY."]
+    B["<b>Routing, potem Depends</b><br/>sciezka i metoda wybieraja<br/>funkcje; kazdy Depends z jej<br/>sygnatury jest rozwiazywany<br/>i cache'owany na to zadanie.<br/>Zle cialo konczy tu: 422."]
+    C["<b>Handler, potem model</b><br/>twoj kod zwraca obiekt;<br/>response_model decyduje,<br/>co jest serializowane<br/>i pod jakimi nazwami."]
+    A --> B --> C
