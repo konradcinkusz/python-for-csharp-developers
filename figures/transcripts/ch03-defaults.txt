@@ -1,0 +1,10 @@
+The default list, called three times:
+   ['alpha']
+   ['alpha', 'beta']
+   ['alpha', 'beta', 'gamma']
+Its default, after those three calls:
+   (['alpha', 'beta', 'gamma'],)
+The same three calls, with None as the sentinel:
+   ['alpha']
+   ['beta']
+   ['gamma']

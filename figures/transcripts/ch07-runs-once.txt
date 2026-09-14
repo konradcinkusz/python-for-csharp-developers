@@ -1,0 +1,5 @@
+greeting.py: the body is running
+three names, one object: True
+one entry in the cache:  True
+the object knows its name: greeting
+and it has a value on it: Hello, Ada

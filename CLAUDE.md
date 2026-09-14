@@ -19,15 +19,23 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **1 of 14 written: Chapter 10 (Data).** Every other chapter is a brief printed where the chapter will go | thirteen |
+| Chapters | **3 of 14 written: Chapter 3, *Typing*, Chapter 7, *Imports and dependency injection*, and Chapter 10, *Data* — both editions** | 1, 2, 4–6, 8, 9, 11–14 |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapter 10's nine listings and five exercises, the three measurement scripts, and CI runs all of it | every other chapter's listings and exercises; seven of the eight experiments |
+| Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapters 3, 7 and 10's listings and exercises, the measurement scripts, and CI runs all of it | every other chapter's listings and exercises; seven of the eight experiments |
 
-**The scaffold plus one chapter.** The scaffold exists so that the shape of
-the book could be argued with before any chapter was written, and so that
-the first chapter went into a build that already had every gate. Chapter 10
-is the first through that build, and its pass note below records what the
-gates caught.
+**The scaffold plus three chapters.** The scaffold existed so that the shape
+of the book could be argued with before any chapter was written, and so that
+the first one was written into a build that already had every gate. Chapters
+3, 7 and 10 were written in parallel, by separate passes, each against the
+issue that came up first rather than against the reading order — which is
+possible because a chapter names what it borrows and borrows little. The
+gates earned their keep on all three; see the three pass notes below.
+**Two of those notes open by calling themselves the first chapter written**,
+and neither is wrong from where it stood: the passes could not see each
+other, and each was the first into the scaffold it had. It is worth leaving
+as it is rather than tidying, because it is the clearest evidence in this
+file of what parallel passes cost — three sessions each re-measured every
+ledger, and the merge had to reconcile five conflicts in this file alone.
 
 **Two editions, one paper size, both clean.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
@@ -35,37 +43,45 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 51 | 0 | 0 | 0 | 0 |
-| `main-pl` | 51 | 0 | 0 | 0 | 0 |
+| `main-en` | 80 | 0 | 0 | 0 | 0 |
+| `main-pl` | 81 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
-to go stale. **And say which machine measured them**, because there are two
-and they paginate differently: the rows above are from a full TeX Live with
-newtx, inconsolata and TeX Gyre, which is what CI compiles on and therefore
-what `pages.yml` publishes to a reader. A container without those fonts
-sets the same source in Latin Modern, which is narrower, and gave 51 and 53
-for the same tree — so a page count taken on a bare machine is a fact about
-that machine and not about the book. See *Build traps* for how to make a
-bare container into the reference one; it is two `apt-get` lines and it
-turns a guess-and-push loop into a verification loop.
+to go stale. **And say which installation**, because there are two and they
+paginate differently: the rows above are from one that HAS `newtx`,
+`inconsolata` and TeX Gyre, which is what CI compiles on and therefore what
+`pages.yml` publishes to a reader. A bare container degrades to `lmodern`
+through the preamble's `\IfFileExists` probes, and sets the same source
+differently: on the one tree measured both ways — Chapter 10's, before this
+merge — a bare container gave 51 and 53 where a full TeX Live gave 51 and
+51, so `lmodern` cost the Polish edition two pages and the English none.
+Chapter 3's pass recorded 53 and 56 on a bare machine, but that was a
+different tree and is not a second reading of the same thing. One
+controlled comparison is not a rule about which font sets tighter, and no
+direction is claimed here beyond what was measured. What is certain is that
+the two disagree, which is the inherited two-machines rule and is not a
+defect.
+Record which installation you measured on, every time — and see *Build
+traps* for how to turn a bare container into the reference one, which is two
+`apt-get` lines and turns a guess-and-push loop into a verification loop.
 
 **Debt ledgers, reported by CI on every build** (`make debt`), and printed
 for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **13 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **11 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 34 listing references, every file and region present · 6 exercises, each
-  with a starter, a solution and a test · 12 transcript references, every
-  file present · 41 code files, none over 79 columns · 20 pins agree between
+- 70 listing references, every file and region present · 14 exercises, each
+  with a starter, a solution and a test · 30 transcript references, every
+  file present · 94 code files, none over 79 columns · 20 pins agree between
   `preamble.tex` and `code/pyproject.toml`
 - **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
   reader that something was not run
-- 10 Mermaid sources, five per language, all rendering, all placed
-- 20 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 53 labels in each edition,
+- 20 Mermaid sources, ten per language, all rendering, all placed
+- 26 computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · 89 labels in each edition,
   0 mismatches
 - Chapter 10 carries 3 `csbox` translation boxes and 2,385 / 2,066 prose
   words against a budget of 3,000
@@ -753,7 +769,246 @@ for reasons worth keeping rather than silently dropping:
   general (`\pysettingsver` names `pydantic-settings`, not
   `pysettings`), so the dict is the one place that mapping can live.
 
-### Chapter 10 pass, September 2026 --- the first chapter, and E6
+### The Chapter 3 pass, September 2026
+
+The first chapter written into the scaffold, and the gates caught five things
+on the way. Every claim below was measured on the pinned versions rather than
+recalled, and the scripts that measured them are in the tree.
+
+**The brief asked why the book pins two checkers; the answer is now a
+number rather than a sentence.** `code/ch03/where_it_lies.py` holds four
+functions, each declaring `-> int` and each returning a `str` at run time:
+two where `Any` arrives from `json.loads` and nobody decided anything, and
+two where the author told the checker to stop looking (`cast`,
+`type: ignore`). Measured by `code/measure/checkers.py`, which runs both
+tools over that file and writes what each said:
+
+| | pyright 1.1.414, strict | mypy 2.3.1, `--strict` |
+|---|---|---|
+| errors on four wrong functions | **0** | **2**, both `no-any-return` |
+
+Neither tool is at fault. pyright is applying the type system, in which `Any`
+is compatible with everything; mypy's strict profile adds an opinion the type
+system does not have. **The instrument was watched producing a known answer
+before the zero was believed**, which is the inherited rule and it mattered
+here: a zero from a checker is exactly what a mis-configured checker also
+prints. A two-line file with an untyped parameter drew four strict-only
+diagnostics (`reportUnknownParameterType`, `reportMissingParameterType`),
+which is how the strict mode was proved to be in effect.
+
+A second measurement, on `code/ch03/defaults.py` — one mutable default
+argument, correctly annotated — went **pyright 0, mypy 0, ruff 1** (`B006`).
+So the chapter can say, with evidence, that a type checker answers questions
+about types and that a good deal of what goes wrong in Python is not one.
+ruff is run there with `--ignore-noqa`, because the listing carries a `noqa`
+so that `make code` stays green; without the flag the script would have
+measured the comment rather than the code.
+
+**`check_structure.py --lines` caught a line `ruff check` let through, and
+the disagreement is by design in ruff.** An 88-column line whose overlong
+part is a trailing `# pyright: ignore[...]` pragma passes ruff's `E501` and
+fails the book's own gate. Reproduced both ways on a two-line probe: a plain
+86-column line is flagged, an 89-column line ending in a pragma is not. So
+**ruff alone does not hold this book to 79 columns**; `--lines` is what
+enforces the page width, and it is not redundant with the linter.
+
+**`TypeIs` requires consistency, and `list` is invariant — which rewrote an
+exercise.** The obvious signature for a list predicate,
+`list[object] -> TypeIs[list[str]]`, is *rejected*: pyright says the narrowed
+type is "not consistent with" the parameter type, because `list[str]` is not
+assignable to `list[object]`. `TypeGuard[list[str]]` over the same parameter
+is accepted, since `TypeGuard` has no such requirement — which is the same
+fact as `TypeGuard` narrowing only the positive branch, seen from the other
+side. Exercise 3.1 takes a `Sequence` for that reason, `Sequence` being
+covariant, and §3.2 now carries the finding because it ties the chapter's
+variance material to its narrowing material.
+
+**Writing the chapter's own measurement script ran straight into the
+chapter's own §3.5.** `isinstance(value, dict)` narrows to
+`dict[Unknown, Unknown]` under strict pyright, so parsing pyright's JSON
+output drew thirteen `reportUnknown*` errors. The fix is one documented
+`cast` in one helper — which is one of the four holes the chapter lists,
+used deliberately and in one place. That is the same complaint the scaffold
+met on `default_factory=dict`, and the chapter's `projectbox` now points at
+both instances.
+
+**`make starters` caught two exercises whose tests passed on the unfinished
+starter**, and both were real. Exercise 3.1's starter carried the `TypeIs`
+annotation the exercise exists to teach, so the test checking for it passed
+before the reader had done anything; the starter now carries `-> bool` and
+the annotation is half the work. Exercise 3.3's second test called through
+the shared default only once, and **one call through a mutable default is not
+enough to show that it is shared** — the test now calls twice. `conftest.py`
+marks *every* collected test strict-xfail, so an exercise whose starter fails
+only some of its tests is a build failure, and that is the gate working.
+
+**Two decisions, both recorded rather than taken quietly.** There is no .NET
+SDK in this sandbox, so nothing in the chapter compiles C#: every C# claim it
+makes is a language-level fact a reader can check in their own IDE, it uses
+no `csharp` listing environment at all, and the C# side lives in two `csbox`
+blocks of prose. And the exercise keys were renumbered once during the pass
+so that the printed numbers follow the sections — the counter numbers
+exercises by order of appearance, so `e03_01_` must be the one that appears
+first, and a key whose number disagrees with its position is confusing on the
+page and invisible to every gate.
+
+**Two unmeasured comparatives got into the prose and were caught on a
+re-read rather than by a gate.** Neither was a headline claim; both were
+connective tissue — *pydantic is the only one that costs anything to
+construct*, and *pyright is fast, mypy is slower*. The first is now a
+statement about behaviour (it is the only one that does anything beyond
+assigning the fields), which is checkable by reading. The second split: *the
+older of the two* is verified from PyPI release metadata (mypy's earliest
+release is 2009, pyright's 2021), and the speed half is **gone**, replaced by
+a sentence saying the book has not measured it and neither has whoever told
+you otherwise. The class is worth naming because a gate cannot see it: a
+comparative that arrives as a subordinate clause reads like prose rather than
+like a claim, and `grep -nE 'faster|slower|cheaper'` over a finished chapter
+is the cheapest audit in this repository.
+
+**Nothing in the brief turned out to be wrong.** All five of the trap
+catalogue's Chapter 3 entries are delivered and marked in `notes/02-traps.md`
+with the section that elicits each; the brief names four of them in its
+*traps* clause and the fifth, `Any` propagation, in its body.
+
+**The figures, measured with `pdfinfo` before the captions were written**,
+using the inherited formula `12.57 pt x min(400/W, 287/H)`:
+
+| | W x H (en) | W x H (pl) | binds | en | pl |
+|---|---|---|---|---|---|
+| `ch03-two-compilers` | 522 x 216 | 538 x 250 | width | 9.63 pt | 9.34 pt |
+| `ch03-boundary` | 708 x 110 | 750 x 110 | width | 7.10 pt | 6.70 pt |
+
+Both are above the aspect-ratio crossover, so only the width matters, and
+trimming the Polish `boundary` nodes took two attempts because **the node I
+trimmed first was not the widest one** — mermaid sizes a chain by the sum of
+its nodes' longest lines, so the render has to be measured again rather than
+reasoned about.
+
+---
+
+### Chapter 7 pass, September 2026
+
+The first chapter written, and the brief held everywhere it made a claim
+about *what the chapter should contain*. What it got wrong was the framing
+every book gets wrong, and a probe settled it in a minute.
+
+**A circular import is not an error, and the brief's “three ways out” are
+three ways of moving a name lookup past import time.** Two modules that
+`import` each other run fine: the module OBJECT is put in `sys.modules`
+before its body runs, which is what stops the recursion, so binding it
+always succeeds. What fails is a NAME read from a module whose body has not
+reached the line that binds it — which is exactly what `from x import y`
+asks for, at import time. So the three fixes are: hold the module rather
+than the name, import inside the function, and extract the shared thing
+into a third module; and only the third removes the cycle. All four cases
+are in `code/ch07/cycles.py`, which runs them and prints what came out.
+
+**THE FINDING: CPython’s diagnosis of a circular import depends on where the
+file sits, not on what went wrong.** The same two-module cycle produces two
+different messages:
+
+| Where the modules are | What CPython says |
+|---|---|
+| inside a package | `cannot import name 'X' from partially initialized module 'p.m' (most likely due to a circular import)` |
+| flat, in the directory you ran from | `cannot import name 'X' from 'm' (consider renaming 'm.py' if it has the same name as a library you intended to import)` |
+
+Hypothesised from the first probe disagreeing with the second, then
+**confirmed by moving the identical pair off `sys.path[0]` with
+`PYTHONPATH`**, at which point the flat pair produced the package message.
+CPython prefers the shadowing hint when the module’s file is in
+`sys.path[0]`, so the message that names the cause fires in the packaged
+layout and the message about a name clash fires in the flat one — which is
+the shape a first Python project takes. `§7.3` carries it as a warning box,
+and both halves are in the chapter’s transcript because the listing runs
+both.
+
+**The DI-library question the brief asked to settle on the day, settled.**
+Read off PyPI on 14 September 2026 rather than remembered:
+`dependency-injector` 4.49.1 (2026-06-18), `injector` 0.24.0 (2026-01-09),
+`punq` 0.9.0 (2026-09-08), `svcs` 26.2.0 (2026-08-24), `wireup` 2.12.0
+(2026-07-09) and `kink` 0.9.0 (2026-03-19) are all maintained; `lagom`
+2.7.7 is over a year old and stops at 3.13. **The finding is that none of
+them is the default**, which is the difference from .NET worth printing,
+and the chapter says that rather than naming a winner. No version numbers
+reached the page: a dated ecosystem claim is durable, a version number in
+prose is not, and `\pinnedon{}` already carries the date.
+
+**Chapter 7 added no dependency to `code/pyproject.toml`**, deliberately.
+Every listing in it runs on the standard library, so the composition root is
+demonstrated with `functools.partial` and `typing.Protocol` and nothing is
+installed to make a point about containers.
+
+**A listing that is MEANT to fail cannot satisfy `test_listings.py`, and the
+underscore is the mechanism.** That runner executes every `chNN/**/*.py`
+whose name does not begin with `_`, and half of a cycle run on its own
+proves nothing. So the eight modules under `code/ch07/cycle/` and the two
+`code/ch07/_flat_*.py` are underscored — which is also the ordinary Python
+mark for *internal to this package* — and `code/ch07/cycles.py`, which IS
+run, imports every one of them. The convention is recorded here because the
+next chapter that needs a deliberately-broken module should not re-derive
+it: **an underscored module is still exercised, by the driver that is not
+underscored, and the driver’s docstring says so.**
+
+**pyright strict shaped three listings, and each error was right.**
+`build()` is annotated as returning a plain callable, so `build().func` is
+refused — which is the composition root’s whole point, enforced rather
+than asserted, and the chapter says so. An `__init__.py` with
+`__all__ = ["discount"]` and no import of `discount` is
+`reportUnsupportedDunderAll`, and the fix is the empty package body the
+chapter argues for anyway. A constant assigned in both branches of a
+`try`/`except` is `reportConstantRedefinition`; assigning it once from a
+helper reads better regardless.
+
+**Two claims written from background knowledge rather than from a probe,
+both caught on a last read of the chapter and both wrong.** The C# box said
+Python “makes no thread-safety promise” about a module body. It does:
+`importlib._bootstrap._ModuleLock` is a lock per module, taken while a body
+runs, and it detects its own deadlocks — read out of the installed
+interpreter. So the box now says what is actually different, which is better
+material: not thread safety, but that a cycle lets a second module see this
+one half-built, which hands forward to §7.3. And the `-m` box said that
+invoking a .NET DLL directly “gives you whatever the directory happens to
+contain”, which is false — resolution is declared, by the project and by the
+deps file beside it. The corrected contrast is sharper than the wrong one:
+in .NET the directory you are standing in does not change which code loads,
+and in Python it does, because `sys.path[0]` is chosen by how you started the
+process. **A .NET claim in this book is the one a reader is most likely to
+know better than the author**, and neither of these would have been caught by
+any gate.
+
+**Two overfull hboxes, both the inherited long-`\api{}`-at-a-line-break
+class, and this book’s first.** 3.1 pt in English on
+`\api{importlib.import\_module}` and 7.3 pt in Polish on
+`\api{sys.modules}`. Neither hyphenates. The English one was cleared by
+starting a new paragraph with the token, which puts it at the left margin
+deterministically; the Polish one by moving the token earlier in its
+sentence. **Both editions were rebuilt after each fix**, because a reflow in
+one says nothing about the other.
+
+**The container had no TeX at all.** `latexmk` and TeX Live are not
+preinstalled in this sandbox, and `make en` fails with
+`make: latexmk: No such file or directory`. What this pass installed, and
+what was enough for a clean build of both editions:
+`latexmk texlive-latex-recommended texlive-latex-extra
+texlive-fonts-recommended texlive-fonts-extra texlive-science
+texlive-lang-polish texlive-lang-english tex-gyre texlive-plain-generic`.
+`tex-gyre` is on that list because of the trap already recorded above, and
+`texlive-fonts-extra` brings newtx and inconsolata — so the local build
+after it measures the same fonts CI does, which is why the two hbox figures
+above are worth trusting.
+
+**Three diagrams, measured before the captions were written**, as the rule
+says. The first drafts came out 775 and 797 pt wide and set their node text
+at about 6.3 pt, under the band the scaffold’s two diagrams occupy. Shorter
+node text — not wordier, which is the fix for a graph that is too NARROW —
+took them to 580 and 660 pt and 7.6 to 8.7 pt. `pdfinfo` is not installed
+here either; the page size reads out of the PDF’s `/MediaBox` with three
+lines of Python, which is what `pdfinfo` prints.
+
+---
+
+### Chapter 10 pass, September 2026 --- SQLAlchemy, polars and E6
 
 **The brief was half right about lazy loading, and the half it got wrong is
 the half a reader of this book will meet.** It says *lazy by default in
@@ -943,22 +1198,28 @@ Tag from a local clone.
 
 ## What is left
 
-One chapter of fourteen is written. The outstanding work is tracked as
+Three chapters of fourteen are written. The outstanding work is tracked as
 GitHub issues under the `chapter`, `appendix`, `experiment` and
-`infrastructure` labels — **work from the labels, not from a list here**, because a list in
-this file is the class of claim nothing can check. In rough order:
+`infrastructure` labels — **work from the labels, not from a list here**,
+because a list in this file is the class of claim nothing can check. In rough
+order:
 
-1. **Chapters 1 to 7**, which are v0.1. Suggested order: 1, 2, 3 first,
-   because every later chapter's listings assume the reader trusts the
-   environment; then 4 to 7 in order, each leaning on the last.
+1. **Chapters 1, 2, 4, 5 and 6**, which with the written Chapters 3 and 7
+   complete v0.1. The suggested order was 1, 2, 3 first, because every later
+   chapter's listings assume the reader trusts the environment — and two
+   chapters written out of that order did not suffer for it, because each
+   names what it borrows and borrows almost nothing. Treat the ordering as a
+   preference rather than a constraint.
 2. **Chapters 8 to 12** (v0.2), with the trace-assert stage 01 in Chapter 11
    and experiments E4, E5 and E7. Chapter 10 and E6 are done.
 3. **Chapters 13 and 14 and Appendices A to D** (v1.0). Appendix B is
    written from `notes/02-traps.md`; Appendix C's version column prints
    from the preamble's macros and is never typed; Appendix D needs the
    open decision above settled first.
-4. **The eight experiments**, each free, each writing a value file that a
-   chapter reads with `\val{}`.
+4. **The experiments that have not run**, each free, each writing a value
+   file that a chapter reads with `\val{}`. The Status column in
+   `notes/01-curriculum.md` §4 says which those are; no count is stated
+   here, because one goes stale the next time a pass runs one.
 5. **The first Pages deployment**, which needs one human click.
 
 **Do not fill a measurement table with plausible numbers.** An empty table
