@@ -19,17 +19,21 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **2 of 14 written: Chapter 3, *Typing*, and Chapter 7, *Imports and dependency injection* — both editions** | 1, 2, 4–6, 8–14 |
+| Chapters | **3 of 14 written: Chapter 3, *Typing*, Chapter 7, *Imports and dependency injection*, and Chapter 11, *Testing* — both editions** | 1, 2, 4–6, 8–10, 12–14 |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapters 3 and 7's listings and exercises, the measurement scripts, and CI runs all of it | every other chapter's listings and exercises; the eight experiments |
+| Code | `code/` is a locked uv project: `trace-assert` at stage 01, Chapters 3, 7 and 11's listings and exercises, the measurement scripts, and CI runs all of it | every other chapter's listings and exercises; the eight experiments |
 
-**The scaffold plus two chapters.** The scaffold existed so that the shape of
+**The scaffold plus three chapters.** The scaffold existed so that the shape of
 the book could be argued with before any chapter was written, and so that the
-first one was written into a build that already had every gate. Chapters 3
-and 7 were written in parallel, by separate passes, each against the issue
+first one was written into a build that already had every gate. Chapters 3, 7
+and 11 were written in parallel, by separate passes, each against the issue
 that came up first rather than against the reading order — which is possible
 because a chapter names what it borrows and borrows little. The gates earned
-their keep on both; see the two pass notes below.
+their keep on all three; see the three pass notes below.
+
+Chapter 11 is the one that tested the machinery rather than being tested by
+it: a testing chapter has to print a **failing** run, and nothing in the
+harness tolerated a listing that exits non-zero.
 
 **Two editions, one paper size, both clean.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
@@ -37,8 +41,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 67 | 0 | 0 | 0 | 0 |
-| `main-pl` | 67 | 0 | 0 | 0 | 0 |
+| `main-en` | 82 | 0 | 0 | 0 | 0 |
+| `main-pl` | 82 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -56,18 +60,27 @@ for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **12 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **11 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 38 listing references, every file and region present · 9 exercises, each
-  with a starter, a solution and a test · 20 transcript references, every
-  file present · 67 code files, none over 79 columns · 19 pins agree between
-  `preamble.tex` and `code/pyproject.toml`
+- 74 listing references, every file and region present · 14 exercises, each
+  with a starter, a solution and a test · 26 transcript references, every
+  file present · 98 code files, none over 79 columns · 20 pins agree
+  between `preamble.tex` and `code/pyproject.toml`
 - **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
   reader that something was not run
-- 14 Mermaid sources, seven per language, all rendering, all placed
+- 20 Mermaid sources, ten per language, all rendering, all placed
 - 15 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 63 labels in each edition,
+- Parity: 23 file pairs, 0 failures, 0 warnings · 91 labels in each edition,
   0 mismatches
+- Prose against the 3,000-word budget, English then Polish: chapter 3 at
+  **2,915 and 2,516**, chapter 7 at **2,581 and 2,242**, chapter 11 at
+  **2,447 and 2,156**
+- **Some of these counts are per-book and some are per-edition, and they
+  are different quantities rather than a disagreement.** `make debt` says
+  74 listing references and 20 Mermaid sources, counting what the tree
+  holds; Appendix E prints 26 listing *files* and 10 diagrams, counting
+  what the copy in the reader's hand contains. Each row label says which,
+  and `code/measure/ledgers.py` is where the per-edition side is computed
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
   runs each one; neither that file nor this one states a total, because a
@@ -313,8 +326,12 @@ and publishes it and compares the three ports.
 **The assertion list is that project's own and must be copied from its
 specification when Chapter 14 is written, never reconstructed from
 memory.** The count printed in the book is whatever the specification says.
-The repository was not consulted while scaffolding, so nothing here names
-an assertion type.
+Two files are the authority and chapter 11's port names both:
+`evals/schema/scenario.schema.json` defines the layer-1 assertion types and
+`tests/AbsenceConcierge.Evals/Assertions/AssertionEvaluator.cs` evaluates
+them. Stage 01 ports two of them and `trace_assert/__init__.py` names none
+of the rest, deliberately — a list written from memory is the one thing
+the guiding project cannot afford.
 
 ---
 
@@ -951,6 +968,170 @@ lines of Python, which is what `pdfinfo` prints.
 
 ---
 
+### Chapter 11 pass, September 2026 --- the chapter that tests the harness
+
+**Written out of order, and it is the one chapter for which that is more
+than a scheduling accident.** Every other chapter can be written against a
+harness that runs its listings and expects them to succeed. A testing
+chapter cannot: the thing it has to put in front of the reader is a
+**failing** run, and `code/tests/test_listings.py` runs every `chNN/*.py`
+as a script and fails the build on a non-zero exit. So this is the chapter
+that finds out whether the machinery the repository was scaffolded around
+survives a chapter, and four of the findings below are about the machinery
+rather than about pytest.
+
+It was written in parallel with Chapters 3 and 7, by a separate pass, and
+the three sets of findings are independent — which is itself worth
+recording, because it is evidence for the claim above that a chapter here
+names what it borrows and borrows little.
+
+#### A failing run reaches the page as a transcript, from a file nothing collects
+
+The three demonstrations that must fail --- the rewritten `assert`, the wrong
+patch target, the coverage report over a test that checks almost nothing ---
+live in `code/ch11/trap_assert.py`, `trap_patch.py` and `trap_coverage.py`.
+**The name is the mechanism**: pytest collects `test_*.py`, so the suite
+never picks them up, and `pytest ch11/trap_patch.py` runs one anyway when it
+is named. `code/measure/transcripts.py` grew a `Command` kind beside its
+`Listing` kind to run them, with `expect=1` --- because *a transcript of a
+failure that stopped failing is a transcript of nothing*, and without that
+field a fixed trap would have silently started printing a passing report.
+
+The passing half of each lesson is a real listing that CI runs
+(`ch11/test_patching.py` asserts the trap rather than merely suffering it),
+so every trap in the chapter is demonstrated twice: once as a report the
+reader recognises, once as an assertion that cannot rot.
+
+#### Three causes of transcript drift, and a fourth guard
+
+`make verify` compares a committed transcript against a fresh run, so
+anything in pytest's output that differs between this machine and CI fails
+the build for no defect. All three were found by running twice and diffing,
+not by reasoning about it:
+
+- **Memory addresses.** A traceback that displays a `module.attr` callable
+  or a fixture argument prints `<function ... at 0x7f...>`. Avoided by
+  importing the bare name and by using `unittest.mock.patch` as a context
+  manager rather than the `monkeypatch` fixture --- neither of which is a
+  worse way to write the test, which is why it was the fix rather than a
+  post-processing step.
+- **Terminal width.** pytest and coverage size their rules to the terminal
+  and fall back to 80 without a tty --- one column over the book's budget,
+  and a property of whatever ran the build. `COLUMNS=79` is pinned in the
+  transcript writer's environment and in `code/exercises/ch11/_pytest_runner.py`.
+- **A nested `where` line at 99 columns.** pytest prints `where Line(...) =
+  Line(...)` under a failing comparison, and it does not wrap. Fixed by
+  binding the value to a local first, which is also how the assertion reads
+  best.
+
+And a **fourth guard** was added to `transcripts.py` for the first: a memory
+address is ASCII, printable, and short, so the three existing guards could
+not see it. It is caught by name --- `0x7f`, `0x55` --- which is crude and is
+the only thing that would have failed on the shape that actually occurred.
+
+#### `make starters` caught a genuine design flaw, not a mechanical one
+
+Exercise 11.3's first draft had a test that passed on the untouched starter,
+and the strict-xfail gate reported `XPASS(strict)`. The test was
+`test_the_real_rate_is_back_afterwards` --- it asserted that patching is
+undone when the block exits, which is true of `unittest.mock` and has
+nothing to do with what the reader was asked to write.
+
+**A test in an exercise that does not depend on the reader's answer is not a
+check**, and the gate exists to say so. The sentence is now in that file's
+docstring, because the next person writing an exercise will reach for
+exactly that kind of reassuring extra assertion.
+
+#### pytest 9 does not expose what an introspecting check would want
+
+Exercises 11.1 and 11.2 ask the reader to restructure a test file, so their
+checks have to look at *how* it was written. The obvious route ---
+`getattr(f, "_pytestfixturefunction")` --- does not work at
+pytest 9.1.1: `@pytest.fixture` returns a `FixtureFunctionDefinition`, and
+that class is not exported from `pytest`. This is the *verify before
+writing* rule paying for itself: the attribute is what a model remembers,
+it is what older answers on the internet use, and it is gone.
+
+Both checks go through the public command line instead ---
+`_pytest_runner.run()` shells out to `python -m pytest` and reads the exit
+code, and `source()` returns the file's own text for a regex. **`-o
+addopts=` is load-bearing** in that runner: without it the project's own
+`-q` stacks with the runner's into `-qq`, which drops the `4 passed`
+summary line exercise 11.2's check reads.
+
+#### The flat namespace cost two settings that must stay in step
+
+`code/ch11/` is a flat package of listing files that import each other
+(`invoice` imports `rates`), and the exercises import them too. That needs
+`pythonpath = [".", "ch11"]` in `[tool.pytest.ini_options]` **and**
+`extraPaths = ["ch11"]` under `[tool.pyright]`, because the two tools
+resolve imports independently and neither reads the other's list. Both
+carry a comment saying so. `code/src/trace_assert/py.typed` was needed for
+the same reason from the other direction: without it pyright reports *Stub
+file not found for `trace_assert`* the moment the package is imported from
+outside its own tree.
+
+#### One overfull box, and the recorded reword made it worse
+
+A 47.5 pt box in the **Polish** edition only, from `\code{code/ch11/trap\_patch.py}`
+mid-paragraph --- the inherited latency rule, an unbreakable run that is
+comfortable in one edition and not the other. The recorded remedy is to move
+it to the start of a sentence so it starts a line reliably; applied, it went
+to **56.8 pt**, which `checklog.py`'s own message warns about in as many
+words (*rewording moves it elsewhere*).
+
+Read the raw log rather than guessing a second time: the offending line was
+the paragraph's entire first line, so starting the sentence with the path
+had put the unbreakable run exactly where the break had to fall. **The fix
+is to shorten the run, not to move it**: `\code{trap\_patch.py}` is half the
+characters and names the same file, since the directory is on the listing's
+own path line two inches below. Applied in both editions, so C4 and C14
+moved identically.
+
+#### trace-assert stage 01 is a port and says whose design it is
+
+CLAUDE.md's rule for the guiding project is that the assertion list is
+agent-eval-bench's own and must be copied from its specification, never
+reconstructed. The scaffold noted that the repository had not been
+consulted; it has now. The two authorities are
+`evals/schema/scenario.schema.json`, which defines the layer-1 assertion
+types, and
+`tests/AbsenceConcierge.Evals/Assertions/AssertionEvaluator.cs`, which
+evaluates them. Read on 14 September 2026 the schema defines **twelve**;
+that figure is dated and attributed here rather than restated as a
+standing fact, because it is the specification's to state and nothing in
+this repository gates it.
+
+Stage 01 ports **two**, and the schema is why they are a pair rather than a
+sample: it documents `tool_not_called` as *half of the two-assertion rule for
+a denied path*, because an agent that refuses in prose and calls the tool
+anyway passes the refusal check on its own. Both raise `AssertionError`
+rather than returning a verdict --- in pytest the assertion is the report ---
+and both set `__tracebackhide__`, so a failure points at the reader's test
+rather than at the library.
+
+#### Also
+
+- **`coverage` 7.16.1 was added to the dev group**, which is a new
+  dependency and therefore a decision rather than a side effect. Section
+  11.6 needs a coverage report as a transcript; the alternative,
+  `pytest-cov`, is a plugin around the same tool and would put a second
+  name in the table for one command. Pinned in `preamble.tex`, in
+  `code/pyproject.toml` and in `check_versions.py`'s `PINS`, which is the
+  three places the gates read.
+- **`.pytest_cache/` and `.coverage` are gitignored**, and the comment says
+  why the pair is asymmetric: the report is a committed transcript, the
+  binary data file it is computed from is not.
+- **Traps 50, 51 and 52 are marked delivered in `notes/02-traps.md`**, and
+  writing the chapter corrected one of them. Trap 51 had the patch-target
+  rule as *patch where it is used*; the rule is one clause wider, because
+  which name a call resolves is decided by the **import**, so `import x`
+  followed by `x.y()` really is patched at `x.y`. Both halves are asserted
+  in `code/ch11/test_patching.py` rather than stated. Trap 52 was half
+  wrong in the reader's favour: under `-O` an `assert` in the
+  *application* really does vanish, so the habit it warns about is right
+  about application code and wrong about tests.
+
 ---
 
 ## After each pass
@@ -977,20 +1158,20 @@ Tag from a local clone.
 
 ## What is left
 
-Two chapters of fourteen are written. The outstanding work is tracked as
+Three chapters of fourteen are written. The outstanding work is tracked as
 GitHub issues under the `chapter`, `appendix`, `experiment` and
 `infrastructure` labels — **work from the labels, not from a list here**,
 because a list in this file is the class of claim nothing can check. In rough
 order:
 
-1. **Chapters 1, 2, 4, 5 and 6**, which with the written Chapters 3 and 7
+1. **Chapters 1, 2, 4, 5 and 6**, which with the written Chapter 3
    complete v0.1. The suggested order was 1, 2, 3 first, because every later
-   chapter's listings assume the reader trusts the environment — and two
+   chapter's listings assume the reader trusts the environment — and three
    chapters written out of that order did not suffer for it, because each
    names what it borrows and borrows almost nothing. Treat the ordering as a
    preference rather than a constraint.
-2. **Chapters 8 to 12** (v0.2), with the trace-assert stage 01 in Chapter 11
-   and experiments E4 to E7.
+2. **Chapters 8, 9, 10 and 12** (v0.2), with experiments E4 to E7. Chapter 11
+   is written and carries trace-assert stage 01.
 3. **Chapters 13 and 14 and Appendices A to D** (v1.0). Appendix B is
    written from `notes/02-traps.md`; Appendix C's version column prints
    from the preamble's macros and is never typed; Appendix D needs the

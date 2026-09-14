@@ -86,9 +86,9 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 | 47 | Relationships are loaded when I read them, as in EF | Lazy by default in both; the N+1 is identical, and `selectinload` is `Include`. E6 counts it | Ch. 10 |
 | 48 | Alembic autogenerate is the migration | It is a diff of the models against the database, and it misses renames, type changes and constraints; read every generated migration | Ch. 10 |
 | 49 | I need a repository over the ORM | The `Session` is the unit of work and the repository pattern doubles it; Chapter 10 says why that pattern is usually a mistake here | Ch. 10 |
-| 50 | A test class per fixture, like `IClassFixture` | pytest fixtures are functions with a scope; the class is optional and usually absent | Ch. 11 |
-| 51 | Mock where the thing is defined | Patch where the name is *looked up* — the importing module — or the patch does nothing and the test passes for the wrong reason | Ch. 11 |
-| 52 | `assert` is for debug builds | pytest rewrites `assert` to explain itself; it is the assertion library | Ch. 11 |
+| 50 | A test class per fixture, like `IClassFixture` | pytest fixtures are functions with a scope; the class is optional and usually absent | Ch. 11 — **delivered**, §11.2 |
+| 51 | Mock where the thing is defined | Patch where the name is *looked up* — the importing module — or the patch does nothing and the test passes for the wrong reason | Ch. 11 — **delivered**, §11.4, and the chapter's headline. The rule is one clause wider than this entry had it: which name the call resolves was decided by the IMPORT, so `import x` plus `x.y()` really is patched at `x.y`. Both halves are asserted in `code/ch11/test_patching.py` |
+| 52 | `assert` is for debug builds | pytest rewrites `assert` to explain itself; it is the assertion library | Ch. 11 — **delivered**, §11.1. Half of the habit is right and the entry did not say so: under `-O` an `assert` in the APPLICATION really does vanish, so it is for tests and invariants, never for validating input |
 | 53 | `logging.basicConfig` and I am done | The standard module's configuration is global, import-order-sensitive and the reason structlog exists | Ch. 12 |
 | 54 | Correlation id in a static field, like `AsyncLocal` | `contextvars` is `AsyncLocal`; a module-level variable is shared by every request on the loop | Ch. 12 |
 | 55 | `FROM python:3.14` and `pip install` in the Dockerfile | Multi-stage with `uv sync --frozen --no-dev`, a non-root user, and the two environment variables. E7 measures the three shapes | Ch. 12 |
