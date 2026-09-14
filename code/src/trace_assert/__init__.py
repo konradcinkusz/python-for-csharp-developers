@@ -6,56 +6,31 @@ per chapter: the trace model and the first two assertions in chapter 11,
 trace capture from a real model call in chapter 13, the full assertion set
 and packaging in chapter 14.
 
-What is here now is the model and nothing else, so that the package exists
-from the first commit and the book's build has been running it since. Every
-public name is a claim about the finished package, so the surface is kept as
-small as the chapters have earned.
+Stage 01 is three modules and this one. `model` is what a run leaves behind,
+`assertions` is what a test says about it, and `plugin` is the one fixture
+that hands a test a place to record. Everything a reader imports is
+re-exported here, so the package's surface is one import line and its layout
+is free to change under it.
+
+Every public name is a claim about the finished package, so the surface is
+kept as small as the chapters have earned. The remaining assertion types are
+defined in agent-eval-bench's own scenario schema and are chapter 14's to
+port; none of them is named here, because a list written from memory is the
+one thing the guiding project cannot afford.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from .assertions import assert_tool_called, assert_tool_not_called
+from .model import Event, Recorder, Trace
 
-__all__ = ["Event", "Trace", "__version__"]
+__all__ = [
+    "Event",
+    "Recorder",
+    "Trace",
+    "__version__",
+    "assert_tool_called",
+    "assert_tool_not_called",
+]
 
-__version__ = "0.0.1"
-
-
-def _empty_payload() -> dict[str, object]:
-    """A typed empty dict: `default_factory=dict` is dict[Unknown, Unknown]
-    to a strict checker, and that is the chapter 3 lesson arriving early."""
-    return {}
-
-
-@dataclass(frozen=True, slots=True)
-class Event:
-    """One thing the agent did, in the order it did it.
-
-    `kind` is what happened -- `tool_call`, `tool_result`, `model_call`,
-    `model_result` -- and `name` is what it happened to. Everything else is
-    in `payload`, which is deliberately untyped at this stage: chapter 13
-    decides what a model call records.
-    """
-
-    kind: str
-    name: str
-    payload: dict[str, object] = field(default_factory=_empty_payload)
-
-
-@dataclass(frozen=True, slots=True)
-class Trace:
-    """The ordered record of one run.
-
-    A trace is a tuple rather than a list so that an assertion cannot mutate
-    the evidence it is asserting over.
-    """
-
-    events: tuple[Event, ...] = ()
-
-    def of_kind(self, kind: str) -> tuple[Event, ...]:
-        """Every event of one kind, in order."""
-        return tuple(e for e in self.events if e.kind == kind)
-
-    def names(self, kind: str) -> tuple[str, ...]:
-        """The names of every event of one kind, in order."""
-        return tuple(e.name for e in self.of_kind(kind))
+__version__ = "0.0.2"
