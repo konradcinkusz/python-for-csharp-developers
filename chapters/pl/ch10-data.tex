@@ -68,9 +68,13 @@ wolniej; czym się wywraca, to inna sprawa \dash{} często zwykłym
 Warto nazwać dwie chwile wewnątrz sesji, bo do obu przyklejają się nawyki z
 EF. Mapa tożsamości oznacza, że dwa odczyty jednego wiersza dają jeden
 obiekt, a drugi nie kosztuje nic \dash{} to ta sama gwarancja, którą daje
-śledzenie zmian. A \code{flush()} to nie \code{commit()}: flush wykonuje
-INSERT i oddaje klucz wybrany przez bazę, wciąż wewnątrz otwartej
-transakcji, którą nadal można wycofać.
+śledzenie zmian, a listing ten drugi odczyt liczy, zamiast o nim zapewniać.
+
+\pyregion{code/ch10/session.py}{identity}{Dwa odczyty, jeden obiekt, żadnej drugiej instrukcji}{lst:ch10-identity}
+
+A \code{flush()} to nie \code{commit()}: flush wykonuje INSERT i oddaje
+klucz wybrany przez bazę, wciąż wewnątrz otwartej transakcji, którą nadal
+można wycofać.
 
 \pyregion{code/ch10/session.py}{flush}{\code{flush()} zapisuje; \code{commit()} kończy transakcję}{lst:ch10-flush}
 
@@ -226,8 +230,10 @@ nie wysyła zapytania za twoimi plecami.
 Alembic jest narzędziem do migracji, a \code{alembic revision
 -{}-autogenerate} to dwa kroki: porównaj modele z żywą bazą, a potem zapisz
 różnicę jako skrypt migracji. Warto zobaczyć pierwszy krok osobno. Oto dwie
-wersje jednego modelu, różniące się jedną przemianowaną kolumną, i funkcja,
-którą samo polecenie wywołuje.
+wersje jednego modelu, różniące się jedną przemianowaną kolumną, a potem
+funkcja, którą samo polecenie wywołuje.
+
+\pyregion{code/ch10/autogenerate.py}{models}{Co wdrożono i co mówią modele teraz}{lst:ch10-models}
 
 \pyregion{code/ch10/autogenerate.py}{diff}{Co liczy \code{-{}-autogenerate}}{lst:ch10-autogen}
 

@@ -52,8 +52,6 @@ class Incident(Base):
 
 # --8<-- [end:model]
 
-# --8<-- [start:rows]
-
 # service, title, severity, minutes. Five services, so the N+1 in section
 # three costs six statements and the fix costs two: small enough to read,
 # far enough apart to be a measurement.
@@ -68,8 +66,6 @@ ROWS = (
     ("queue", "queue-poison-msg", 3, 9),
     ("auth", "auth-token-expiry", 1, 31),
 )
-
-# --8<-- [end:rows]
 
 
 def seeded_engine(echo: bool = False) -> Engine:

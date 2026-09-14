@@ -35,8 +35,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 50 | 0 | 0 | 0 | 0 |
-| `main-pl` | 52 | 0 | 0 | 0 | 0 |
+| `main-en` | 51 | 0 | 0 | 0 | 0 |
+| `main-pl` | 53 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -49,7 +49,7 @@ does not:
 
 - **13 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 30 listing references, every file and region present · 6 exercises, each
+- 34 listing references, every file and region present · 6 exercises, each
   with a starter, a solution and a test · 12 transcript references, every
   file present · 41 code files, none over 79 columns · 20 pins agree between
   `preamble.tex` and `code/pyproject.toml`
@@ -57,9 +57,9 @@ does not:
   reader that something was not run
 - 10 Mermaid sources, five per language, all rendering, all placed
 - 20 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 51 labels in each edition,
+- Parity: 23 file pairs, 0 failures, 0 warnings · 53 labels in each edition,
   0 mismatches
-- Chapter 10 carries 3 `csbox` translation boxes and 2,370 / 2,051 prose
+- Chapter 10 carries 3 `csbox` translation boxes and 2,381 / 2,062 prose
   words against a budget of 3,000
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
@@ -824,6 +824,15 @@ genuinely **requires** `.unique()` (`InvalidRequestError`, not a
 recommendation), and an Alembic `Revision` really does carry
 `down_revision`, so revisions chain by parent id rather than sort by
 timestamp.
+
+**A region marker nothing prints is a promise nothing keeps.** Four were
+left behind after the sections were cut to length. Two of them carried the
+premise of a claim the prose makes — that a repeated `get()` costs nothing,
+and that the two model versions in the migration section differ by exactly
+one renamed column — so those are printed, and the reader can check the
+setup rather than take it. The other two markers were removed. Note that
+`\pyregion` prints the file's own line numbers, so removing a marker moves
+every later listing's numbering and needs a rebuild.
 
 **A caption is a claim, so the diagrams were measured before the captions
 were written.** All three render between 7.4 and 8.3 pt of node text, every

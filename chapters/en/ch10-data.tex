@@ -62,9 +62,13 @@ about translation.
 Two moments inside the session are worth naming, because EF habits attach
 to both. The identity map means two loads of one row give you one object,
 and the second costs nothing \dash{} the same guarantee change tracking
-gives you. And \code{flush()} is not \code{commit()}: the flush runs the
-INSERT and hands back the key the database chose, while the transaction is
-still open and can still be rolled back.
+gives you, and the listing counts the second rather than asserting it.
+
+\pyregion{code/ch10/session.py}{identity}{Two loads, one object, no second statement}{lst:ch10-identity}
+
+And \code{flush()} is not \code{commit()}: the flush runs the INSERT and
+hands back the key the database chose, while the transaction is still open
+and can still be rolled back.
 
 \pyregion{code/ch10/session.py}{flush}{\code{flush()} writes; \code{commit()} ends the transaction}{lst:ch10-flush}
 
@@ -223,7 +227,9 @@ Alembic is the migration tool, and \code{alembic revision --autogenerate} is
 two steps: diff the models against the live database, then write the diff
 out as a migration script. It is worth watching the first step on its own.
 Here are two versions of one model, differing by a single renamed column,
-and the function the command itself calls.
+and then the function the command itself calls.
+
+\pyregion{code/ch10/autogenerate.py}{models}{What shipped, and what the models say now}{lst:ch10-models}
 
 \pyregion{code/ch10/autogenerate.py}{diff}{What \code{-{}-autogenerate} computes}{lst:ch10-autogen}
 

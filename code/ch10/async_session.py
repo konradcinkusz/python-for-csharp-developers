@@ -28,8 +28,6 @@ from sqlalchemy.orm import selectinload
 
 Factory = async_sessionmaker[AsyncSession]
 
-# --8<-- [start:engine]
-
 
 def make_factory(engine: AsyncEngine) -> Factory:
     """expire_on_commit=False is not a tuning knob under async.
@@ -40,8 +38,6 @@ def make_factory(engine: AsyncEngine) -> Factory:
     """
     return async_sessionmaker(engine, expire_on_commit=False)
 
-
-# --8<-- [end:engine]
 
 # --8<-- [start:lazy]
 
