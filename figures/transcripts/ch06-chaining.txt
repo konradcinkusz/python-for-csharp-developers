@@ -1,0 +1,4 @@
+raise_exc  main>raise_exc>raise_exc>port cause=- context=-
+raise_bare main>raise_bare>port cause=- context=-
+wrap_from  main>wrap_from cause=KeyError context=KeyError
+wrap_plain main>wrap_plain cause=- context=KeyError
