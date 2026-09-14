@@ -140,6 +140,11 @@ listing below is the same shape, for you to run.
 \pyfile{code/ch08/one_loop.py}{Where a slow call spends its time decides who else pays}{lst:ch08-one-loop}
 
 \noindent
+Answer two things before you run it. Four coroutines each block the loop
+for a tenth of a second: how long do the four take between them? And a
+fifth coroutine, which asked for twenty milliseconds and is doing nothing
+wrong: how long does it wait?
+
 \val{e04.offenders} coroutines each taking \val{e04.block.ms}~ms, beside
 \val{e04.innocent} that merely await \val{e04.wait.ms}~ms. In .NET those
 four would land on four pool threads and overlap, finishing in about

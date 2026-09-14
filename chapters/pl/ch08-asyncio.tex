@@ -141,6 +141,11 @@ ten sam kształt i jest do uruchomienia przez ciebie.
 \pyfile{code/ch08/one_loop.py}{To, gdzie wolne wywołanie spędza czas, decyduje o tym, kto jeszcze zapłaci}{lst:ch08-one-loop}
 
 \noindent
+Odpowiedz na dwie rzeczy, zanim go uruchomisz. Cztery korutyny blokują
+pętlę po jednej dziesiątej sekundy każda: ile zajmą we cztery? I piąta
+korutyna, która poprosiła o dwadzieścia milisekund i nie robi nic złego:
+ile będzie czekać?
+
 \val{e04.offenders} korutyny zabierające po \val{e04.block.ms}~ms, obok
 \val{e04.innocent}, które tylko czekają \val{e04.wait.ms}~ms. W .NET te
 cztery trafiłyby na cztery wątki puli i nałożyłyby się, kończąc razem po
