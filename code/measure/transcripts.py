@@ -66,6 +66,10 @@ TRANSCRIPTS = {
     "ch12-log-setup": "ch12/log_setup.py",
     "ch12-correlation": "ch12/correlation.py",
     "ch12-shutdown": "ch12/shutdown.py",
+    "ch13-structured": "ch13/structured.py",
+    "ch13-sdk-shape": "ch13/sdk_shape.py",
+    "ch13-survives": "ch13/what_survives.py",
+    "ch13-call-model": "ch13/call_model.py",
 }
 
 
