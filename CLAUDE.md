@@ -19,20 +19,21 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **2 of 14 written: Chapters 3 and 14, both editions.** The other twelve are briefs printed where the chapter will go | 1, 2 and 4 to 13 |
+| Chapters | **3 of 14 written: Chapter 3, *Typing*, Chapter 7, *Imports and dependency injection*, and Chapter 14, *trace-assert, complete* — both editions** | 1, 2, 4–6, 8–13 |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: `trace-assert` **complete** (the trace model and all twelve assertions), Chapter 3's seven listings and Chapter 14's three, nine exercises, four measurement scripts, and CI runs all of it | Chapters 1, 2 and 4 to 13's listings and exercises; the eight experiments |
+| Code | `code/` is a locked uv project: `trace-assert` **complete** (the trace model and all twelve assertions), Chapters 3, 7 and 14's listings and exercises, the measurement scripts, and CI runs all of it | every other chapter's listings and exercises; the eight experiments |
 
-**The scaffold plus two chapters, written concurrently on separate
-branches.** The scaffold existed so that the shape of the book could be
-argued with before Chapter 1 was written, and so that the first chapter was
-written into a build that already had every gate. Chapter 3 is the first
-chapter written into it and the gates earned their keep on its first pass;
-Chapter 14 was written out of order and deliberately, because it is the one
+**The scaffold plus three chapters.** The scaffold existed so that the shape
+of the book could be argued with before any chapter was written, and so that
+the first one was written into a build that already had every gate. Chapters
+3, 7 and 14 were written in parallel, by separate passes, each against the
+issue that came up first rather than against the reading order — which is
+possible because a chapter names what it borrows and borrows little.
+Chapter 14 is the furthest out of order and deliberately so: it is the one
 chapter whose content is a port of a specification that could be read and
-copied rather than invented. **Each pass note below states the figures its
-own build reported, which are pre-merge**; the tables above are the merged
-tree.
+copied rather than invented. The gates earned their keep on all three; see
+the three pass notes below. **Each pass note states the figures its own
+build reported, which are pre-merge**; the tables here are the merged tree.
 
 **Two editions, one paper size.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
@@ -40,42 +41,46 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 64 | 0 | 0 | 1 · 7.7 pt | 0 |
-| `main-pl` | 66 | 0 | 0 | 2 · 28.1, 12.1 pt | 0 |
-
-**Measured on the sandbox, which has neither `newtx` nor `inconsolata` and
-therefore typesets in Computer Modern.** That is not the book's font, so
-these widths are not CI's: all three boxes are in Chapter 3's prose, in
-files CI compiled green on `main`, and the 28.1 pt one fails `checklog`
-locally while CI reports none. **CI is the reference installation**, and
-the table has never said which machine it came from until now — see the
-font trap below before reading a box count as a defect.
+| `main-en` | 80 | 0 | 0 | 3 · 15.6, 7.7, 5.5 pt | 0 |
+| `main-pl` | 82 | 0 | 0 | 3 · 28.1, 12.1, 2.3 pt | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
-to go stale. **And say which build**: the two rows above are from a bare TeX
-Live — `lmodern`, no `newtx` and no `inconsolata`, which is what the
-preamble's `\IfFileExists` probes degrade to — so they are comparable with
-the scaffold's 37 and 37 and are *not* comparable with a full installation's.
-CI compiles on a full TeX Live and will paginate differently; that is the
-inherited two-machines rule and it is not a defect.
+to go stale. **And say which build**, which is the Chapter 3 pass's rule and
+is why successive rows here are not comparable with one another. **These two
+were measured on a container with neither `newtx` nor `inconsolata` nor
+`lmodern`** — `kpsewhich` returns nothing for any of the three — so the
+preamble's `\IfFileExists` probes fall all the way through to Computer
+Modern, and `main-en.log` loads `T1/cmr` throughout. The Chapter 7 pass's
+67 and 67 were measured on an installation that HAS `newtx` and
+`inconsolata` (`texlive-fonts-extra`); Chapter 3's 53 and 56 on a third.
+Different fonts, different line breaks, different pagination.
+
+**So the six overfull boxes in the table are the container talking, not a
+defect**: all six are in Chapters 3 and 7, in files CI compiled green on
+their own branches, and the 28.1 pt one fails `checklog` locally while CI
+reports none. **Do not reword prose to satisfy a font the book is not
+typeset in** — that moves the box onto CI, which is the unwinnable loop the
+companion books record having entered once. CI compiles on a full TeX Live
+and is the reference; this is the inherited two-machines rule. Record which
+installation you measured on, every time.
 
 **Debt ledgers, reported by CI on every build** (`make debt`), and printed
 for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **12 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **11 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 30 listing references, every file and region present · 8 exercises, each
-  with a starter, a solution and a test · 18 transcript references, every
-  file present · 50 code files, none over 79 columns · 19 pins agree between
+- 52 listing references, every file and region present · 12 exercises, each
+  with a starter, a solution and a test · 26 transcript references, every
+  file present · 83 code files, none over 79 columns · 19 pins agree between
   `preamble.tex` and `code/pyproject.toml`
 - **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
   reader that something was not run
-- 12 Mermaid sources, six per language, all rendering, all placed
+- 18 Mermaid sources, nine per language, all rendering, all placed
 - 18 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 61 labels in each edition,
+- Parity: 23 file pairs, 0 failures, 0 warnings · 80 labels in each edition,
   0 mismatches
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
@@ -388,22 +393,24 @@ are listed by name and their reasoning is in the companion books.
   an undefined control sequence. So the preamble guesses nothing: CI's full
   TeX Live is the reference, and locally the fix is `apt-get install
   tex-gyre`.
-- **And the sandbox has neither `newtx` nor `inconsolata` at all, so every
-  local build is set in Computer Modern and its widths are not CI's.**
-  `kpsewhich newtxtext.sty` and `kpsewhich inconsolata.sty` both come back
-  empty here; the preamble probes, degrades, and says nothing, which is
-  what it is supposed to do. The consequence is that **an overfull-box
-  figure or a page count measured locally is not comparable to one measured
-  on CI**, and the page table above has never said which installation it
-  came from. Measured, on the Chapter 3 + Chapter 14 merge: CM reports
-  three overfull boxes in Chapter 3's prose — 7.7 pt in English, 28.1 pt
-  and 12.1 pt in Polish, the 28.1 pt one over the 15 pt budget and so a
-  hard failure — in two files byte-identical to the ones CI compiled green
-  on `main`. Do **not**
-  reword prose to satisfy the local font: that moves the box onto CI, which
-  is the unwinnable loop the companion books record having entered once.
-  **CI is the reference installation; a local red build on a box in a
-  chapter this pass did not touch is a fact about the container.**
+- **A sandbox may have none of `newtx`, `inconsolata` or `lmodern`, in
+  which case the preamble's probes fall all the way through to Computer
+  Modern and `make` goes red on prose nobody wrote that day.** `kpsewhich`
+  returns nothing for all three on the container this note was written on,
+  and the preamble probes, degrades and says nothing, which is what it is
+  supposed to do. Measured on the three-chapter merge: CM reports **six**
+  overfull boxes, three per edition, **every one of them in Chapters 3 and
+  7 and none in the chapter the pass was writing** — the worst 28.1 pt,
+  over the 15 pt budget, so `checklog` fails and `make en pl` exits 2 on
+  files CI had compiled green on their own branches. The header's page
+  table carries the figures and the reasoning; what belongs here is the
+  instruction. **Attribute every box to a file before touching anything**
+  (the paragraph-location loop over `main-*.log` in *After each pass* does
+  it), and if the boxes are not in your chapter, **leave them**: rewording
+  prose to satisfy a font the book is not typeset in moves the box onto CI,
+  which is the unwinnable loop the companion books record having entered
+  once. A local red build on another chapter's box is a fact about the
+  container, not a defect to fix.
 - **Rendering a diagram after a build does not invalidate the build.**
   `\mermaidfig` typesets the `.mmd` source when the rendered PDF is absent,
   so that compile's dependency list contains the source and not the PDF
@@ -870,6 +877,129 @@ trimmed first was not the widest one** — mermaid sizes a chain by the sum of
 its nodes' longest lines, so the render has to be measured again rather than
 reasoned about.
 
+### Chapter 7 pass, September 2026
+
+The first chapter written, and the brief held everywhere it made a claim
+about *what the chapter should contain*. What it got wrong was the framing
+every book gets wrong, and a probe settled it in a minute.
+
+**A circular import is not an error, and the brief's “three ways out” are
+three ways of moving a name lookup past import time.** Two modules that
+`import` each other run fine: the module OBJECT is put in `sys.modules`
+before its body runs, which is what stops the recursion, so binding it
+always succeeds. What fails is a NAME read from a module whose body has not
+reached the line that binds it — which is exactly what `from x import y`
+asks for, at import time. So the three fixes are: hold the module rather
+than the name, import inside the function, and extract the shared thing
+into a third module; and only the third removes the cycle. All four cases
+are in `code/ch07/cycles.py`, which runs them and prints what came out.
+
+**THE FINDING: CPython’s diagnosis of a circular import depends on where the
+file sits, not on what went wrong.** The same two-module cycle produces two
+different messages:
+
+| Where the modules are | What CPython says |
+|---|---|
+| inside a package | `cannot import name 'X' from partially initialized module 'p.m' (most likely due to a circular import)` |
+| flat, in the directory you ran from | `cannot import name 'X' from 'm' (consider renaming 'm.py' if it has the same name as a library you intended to import)` |
+
+Hypothesised from the first probe disagreeing with the second, then
+**confirmed by moving the identical pair off `sys.path[0]` with
+`PYTHONPATH`**, at which point the flat pair produced the package message.
+CPython prefers the shadowing hint when the module’s file is in
+`sys.path[0]`, so the message that names the cause fires in the packaged
+layout and the message about a name clash fires in the flat one — which is
+the shape a first Python project takes. `§7.3` carries it as a warning box,
+and both halves are in the chapter’s transcript because the listing runs
+both.
+
+**The DI-library question the brief asked to settle on the day, settled.**
+Read off PyPI on 14 September 2026 rather than remembered:
+`dependency-injector` 4.49.1 (2026-06-18), `injector` 0.24.0 (2026-01-09),
+`punq` 0.9.0 (2026-09-08), `svcs` 26.2.0 (2026-08-24), `wireup` 2.12.0
+(2026-07-09) and `kink` 0.9.0 (2026-03-19) are all maintained; `lagom`
+2.7.7 is over a year old and stops at 3.13. **The finding is that none of
+them is the default**, which is the difference from .NET worth printing,
+and the chapter says that rather than naming a winner. No version numbers
+reached the page: a dated ecosystem claim is durable, a version number in
+prose is not, and `\pinnedon{}` already carries the date.
+
+**Chapter 7 added no dependency to `code/pyproject.toml`**, deliberately.
+Every listing in it runs on the standard library, so the composition root is
+demonstrated with `functools.partial` and `typing.Protocol` and nothing is
+installed to make a point about containers.
+
+**A listing that is MEANT to fail cannot satisfy `test_listings.py`, and the
+underscore is the mechanism.** That runner executes every `chNN/**/*.py`
+whose name does not begin with `_`, and half of a cycle run on its own
+proves nothing. So the eight modules under `code/ch07/cycle/` and the two
+`code/ch07/_flat_*.py` are underscored — which is also the ordinary Python
+mark for *internal to this package* — and `code/ch07/cycles.py`, which IS
+run, imports every one of them. The convention is recorded here because the
+next chapter that needs a deliberately-broken module should not re-derive
+it: **an underscored module is still exercised, by the driver that is not
+underscored, and the driver’s docstring says so.**
+
+**pyright strict shaped three listings, and each error was right.**
+`build()` is annotated as returning a plain callable, so `build().func` is
+refused — which is the composition root’s whole point, enforced rather
+than asserted, and the chapter says so. An `__init__.py` with
+`__all__ = ["discount"]` and no import of `discount` is
+`reportUnsupportedDunderAll`, and the fix is the empty package body the
+chapter argues for anyway. A constant assigned in both branches of a
+`try`/`except` is `reportConstantRedefinition`; assigning it once from a
+helper reads better regardless.
+
+**Two claims written from background knowledge rather than from a probe,
+both caught on a last read of the chapter and both wrong.** The C# box said
+Python “makes no thread-safety promise” about a module body. It does:
+`importlib._bootstrap._ModuleLock` is a lock per module, taken while a body
+runs, and it detects its own deadlocks — read out of the installed
+interpreter. So the box now says what is actually different, which is better
+material: not thread safety, but that a cycle lets a second module see this
+one half-built, which hands forward to §7.3. And the `-m` box said that
+invoking a .NET DLL directly “gives you whatever the directory happens to
+contain”, which is false — resolution is declared, by the project and by the
+deps file beside it. The corrected contrast is sharper than the wrong one:
+in .NET the directory you are standing in does not change which code loads,
+and in Python it does, because `sys.path[0]` is chosen by how you started the
+process. **A .NET claim in this book is the one a reader is most likely to
+know better than the author**, and neither of these would have been caught by
+any gate.
+
+**Two overfull hboxes, both the inherited long-`\api{}`-at-a-line-break
+class, and this book’s first.** 3.1 pt in English on
+`\api{importlib.import\_module}` and 7.3 pt in Polish on
+`\api{sys.modules}`. Neither hyphenates. The English one was cleared by
+starting a new paragraph with the token, which puts it at the left margin
+deterministically; the Polish one by moving the token earlier in its
+sentence. **Both editions were rebuilt after each fix**, because a reflow in
+one says nothing about the other.
+
+**The container had no TeX at all.** `latexmk` and TeX Live are not
+preinstalled in this sandbox, and `make en` fails with
+`make: latexmk: No such file or directory`. What this pass installed, and
+what was enough for a clean build of both editions:
+`latexmk texlive-latex-recommended texlive-latex-extra
+texlive-fonts-recommended texlive-fonts-extra texlive-science
+texlive-lang-polish texlive-lang-english tex-gyre texlive-plain-generic`.
+`tex-gyre` is on that list because of the trap already recorded above, and
+`texlive-fonts-extra` brings newtx and inconsolata — so the local build
+after it measures the same fonts CI does, which is why the two hbox figures
+above are worth trusting.
+
+**Three diagrams, measured before the captions were written**, as the rule
+says. The first drafts came out 775 and 797 pt wide and set their node text
+at about 6.3 pt, under the band the scaffold’s two diagrams occupy. Shorter
+node text — not wordier, which is the fix for a graph that is too NARROW —
+took them to 580 and 660 pt and 7.6 to 8.7 pt. `pdfinfo` is not installed
+here either; the page size reads out of the PDF’s `/MediaBox` with three
+lines of Python, which is what `pdfinfo` prints.
+
+---
+
+---
+
 ### Chapter 14 pass, September 2026
 
 **Written out of order, before Chapters 11 and 13.** Its content is a port
@@ -1003,6 +1133,28 @@ no `async` or `Task<` at all, and *never published* is enforced rather than
 merely absent: `Directory.Build.props` sets `<IsPackable>false</IsPackable>`
 for the whole repository.
 
+**Three chapters were in flight at once, and `main` moved twice under this
+pass.** Chapter 3 (#46) landed after this branch was cut and Chapter 7 (#49)
+landed while the first merge was being resolved, so the branch merged `main`
+twice. Both merges hit the same three files and the resolution is the same
+each time: `code/measure/transcripts.py` and the CLAUDE.md ledgers are
+**additive** — take both sides, in chapter order — and
+`figures/values/ledgers.tex` is **generated**, so it is resolved by running
+`make numbers` and never by hand.
+
+**And a conflicted pull request runs no CI at all, which reads exactly like
+a queue.** Observed: with the PR showing `mergeable_state: dirty`, a push
+carrying `.tex` and `.py` produced **zero** workflow runs — not a failure, not
+a pending check, nothing in `/actions/runs` for that SHA. The mechanism is
+that a `pull_request` workflow builds `refs/pull/N/merge`, and GitHub cannot
+compute that ref while the PR conflicts. Separately, `build.yml` carries
+`paths-ignore: ['**.md']` on **both** `push` and `pull_request`, so a
+documentation-only commit is also silent. Between the two, *no checks
+appeared* has three quite different causes and only one of them means
+anything is wrong. **Read `mergeable_state` and the workflow's own `on:`
+block before reading silence as progress** — which is this file's
+misread-instrument class in a new place.
+
 #### Two things measured on the way
 
 **pytest 9's `--collect-only -q` prints a per-FILE count**
@@ -1045,8 +1197,27 @@ this book's standing reason to build both.
 2. `make code && make starters` — every solution passes, every starter fails
 3. `make numbers` and `git add figures/values figures/transcripts`, then
    `make verify` — no drift
-4. `make en pl` — zero errors, zero unresolved references, zero overfull
-   vboxes; `checklog.py` says so, `grep '^!'` cannot
+4. `make diagrams`, **then** `make clean`, **then** `make en pl` — in that
+   order, and the order is load-bearing: `\mermaidfig` typesets the `.mmd`
+   when the rendered PDF is absent, so a build made before a render does
+   not depend on the PDF and latexmk will call it up-to-date afterwards and
+   re-print stale figures. Want zero errors, zero unresolved references and
+   zero overfull vboxes; `checklog.py` says so, `grep '^!'` cannot
+4a. **If a box is reported, attribute it to a file before touching
+   anything** — the log names the paragraph's line range but not its
+   chapter, and on a container short of `newtx` the boxes are usually in
+   somebody else's prose. This prints one line per box:
+
+   ```bash
+   python3 - <<'EOF'
+   import re
+   for ed in ("en", "pl"):
+       log = open(f"main-{ed}.log", encoding="utf8", errors="replace").read()
+       for m in re.finditer(r"Overfull \\hbox \(([\d.]+)pt too wide\) in paragraph at lines (\d+)--(\d+)", log):
+           files = re.findall(r"\((\./(?:chapters|appendices|frontmatter)/[^ )]+\.tex)", log[:m.start()])
+           print(f"{ed}  {float(m.group(1)):6.1f} pt  lines {m.group(2)}-{m.group(3)}  {files[-1] if files else '?'}")
+   EOF
+   ```
 5. `make debt` — confirm the ledgers moved the way you expected, then
    update the Status table and the ledgers at the top of this file, **from
    the build in front of you**
@@ -1061,19 +1232,18 @@ Tag from a local clone.
 
 ## What is left
 
-Two chapters of fourteen are written, and with Chapter 14 the guiding
+Three chapters of fourteen are written, and with Chapter 14 the guiding
 project is complete. The outstanding work is tracked as GitHub issues under
 the `chapter`, `appendix`, `experiment` and `infrastructure` labels — **work
 from the labels, not from a list here**, because a list in this file is the
 class of claim nothing can check. In rough order:
 
-1. **Chapters 1, 2 and 4 to 7**, which complete v0.1. Chapter 3 is written
-   and was written third for a reason that did not survive: it was supposed
-   to follow 1 and 2, because every later chapter's listings assume the
-   reader trusts the environment. It does not depend on either in practice
-   — it names what it borrows and borrows almost nothing — so the ordering
-   is a preference rather than a constraint. Then 4 to 7 in order, each
-   leaning on the last.
+1. **Chapters 1, 2, 4, 5 and 6**, which with the written Chapters 3 and 7
+   complete v0.1. The suggested order was 1, 2, 3 first, because every later
+   chapter's listings assume the reader trusts the environment — and two
+   chapters written out of that order did not suffer for it, because each
+   names what it borrows and borrows almost nothing. Treat the ordering as a
+   preference rather than a constraint.
 2. **Chapters 8 to 12** (v0.2), with the trace-assert stage 01 in Chapter 11
    and experiments E4 to E7.
 3. **Chapter 13 and Appendices A to D** (v1.0) — Chapter 14 is written.

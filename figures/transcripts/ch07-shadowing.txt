@@ -1,0 +1,4 @@
+innocent.py
+  exit 0: a number between 0 and 1: True
+random.py
+  exit 1: TypeError: 'module' object is not callable

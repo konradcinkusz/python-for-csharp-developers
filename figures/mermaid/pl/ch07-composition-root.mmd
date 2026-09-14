@@ -1,0 +1,3 @@
+flowchart LR
+    A["main() wywoluje build()<br/>raz, na brzegu programu"] --> B["build() to jedyna funkcja,<br/>ktora nazywa konkretne klasy,<br/>i wiaze je przez partial"]
+    B --> C["kazda inna funkcja bierze to,<br/>czego potrzebuje, jako argument,<br/>wiec test poda jej cokolwiek"]
