@@ -1,7 +1,7 @@
 """match is a switch expression that destructures, with one sharp edge.
 
-C# 9 onwards gives you relational, type and property patterns in a switch
-expression. Python's match has all three plus sequence and mapping
+A modern C# switch expression gives you type, property and relational
+patterns. Python's match has all three plus sequence and mapping
 patterns, and one rule that has no C# counterpart: a bare name in a
 pattern is a CAPTURE, not a comparison. `case ACTIVE:` does not test
 against the constant ACTIVE; it matches anything and rebinds the name.
