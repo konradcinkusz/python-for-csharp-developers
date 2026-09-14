@@ -23,7 +23,7 @@ repository's `CLAUDE.md`, and it is not repeated here.
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
 | Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapters 3, 5, 6, 7, 8 and 10's listings and exercises, E3, E4 and E6, and the measurement, ledger and transcript scripts, and CI runs all of it | every other chapter's listings and exercises; five of the eight experiments |
 
-**The scaffold plus five chapters.** The scaffold existed so that the shape of
+**The scaffold plus six chapters.** The scaffold existed so that the shape of
 the book could be argued with before any chapter was written, and so that the
 first one was written into a build that already had every gate. Chapters 3,
 5, 6, 7, 8 and 10 were written in parallel, by separate passes, each against
@@ -38,8 +38,11 @@ and neither is wrong from where it stood: the passes could not see each
 other, and each was the first into the scaffold it had. It is worth leaving
 as it is rather than tidying, because it is the clearest evidence in this
 file of what parallel passes cost — six sessions each re-measured every
-ledger, and two of them merged `main` four and five times, because each
-merge was overtaken before its own CI could finish.
+ledger, and counted out of the history, Chapter 5's branch merged `main`
+five times and Chapters 8's and 10's three each, because a merge was
+repeatedly overtaken before its own CI could finish. Every one of those
+re-measurements was necessary: each is a claim about a build, and the build
+kept changing underneath.
 
 **Two editions, one paper size, both clean.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
