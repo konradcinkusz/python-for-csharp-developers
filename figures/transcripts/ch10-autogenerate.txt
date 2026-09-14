@@ -1,0 +1,1 @@
+one column renamed, autogenerate says: add_column, remove_column
