@@ -1,0 +1,3 @@
+flowchart LR
+    A["c = fetch(url)<br/>tworzy obiekt korutyny<br/>i nie wykonuje jej ciala"] --> B["create_task(c)<br/>oddaje ja petli<br/>i nadal nic nie wykonuje"]
+    B --> C["wywolujacy czeka<br/>albo oddaje sterowanie<br/>i dopiero wtedy cialo rusza"]
