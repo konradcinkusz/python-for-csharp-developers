@@ -26,9 +26,9 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 | 2 | 3.14 is free-threaded now, so the GIL is gone | The free-threaded build is a separate binary, `python3.14t`, opt-in; the default build still has the lock | Ch. 1 |
 | 3 | Python has no compile step, so there is nothing like IL | Source is compiled to bytecode and cached in `__pycache__`; `python -m dis` shows it. There is no JIT you can count on by default | Ch. 1 |
 | 4 | `if __name__ == "__main__"` is boilerplate | It is the difference between a module that runs when imported and one that runs when executed — the reason a listing can be both importable and runnable | Ch. 1 |
-| 5 | `pip install` puts the package on the machine, like a global tool | An environment is a directory; a global install is the one thing every later chapter's listings cannot survive | Ch. 2 |
-| 6 | I activate the environment and then run things | `uv run` resolves the environment per invocation; activation is the habit that ships the wrong interpreter to CI | Ch. 2 |
-| 7 | `requirements.txt` is the lockfile | It is a wish list with ranges; `uv.lock` is the lockfile, it is committed, and `uv sync --locked` refuses to drift from it | Ch. 2 |
+| 5 | `pip install` puts the package on the machine, like a global tool | An environment is a directory; a global install is the one thing every later chapter's listings cannot survive | Ch. 2 §2.2, delivered |
+| 6 | I activate the environment and then run things | `uv run` resolves the environment per invocation; activation is the habit that ships the wrong interpreter to CI | Ch. 2 §2.4, delivered |
+| 7 | `requirements.txt` is the lockfile | It is a wish list with ranges; `uv.lock` is the lockfile, it is committed, and `uv sync --locked` refuses to drift from it | Ch. 2 §2.3, delivered |
 | 8 | A type hint is a type | It is a claim the runtime never checks; `str` can be `None` at run time and nothing says so. A checker is a second compiler you have to invite | Ch. 3 §3.1, delivered |
 | 9 | `List[int]`, `Optional[str]`, `Dict[str, Any]` | 2019 spellings; `list[int]`, `str | None` and `dict[str, Any]` on the pinned interpreter, and PEP 695 for generics | Ch. 3 §3.2, delivered |
 | 10 | `@dataclass` validates its fields, like a record with a constructor | It generates `__init__`, `__eq__` and `__repr__` and checks nothing; validation at a boundary is pydantic's job | Ch. 3 §3.3, delivered |

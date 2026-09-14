@@ -1,0 +1,6 @@
+flowchart LR
+    A["aktywacja: zmienia<br/>PATH w TEJ powloce.<br/>Nowy terminal, cron<br/>czy CI jej nie znaja"]
+    B["uv run: przy kazdym<br/>wywolaniu czyta projekt<br/>i plik blokady, i<br/>wybiera za ciebie"]
+    C["Jedno polecenie jest<br/>poprawne w powloce, w<br/>Makefile i w CI, i nie<br/>ma czego pamietac"]
+    A -->|"nawyk"| B
+    B -->|"zatem"| C

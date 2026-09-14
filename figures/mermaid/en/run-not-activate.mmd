@@ -1,0 +1,6 @@
+flowchart LR
+    A["activate: changes<br/>PATH in THIS shell.<br/>A new terminal, cron<br/>or CI never ran it"]
+    B["uv run: reads the<br/>project and the lock<br/>on every invocation,<br/>and picks for you"]
+    C["One command line is<br/>right in a shell, a<br/>Makefile and CI, with<br/>nothing to remember"]
+    A -->|"the habit"| B
+    B -->|"so"| C
