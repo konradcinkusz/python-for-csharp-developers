@@ -95,8 +95,8 @@ restate a total here or in `CLAUDE.md`** — the math book's ledger said
 
 | # | Chapter | What | Cost | Status |
 |---|---|---|---|---|
-| E1 | 1 | CPU-bound work, four threads, default build against `python3.14t`, on the pinned interpreter | free; needs the free-threaded build installed by `uv python install 3.14t` | not run |
-| E2 | 2 | Cold `uv sync` against `pip install -r` on the same lockfile | free | not run |
+| E1 | 1 | CPU-bound work, four threads, default build against `python3.14t`, on the pinned interpreter | free; needs the free-threaded build installed by `uv python install 3.14.7+freethreaded` | **run**, Chapter 1 pass, `code/measure/e01_gil.py`. Two modes, because the headline IS a measured ratio: `--record` writes a committed JSON with the machine beside the numbers, and the default mode derives the value file from it |
+| E2 | 2 | Cold `uv sync` against `pip install -r` on the same lockfile | free | **run**, Ch. 2 pass, September 2026: `code/measure/e2_install.py`, raw trials committed beside it. The finding is the cache column, not the headline — a warm cache buys uv a factor of nine and buys pip nothing, because pip's time is its own work rather than the download |
 | E3 | 6 | Cost of a `try` against a check, happy path and unhappy path | free | **run**, Chapter 6 pass. Committed as executed-bytecode counts, which are exact on the pinned interpreter; the wall-clock half is asserted as bounds and printed rather than committed, because CI re-runs every measurement script and compares |
 | E4 | 8 | One blocking call's degradation, in the TPL-against-asyncio framing | free; the LangChain book's Chapter 3 has the asyncio half already | **run**, Chapter 8 pass, `code/measure/e04_blocking.py`. Same shape as E3 and arrived at independently: what is committed is exact arithmetic on the script's own inputs, and the stopwatch is asserted against one-sided bounds derived from them |
 | E5 | 9 | uvicorn workers against concurrency: throughput, p50, p95, mocked upstream, calibrated the way the LangChain book's Chapter 13 recorded | free | not run |
@@ -106,16 +106,43 @@ restate a total here or in `CLAUDE.md`** — the math book's ledger said
 
 Each result goes into `code/measure/<experiment>.py`, which writes
 `figures/values/<experiment>.tex`; the chapter reads it with `\val{}` and
-`make verify` fails when the two drift.
+`make verify` fails when the two drift. **A timing cannot be re-derived on
+every machine, so an experiment that measures one splits in two**: a `--run` mode
+that performs the benchmark and writes committed raw data under
+`code/measure/data/`, and a default mode that only formats that data into the
+value file. CI runs the second, which is deterministic; the first is run by hand
+and reviewed as a diff. E2 is the first to need this and the shape is general.
 
-**E4 committed no measured number, and that is the shape to copy.** `make
-verify` re-runs every script here on a machine nobody controls, so a
-timing in milliseconds fails the build on its first green run. Every value
-E4 writes is exact arithmetic on its own inputs -- the serialised cost of
-K blocking calls is K times B because that is what one thread means -- and
-the measurement's job is to be ASSERTED against bounds derived from them,
-one-sided in the direction a slow machine makes easier to clear. A machine
-that disagrees fails the script by name instead of drifting a digit.
+**An experiment that measures TIME needs one more step than that, and there
+are two shapes for it.** `make verify` re-runs every script here on a
+machine nobody controls, so a wall time in the value file fails the build on
+its first green run, and a wall time rounded until it could not would say
+nothing.
+
+*Assert against bounds*, which E3 and E4 arrived at independently: commit
+only exact arithmetic on the script's own inputs -- the serialised cost of
+K blocking calls is K times B, because that is what one thread means -- and
+assert the stopwatch against one-sided bounds derived from them, in the
+direction a slow machine makes easier to clear. A machine that disagrees
+fails the script by name instead of drifting a digit. **Prefer this shape
+wherever the quantity has an exact form**: nothing machine-dependent is
+committed at all.
+
+*Record once*, which E1 and E2 both needed because their headline numbers
+ARE measurements and no exact arithmetic produces them: a `--record` mode
+measures and writes a committed JSON or raw trials under `code/measure/`,
+with the machine and the date beside the numbers, and the default mode
+derives the value file from that. The gate then asks a question it can
+answer -- does the page agree with the measurement that was taken? --
+re-recording is a deliberate act that reviews as a diff of the data, and CI
+never needs E1's second interpreter because nothing in CI records.
+
+The test for which to reach for is whether the claim can be stated as
+arithmetic with a bound around it. If it can, bound it. If the number itself
+is the finding, record it and name the machine. **Three passes reached these
+two shapes independently** -- E1 and E2 the recording one, E3 and E4 the
+bounding one -- which is why both are written down rather than one being
+called the house style.
 
 The three companion books' rule
 holds here without exception: **a number the reader cannot do in their head
@@ -204,6 +231,12 @@ the starter run, and its experiments have run or their claims are labelled.
   solution has a test CI runs. The C# solutions are listings too, and
   compiling them needs a .NET SDK in the workflow. Recorded in `CLAUDE.md`;
   decide before Appendix D is written.
-- **Open: the free-threaded interpreter in CI.** E1 needs `python3.14t`. `uv`
-  can install it, but whether the `code` job installs two interpreters or E1
-  runs in a job of its own is undecided.
+- **Settled in the Chapter 1 pass: CI installs one interpreter.** E1 needs
+  `python3.14t` to *record*, and nothing else does. Because a timing is
+  recorded once into a committed JSON (above) and `make numbers` only
+  derives the value file from it, the `code` job never runs the
+  free-threaded build at all — proved by hiding `python3.14t` from `PATH`
+  and watching the emit mode exit 0 and `--record` exit 1 with the install
+  command in its message. A second interpreter in CI would buy a
+  re-measurement on a shared runner, which is the one machine whose timings
+  nobody should trust.
