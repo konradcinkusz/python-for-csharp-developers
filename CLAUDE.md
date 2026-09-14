@@ -1307,10 +1307,12 @@ for the whole repository.
 **Four chapters were in flight at once, and `main` moved three times under
 this pass.** Chapter 3 (#46) landed after this branch was cut, Chapter 7
 (#49) landed while the first merge was being resolved, and Chapter 6 (#44)
-landed while the second was, so the branch merged `main` three times — and
-the branches for 6 and 7 each merged it twice themselves, which is the
-established shape here rather than this pass being unlucky. Every merge hit
-the same small set of files and the resolution is the same each time: `code/measure/transcripts.py` and the CLAUDE.md ledgers are
+landed while the second was, so the branch merged `main` three times. It is
+the established shape here rather than this pass being unlucky, and the log
+says so: `git log --all --grep='Merge main'` returns six, of which Chapter
+6's branch owns two and Chapter 7's one. This branch owns three because it
+ran longest. Every merge hit the same small set of files and the resolution
+is the same each time: `code/measure/transcripts.py` and the CLAUDE.md ledgers are
 **additive** — take both sides, in chapter order — and
 `figures/values/ledgers.tex` is **generated**, so it is resolved by running
 `make numbers` and never by hand.
