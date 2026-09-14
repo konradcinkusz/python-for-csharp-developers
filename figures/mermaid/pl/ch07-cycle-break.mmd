@@ -1,0 +1,4 @@
+flowchart LR
+    A["orders zaczyna sie;<br/>CURRENCY niezwiazane"] --> B["pricing prosi orders<br/>o NAZWE CURRENCY"]
+    B --> C["jeszcze niezwiazane:<br/>ImportError"]
+    B -.->|"popros o MODUL"| D["wiaze sie teraz,<br/>czytamy przy wywolaniu"]
