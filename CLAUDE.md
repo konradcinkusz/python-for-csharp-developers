@@ -91,7 +91,7 @@ does not:
   0 mismatches
 - Prose words against a budget of 3,000, and `csbox` translation boxes,
   English first: Chapter 3 at 2,915 / 2,516 with 2 boxes, Chapter 5 at
-  2,535 / 2,253 with 2, Chapter 6 at
+  2,536 / 2,253 with 2, Chapter 6 at
   2,638 / 2,311 with 3, Chapter 7 at 2,581 / 2,242 with 3, Chapter 8 at
   2,269 / 1,990 with 2, Chapter 10 at 2,386 / 2,069 with 3. These are what
   `--words` and `--csbox` print and they move with any prose edit, so
@@ -1082,6 +1082,30 @@ itself. Name the rule, open the chapters if you need the roll call, and
 **write the check**: it is specified in Chapter 6's note, it is a few lines
 beside `check_exercises`, and it retires this paragraph along with all
 three findings.
+
+**And the same rule was being broken on the chapter's own first page, by
+me, while I was enforcing it here.** The opening paragraph read *every one
+of them produces Python that runs, and three of them produce Python that
+runs and is quietly wrong* — a count of occurrences, in the one place a
+reader meets first, written in the same pass that spent three commits
+taking a tally out of this file. Counted against the chapter's six trap
+boxes it is not merely fragile but **ambiguous**: late binding, the
+single-pass generator expression and the pattern capture are clearly
+*runs and is quietly wrong*; the `+=` one is quietly *slow* rather than
+wrong; and the decorator and `yield` boxes are mental-model corrections
+that may or may not produce a defect. Three clearly, up to six arguably,
+so a careful reader doing what the sentence invites gets a different
+number from the page. It now says *the worst of them*, which grades the
+traps instead of counting them and cannot go stale when one is added.
+
+**Nothing could have caught it**, and that is the part worth keeping. The
+tally is spelled as a word, so C12's numeric-literal check sees no digit;
+it carries no macro, so C14's histogram sees nothing; both editions said
+it identically (*trzy z nich*), so every ordered parity check was green.
+It was found by re-reading my own first page after the chapter had passed
+every gate and CI twice. **A count in prose is invisible to this
+repository's entire toolchain**, which is why the rule is a rule rather
+than a lint.
 
 ### Chapter 6 pass, September 2026
 

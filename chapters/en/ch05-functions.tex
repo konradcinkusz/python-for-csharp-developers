@@ -14,8 +14,8 @@ decorator is middleware, a comprehension is a LINQ query, a generator is an
 iterator block, \code{with} is \code{using}, \code{match} is a switch
 expression. The mapping is close enough to be worth making and loose enough
 to be worth checking, and this chapter is about the places where it slips:
-every one of them produces Python that runs, and three of them produce
-Python that runs and is quietly wrong.
+every one of them produces Python that runs, and the worst of them
+produce Python that runs and is quietly wrong.
 
 The argument is one sentence. \textbf{A decorator runs; an attribute does
 not}, and almost everything else in this chapter is that same distinction
