@@ -1344,9 +1344,13 @@ itself. Name the rule, open the chapters if you need the roll call, and
 beside `check_exercises`, and it retires this paragraph along with all
 three findings.
 
-**Measured at the sixth merge: all 32 exercises in the book, every written
-chapter, have an ordinal matching their key.** So whoever writes the check
-starts from a clean tree and any failure it reports afterwards is new.
+**Measured at the seventh merge: every exercise in the book, in every
+written chapter, has an ordinal matching its key.** So whoever writes the
+check starts from a clean tree and any failure it reports afterwards is
+new. The count is deliberately not stated — it was written here as *32* at
+the sixth merge and was wrong by five an hour later, when Chapters 1 and 2
+landed, which is this file's own rule about a tally demonstrated inside the
+note that records a measurement.
 Note that there are two instruments here and only one belongs in
 `check_structure.py`: reading `main-en.exr` answers the question from a
 BUILD artefact, which is how it was measured here, and the check specified
