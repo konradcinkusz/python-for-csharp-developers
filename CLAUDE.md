@@ -23,7 +23,7 @@ repository's `CLAUDE.md`, and it is not repeated here.
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
 | Code | `code/` is a locked uv project: `trace-assert` **complete** (the trace model and all twelve assertions), Chapters 3, 6, 7, 8, 10 and 14's listings and exercises, E3, E4 and E6, and the measurement, ledger and transcript scripts, and CI runs all of it | every other chapter's listings and exercises; five of the eight experiments |
 
-**The scaffold plus four chapters.** The scaffold existed so that the shape of
+**The scaffold plus six chapters.** The scaffold existed so that the shape of
 the book could be argued with before any chapter was written, and so that the
 first one was written into a build that already had every gate. Chapters 3, 6,
 7, 8, 10 and 14 were written in parallel, by separate passes, each against
@@ -1203,8 +1203,6 @@ lines of Python, which is what `pdfinfo` prints.
 
 ---
 
----
-
 ### Chapter 8 pass, September 2026
 
 **The brief was wrong about the one thing the chapter is most about, and
@@ -1757,7 +1755,7 @@ Tag from a local clone.
 
 ## What is left
 
-Five chapters of fourteen are written, and with Chapter 14 the guiding
+Six chapters of fourteen are written, and with Chapter 14 the guiding
 project is complete. The outstanding work is tracked as GitHub issues under
 the `chapter`, `appendix`, `experiment` and `infrastructure` labels — **work
 from the labels, not from a list here**, because a list in this file is the
@@ -1765,7 +1763,7 @@ class of claim nothing can check. In rough order:
 
 1. **Chapters 1, 2, 4 and 5**, which with the written Chapters 3, 6 and 7
    complete v0.1. The suggested order was 1, 2, 3 first, because every later
-   chapter's listings assume the reader trusts the environment — and four
+   chapter's listings assume the reader trusts the environment — and the
    chapters written out of that order did not suffer for it, because each
    names what it borrows and borrows almost nothing. Treat the ordering as a
    preference rather than a constraint. Two things that cost Chapter 6 a
@@ -1781,12 +1779,6 @@ class of claim nothing can check. In rough order:
    already delivered; Appendix C's version column prints from the
    preamble's macros and is never typed; Appendix D needs the open
    decision above settled first.
-4. **The experiments that have not run**, each free, each writing a value
-   file that a chapter reads with `\val{}`. `notes/01-curriculum.md` §4 is
-   the ledger and **no total is stated here**, which is this file's own
-   rule: it once said *the eight* while the table above it said *seven of
-   the eight*. E4 is the worked example of committing bounds rather than
-   timings, which is what makes a stopwatch survive `make verify`.
 4. **The experiments that have not run**, each free, each writing a value
    file that a chapter reads with `\val{}`. `notes/01-curriculum.md` §4 is
    the ledger and **no total is stated here**, which is this file's own
