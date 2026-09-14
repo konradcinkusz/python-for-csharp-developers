@@ -238,7 +238,7 @@ gates on it.
 | **C12 numeric literals, in order, strictly** | A translated number silently changing. The Polish decimal comma is deliberately not normalised away |
 | C13 verbatim ASCII | The `listings` UTF-8 trap |
 | C14 macro histogram | A `\trapbox`, a `\csbox` or an `\index` dropped in translation |
-| C15 main-file wiring | A main file rewritten with a chapter of front matter dropped |
+| C15 main-file wiring | A main file rewritten with a chapter of front matter dropped, and (after the second review round) a front-matter file's `\input` line deleted from the shared `body.tex` itself, which drops it from both editions identically |
 | `reflist.py` | `\label{ch:asyncio}` resolving to Chapter 8 in one edition and 9 in the other |
 | `check_structure.py --listings --exercises --transcripts` | A `\pyfile{}` naming a file or region that is not there; an exercise without its three files; a `\transcript{}` with no committed text |
 | `check_structure.py --lines --pins --words` | The three budgets above, and uv's pin across the workflows |
@@ -594,10 +594,113 @@ about the tree: "parity is a hard gate" was written into `build.yml` above a
 job graph in which parity gated nothing. And an ignore list in a log checker
 is where a defect goes to become permanent: two of the fourteen were sitting
 in `main-en.log` on every build, under strings `checklog.py` had been told
-to skip. Both editions still build to 37 pages with zero errors, zero
-unresolved references and zero overfull boxes; parity reports 0 failures and
-0 warnings; `reflist.py` 27 labels in each edition, 0 mismatches; every
-code gate green.
+to skip.
+
+**A second round, from the `find:code` and `find:gates` lenses**, which had
+not finished in the first pass and completed once resumed. Eight more held,
+every one reproduced on a scratch copy before being fixed:
+
+- **Blocker, the sharpest of the whole review.** `written()` — in
+  `gen_stubs.py`, `check_structure.py` and `ledgers.py` — tested a chapter
+  file for the raw substring `\chapterstub{`, and the header the generator
+  itself writes NAMES that macro in a sentence of prose. So a chapter
+  written exactly as instructed (delete the block, keep the header, write
+  the chapter) stayed classified as a stub forever: `gen_stubs.py --check`
+  went red on the first written chapter, and a bare `gen_stubs.py` run
+  silently overwrote the written prose with a fresh stub, with no warning
+  of any kind. Reproduced by faking 700 words of "written" chapter 1 with
+  the header intact: before the fix, `gen_stubs.py` deleted it; after, it
+  left it alone and correctly regenerated the other thirteen (genuinely
+  unwritten) stubs, whose header wording had also changed. All three
+  `written()`/`count_stubs()` functions now strip comments before testing,
+  and the header no longer needs the literal token to make its point.
+- **`code/tests/test_listings.py` failed a listing that exits 0 via
+  `sys.exit(main())`** — the ordinary idiom for a script with a return
+  code. `runpy.run_path` in-process lets that `SystemExit(0)` propagate
+  into pytest, which reports it as a FAILURE. Reproduced on a throwaway
+  `ch01/exits.py`. Fixed by running each listing as a real subprocess,
+  which is also a closer match to what the front matter tells the reader
+  to do (`uv run python chNN/file.py`, from `code/`) than an in-process
+  `runpy` call ever was.
+- **`code/pyproject.toml`'s pyright `include` hard-coded `ch00`**, so no
+  chapter written after the first would ever be strictly type-checked
+  while the CI step stayed green. `include = [..., "ch*", ...]` — pyright's
+  glob syntax — matches every chapter as it arrives; proved by adding a
+  scratch `ch01/probe.py` and watching the analysed-file count move.
+- **`PYBOOK_SOLUTIONS` was read with a bare truthiness test**, so
+  `PYBOOK_SOLUTIONS=0` — an explicitly-off value — loaded the solutions
+  anyway, because `"0"` is a non-empty string. Now compared against
+  `("0", "")` for off; proved with `PYBOOK_SOLUTIONS=0`, unset and `=1`,
+  all three giving the intended answer.
+- **The transcript ASCII guard let an ANSI escape or a raw tab through**:
+  `ord(ch) > 127` catches multi-byte characters and nothing under 128,
+  which includes ESC (a colour code a library might emit) and tab.
+  `listings` prints an escape sequence as visible mojibake, or expands a
+  tab past the 79-column budget the guard has already cleared it against.
+  Now also rejects any character under 32; reproduced with `\x1b[31m`
+  and a literal tab before the fix, caught after it.
+- **`ledgers.py`'s `count_re` (verifybox, exercise counts) was not
+  comment-stripped**, where `check_structure.py`'s equivalent checks
+  already are — so a `% \begin{exercise}{...}` commented out while
+  drafting was counted by Appendix E and `make debt` and by nothing else.
+  Reproduced by commenting one out and watching the two tools agree at 1
+  either way after the fix.
+- **A listing file in a chapter's own subdirectory was never run and
+  never counted.** `test_listings.py` and `ledgers.py` both globbed
+  `chNN/*.py` non-recursively, while `\pyfile{}` can point at any path
+  under `code/`. Both now use `rglob`, so a nested file is run and counted
+  the same way it can be printed.
+- **C15's front-matter check tested only that FOUR MACRO CATEGORIES exist
+  in `body.tex`**, not that any particular file is `\input` there — so
+  the defect this check exists for (a sibling repository once shipped a
+  main file with the introduction dropped) is possible again now that the
+  two main files share one `body.tex`: deleting one `\input` line drops
+  the same file from both editions at once, and the four categories are
+  still each present from something else. Reproduced by deleting
+  `\input{frontmatter/\booklang/introduction}` from `body.tex`: every
+  other gate stayed green and C15 said nothing, before the fix. It now
+  requires every file physically present under `frontmatter/en/` to be
+  `\input` somewhere in `body.tex`, and the deletion above is now caught
+  by name.
+- **A bare `$` in a brief — inside `` \code{} `` or in plain prose —
+  opened LaTeX maths mode and swallowed the rest of the paragraph**
+  (`Missing $ inserted`, reproduced on a standalone probe with
+  `` `$HOME` `` in a brief). `$` is escaped in both branches of
+  `latexify()` now, the same way `&`, `%`, `#` and `_` already are.
+
+Both editions still build to 37 pages with zero errors, zero unresolved
+references and zero overfull boxes; parity reports 0 failures and 0
+warnings; `reflist.py` 27 labels in each edition, 0 mismatches; every code
+gate green, including the rewritten `test_listings.py`.
+
+**Four candidates from the second round were considered and not taken**,
+for reasons worth keeping rather than silently dropping:
+
+- *Appendix D's twenty interview problems have no directory the exercise
+  or listing mechanism can address.* True, and it is one half of the open
+  decision already recorded above ("whether CI compiles the C# side of
+  Appendix D") — settling the directory shape belongs with that decision,
+  before Appendix D is written, not as a side effect of a review pass.
+- *No source gate checks that an external `\pyfile`-referenced listing is
+  ASCII; the defect is caught only by a full compile.* Real, and it is the
+  same class parity's C13 already closes for in-source listing
+  environments — worth a `--listings`-adjacent check one day, but every
+  currently existing listing is ASCII and the full compile does catch it,
+  so nothing ships wrong in the meantime.
+- *In-source listing bodies are digested by C4/C12 after `%`-comment
+  stripping, so an edit made after a `%` in one edition only is
+  invisible.* Reconsidered rather than fixed: a comment is not page
+  content, and digesting comments would make the ordered signature and
+  the numeric-literal check fail on a code comment that legitimately
+  differs between editions (comments stay English by rule, so a Polish
+  file's comment is never even a translation of the English one) — the
+  behaviour is intentional, not a gap.
+- *A pin macro added to both `preamble.tex` and `pyproject.toml` is
+  invisible to `check_versions.py` unless also added to its `PINS` dict.*
+  True and accepted by design: `check_versions.py` maps a macro name to a
+  PyPI *distribution* name, which cannot be derived from the macro name in
+  general (`\pysettingsver` names `pydantic-settings`, not
+  `pysettings`), so the dict is the one place that mapping can live.
 
 ---
 

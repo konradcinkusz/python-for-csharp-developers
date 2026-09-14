@@ -599,8 +599,33 @@ def check_main_files(rep: Report) -> None:
     if missing:
         rep.bad("C15-mainfiles",
                 f"body.tex is missing: {', '.join(sorted(missing))}")
+        return
+    # The four-macro check above is necessary and not sufficient: it is a
+    # count over CATEGORIES of step, so a specific \input line -- the
+    # introduction, say -- can be deleted from body.tex and every category
+    # still has at least one member from somewhere else, with the two main
+    # files still identical to each other because they share the ONE
+    # mutated body.tex. That is exactly the defect this check exists for
+    # (a sibling repository's main file once shipped with the introduction
+    # dropped), now possible again because body.tex replaced the two
+    # separate main files it used to compare. So every file physically
+    # present under frontmatter/en/ must be \input somewhere in body.tex --
+    # reproduced by deleting the introduction's \input line and confirming
+    # this reports it missing.
+    # body.tex reads through the \booklang MACRO (frontmatter/\booklang/x),
+    # never a literal "en"/"pl" -- the /(en|pl)/ normalisation above is for
+    # the two main files' own paths and never fires on this string, so
+    # match the macro form directly rather than assume it was normalised.
+    wanted = {f"frontmatter/\\booklang/{p.stem}"
+              for p in (ROOT / "frontmatter" / "en").glob("*.tex")}
+    got = {b for a, b in steps if a in ("input", "include")}
+    missing_fm = sorted(wanted - got)
+    if missing_fm:
+        rep.bad("C15-mainfiles",
+                f"body.tex never \input{{}}s: {', '.join(missing_fm)}")
     else:
-        rep.good("C15-mainfiles", f"body.tex wires up {len(steps)} steps")
+        rep.good("C15-mainfiles", f"body.tex wires up {len(steps)} steps, "
+                 f"including every frontmatter/en/*.tex file")
 
 
 # --------------------------------------------------------------------------

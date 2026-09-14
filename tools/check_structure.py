@@ -81,7 +81,12 @@ def tex_files(tree: str, lang: str) -> list[Path]:
 
 
 def written(text: str) -> bool:
-    return not RE_STUB.search(text)
+    # Comment-stripped: the stub header this repo's generator writes NAMES
+    # the macro in prose, so a raw search for \chapterstub{ is true of every
+    # stub forever, even one whose block has been deleted and replaced with a
+    # written chapter that (as instructed) kept the header comment above it.
+    # gen_stubs.py's written() carries the same fix and the same reasoning.
+    return not RE_STUB.search(RE_COMMENT.sub("", text))
 
 
 def result(name: str, problems: list[str], soft: bool, ok_msg: str) -> int:

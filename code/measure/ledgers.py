@@ -34,6 +34,14 @@ ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "figures" / "values" / "ledgers.tex"
 
 RE_STUB = re.compile(r"\\chapterstub\{")
+# Comment-stripped before RE_STUB is applied below: the generated
+# stub header itself NAMES the macro in prose, so a raw search is
+# true of every stub forever, including a written chapter that kept
+# the header comment above it, which is how a chapter is actually
+# written. tools/gen_stubs.py and tools/check_structure.py carry the
+# identical fix and reasoning; all three must agree, or "written"
+# means a different thing to each of them.
+RE_COMMENT = re.compile(r"(?<!\\)%.*$", re.M)
 RE_VERIFY = re.compile(r"\\begin\{verifybox\}")
 RE_EXERCISE = re.compile(r"\\begin\{exercise\}\{([^}]*)\}")
 
@@ -45,15 +53,22 @@ def tex_files(tree: str, lang: str) -> list[Path]:
 def count_stubs(tree: str, lang: str) -> int:
     return sum(
         1 for p in tex_files(tree, lang)
-        if RE_STUB.search(p.read_text(encoding="utf8"))
+        if RE_STUB.search(RE_COMMENT.sub("", p.read_text(encoding="utf8")))
     )
 
 
 def count_re(pattern: re.Pattern[str], trees: list[str], lang: str) -> int:
+    # Comment-stripped, for the same reason count_stubs is: a \begin
+    # {verifybox} or \begin{exercise} commented out with a bare % while
+    # drafting is not on the page, and check_structure.py's equivalent
+    # checks already strip comments before counting -- without this,
+    # Appendix E and `make debt` could disagree with each other about a
+    # commented-out block.
     n = 0
     for tree in trees:
         for p in tex_files(tree, lang):
-            n += len(pattern.findall(p.read_text(encoding="utf8")))
+            text = RE_COMMENT.sub("", p.read_text(encoding="utf8"))
+            n += len(pattern.findall(text))
     return n
 
 
@@ -102,7 +117,10 @@ def main() -> int:
     listings = sum(
         1
         for d in sorted(code.glob("ch[0-9][0-9]"))
-        for p in d.glob("*.py")
+        # rglob, matching code/tests/test_listings.py's own discovery: a
+        # nested listing file must be counted the same way it is run, or
+        # this number and the test count could disagree with each other.
+        for p in d.rglob("*.py")
         if not p.name.startswith("_")
     )
 
