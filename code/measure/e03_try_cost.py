@@ -132,6 +132,15 @@ def main() -> int:
     # CPython that changes the count fails the build rather than putting
     # "adds 2 instruction" on the page with nothing able to see it.
     overhead = counts[("eafp", "happy")] - counts[("plain", "happy")]
+    # Its twin: what the check costs over the same floor. Emitted rather
+    # than left as a subtraction on the page, because a reader should not
+    # have to do arithmetic to read a cost, and a typed "four" would be a
+    # second copy of two committed values with nothing able to see it drift.
+    check_overhead = counts[("lbyl", "happy")] - counts[("plain", "happy")]
+    assert check_overhead > overhead, (
+        "the chapter's whole argument is that asking costs more than trying "
+        "on the path that does not raise"
+    )
     assert overhead == 1, (
         f"a try adds {overhead} instructions on the happy path; the chapter "
         f"says one, in words"
@@ -174,6 +183,7 @@ def main() -> int:
             for (shape, path), n in counts.items()
         )
         + f"\\pyval{{e03.try.overhead}}{{{overhead}}}\n"
+        + f"\\pyval{{e03.check.overhead}}{{{check_overhead}}}\n"
         + f"\\pyval{{e03.exctable}}{{{table}}}\n"
         + f"\\pyval{{e03.raise.floor}}{{{RAISE_FLOOR}}}\n"
         + f"\\pyval{{e03.try.ceiling}}{{{TRY_CEILING}}}\n",

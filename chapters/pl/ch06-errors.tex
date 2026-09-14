@@ -76,8 +76,8 @@ Działanie i obsługa (\code{try} / \code{except}) & \val{e03.eafp.happy} & \val
 \noindent
 Pierwszy wiersz czytaj jako podłogę: tyle kosztuje sama praca. Opakowanie jej
 w \code{try} dokłada \val{e03.try.overhead} instrukcję. Zapytanie najpierw
-dokłada \val{e03.lbyl.happy}~$-$~\val{e03.plain.happy}, przy każdym wywołaniu,
-niezależnie od tego, czy klucz jest. Procedury obsługi w ogóle nie ma na
+dokłada \val{e03.check.overhead}, przy każdym wywołaniu, niezależnie od tego,
+czy klucz jest. Procedury obsługi w ogóle nie ma na
 ścieżce: kompiluje się do tablicy wyjątków o rozmiarze
 \val{e03.exctable}~bajtów obok kodu, i właśnie to znaczy \emph{zero-cost
 exceptions} oraz dlatego \code{try} jest tańszy z tych dwóch, gdy nic się nie

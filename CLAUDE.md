@@ -57,7 +57,7 @@ does not:
 - **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
   reader that something was not run
 - 10 Mermaid sources, five per language, all rendering, all placed
-- 19 computed value keys, every one produced and every one used
+- 20 computed value keys, every one produced and every one used
 - Parity: 23 file pairs, 0 failures, 0 warnings · 50 labels in each edition,
   0 mismatches
 - **8 experiments specified, all free. The Status column in

@@ -76,8 +76,7 @@ Act and handle (\code{try} / \code{except}) & \val{e03.eafp.happy} & \val{e03.ea
 \noindent
 Read the first row as the floor: that is what the work itself costs. Wrapping
 it in a \code{try} adds \val{e03.try.overhead} instruction. Asking first adds
-\val{e03.lbyl.happy}~$-$~\val{e03.plain.happy}, on every call, whether the key
-is there or not. The handler does not sit on the path at all: it compiles into
+\val{e03.check.overhead}, on every call, whether the key is there or not. The handler does not sit on the path at all: it compiles into
 an exception table of \val{e03.exctable}~bytes beside the code, which is what
 \emph{zero-cost exceptions} means and why the \code{try} is the cheaper of the
 two when nothing goes wrong.
