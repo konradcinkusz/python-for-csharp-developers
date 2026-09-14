@@ -37,6 +37,9 @@ WIDTH = 79
 # stem -> the listing whose stdout it is, relative to code/
 TRANSCRIPTS = {
     "ch00-loop": "ch00/loop.py",
+    "ch03-hint-is-a-claim": "ch03/hint_is_a_claim.py",
+    "ch03-dto-four-ways": "ch03/dto_four_ways.py",
+    "ch03-defaults": "ch03/defaults.py",
     "ch14-suite": "ch14/eval_suite.py",
     "ch14-broken": "ch14/broken_run.py",
     "ch14-publish": "ch14/publish.py",

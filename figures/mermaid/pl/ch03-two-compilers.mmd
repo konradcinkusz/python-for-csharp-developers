@@ -1,0 +1,6 @@
+flowchart LR
+    W["<b>Piszesz adnotacje</b><br/>port: int to twierdzenie<br/>o wartosci, w kodzie zrodlowym"]
+    R["<b>Python uruchamia plik</b><br/>twierdzenie nie jest czytane,<br/>sprawdzane ani egzekwowane"]
+    C["<b>Checker czyta plik</b><br/>drugi kompilator, ktory zapraszasz,<br/>i nie zatrzyma tego pierwszego"]
+    W --> R
+    W -.->|"osobno i tylko wtedy,<br/>gdy o to poprosisz"| C
