@@ -19,24 +19,25 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **4 of 14 written: Chapter 3, *Typing*, Chapter 6, *Errors*, Chapter 7, *Imports and dependency injection*, and Chapter 10, *Data* — both editions** | 1, 2, 4, 5, 8, 9, 11–14 |
+| Chapters | **5 of 14 written: Chapter 3 *Typing*, Chapter 6 *Errors*, Chapter 7 *Imports and dependency injection*, Chapter 8 *asyncio*, and Chapter 10 *Data* — both editions** | 1, 2, 4, 5, 9, 11–14 |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapters 3, 6, 7 and 10's listings and exercises, the measurement scripts, and CI runs all of it | every other chapter's listings and exercises; seven of the eight experiments |
+| Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapters 3, 6, 7, 8 and 10's listings and exercises, E3, E4 and E6, and the measurement, ledger and transcript scripts, and CI runs all of it | every other chapter's listings and exercises; five of the eight experiments |
 
 **The scaffold plus four chapters.** The scaffold existed so that the shape of
 the book could be argued with before any chapter was written, and so that the
 first one was written into a build that already had every gate. Chapters 3, 6,
-7 and 10 were written in parallel, by separate passes, each against the issue
-that came up first rather than against the reading order — which is possible
-because a chapter names what it borrows and borrows little. The gates earned
-their keep on all four; see the four pass notes below.
+7, 8 and 10 were written in parallel, by separate passes, each against the
+issue that came up first rather than against the reading order — which is
+possible because a chapter names what it borrows and borrows little. The
+gates earned their keep on all five, and none had to be loosened to let a
+written chapter past; see the five pass notes below.
 **Two of those notes open by calling themselves the first chapter written**,
 and neither is wrong from where it stood: the passes could not see each
 other, and each was the first into the scaffold it had. It is worth leaving
 as it is rather than tidying, because it is the clearest evidence in this
-file of what parallel passes cost — four sessions each re-measured every
-ledger, and one of them had to merge twice because `main` moved underneath
-it while its own CI was running.
+file of what parallel passes cost — five sessions each re-measured every
+ledger, and one of them merged `main` three times, because each merge was
+overtaken before its own CI could finish.
 
 **Two editions, one paper size, both clean.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
@@ -44,54 +45,54 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 92 | 0 | 0 | 0 | 0 |
-| `main-pl` | 93 | 0 | 0 | 0 | 0 |
+| `main-en` | 106 | 0 | 0 | 0 | 0 |
+| `main-pl` | 107 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
-to go stale. **And say which installation**, because there are two and they
-paginate differently: the rows above are from one that HAS `newtx`,
-`inconsolata` and TeX Gyre, which is what CI compiles on and therefore what
-`pages.yml` publishes to a reader. A bare container degrades to `lmodern`
-through the preamble's `\IfFileExists` probes, and sets the same source
-differently: on the one tree measured both ways — Chapter 10's, before this
-merge — a bare container gave 51 and 53 where a full TeX Live gave 51 and
-51, so `lmodern` cost the Polish edition two pages and the English none.
-Chapter 3's pass recorded 53 and 56 on a bare machine, but that was a
-different tree and is not a second reading of the same thing. One
-controlled comparison is not a rule about which font sets tighter, and no
-direction is claimed here beyond what was measured. What is certain is that
-the two disagree, which is the inherited two-machines rule and is not a
-defect.
-Record which installation you measured on, every time — and see *Build
-traps* for how to turn a bare container into the reference one, which is two
-`apt-get` lines and turns a guess-and-push loop into a verification loop.
+to go stale. **And say which build**, which is the Chapter 3 pass's rule and
+is why these two rows are not comparable with the ones it recorded: they are
+from an installation that HAS `newtx`, `inconsolata` and `tex-gyre`
+(`texlive-fonts-extra` plus `tex-gyre` and `texlive-plain-generic`), where
+Chapter 3's 53 and 56 were from a bare one that degrades to `lmodern`
+through the preamble's `\IfFileExists` probes. Different fonts, different
+line breaks, different pagination. CI compiles on a full TeX Live; that is
+the inherited two-machines rule and it is not a defect. Record which
+installation you measured on, every time — and see *Build traps* for the two
+`apt-get` lines that turn a bare container into the reference one, which is
+what turns a page-level defect from a guess-and-push loop into a
+verification loop. Chapter 10's pass measured the same tree both ways and
+got 51 and 53 bare against 51 and 51 full, so `lmodern` cost the Polish
+edition two pages and the English none; that is one controlled comparison
+and not a rule about which font sets tighter.
 
 **Debt ledgers, reported by CI on every build** (`make debt`), and printed
 for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **10 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **9 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 98 listing references, every file and region present · 18 exercises, each
-  with a starter, a solution and a test · 36 transcript references, every
-  file present · 114 code files, none over 79 columns · 20 pins agree between
+- 110 listing references, every file and region present · 23
+  exercises, each with a starter, a solution and a test · 46 transcript
+  references, every file present · 137 code files, none over 79 columns ·
+  20 pins agree between
   `preamble.tex` and `code/pyproject.toml`
 - **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
   reader that something was not run
-- 26 Mermaid sources, thirteen per language, all rendering, all placed
-- 37 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 112 labels in each edition,
+- 32 Mermaid sources, sixteen per language, all rendering, all placed
+- 45 computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · 128 labels in each edition,
   0 mismatches
-- Prose words against a budget of 3,000, and `csbox` translation boxes:
-  Chapter 3 at 2,915 / 2,516 with 2 boxes, Chapter 6 at 2,638 / 2,311 with
-  3, Chapter 7 at 2,581 / 2,242 with 3, Chapter 10 at 2,386 / 2,069 with 3
-  — English first. These are the figures `--words` and `--csbox` print, and
-  they move with any prose edit, so re-read them from the tool rather than
-  from here. **`reflist.py` reads the `.aux` tree**, so its label count is
-  a fact about the last build and not about the source: rebuild before you
-  quote it, or it reports the tree you had before the merge
+- Prose words against a budget of 3,000, and `csbox` translation boxes,
+  English first: Chapter 3 at 2,915 / 2,516 with 2 boxes, Chapter 6 at
+  2,638 / 2,311 with 3, Chapter 7 at 2,581 / 2,242 with 3, Chapter 8 at
+  2,269 / 1,990 with 2, Chapter 10 at 2,386 / 2,069 with 3. These are what
+  `--words` and `--csbox` print and they move with any prose edit, so
+  re-read them from the tool rather than from here. **`reflist.py` reads
+  the `.aux` tree**, so its label count is a fact about the last build
+  rather than about the source: rebuild before quoting it, or it reports
+  the tree you had before your merge.
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
   runs each one; neither that file nor this one states a total, because a
@@ -1067,6 +1068,141 @@ a concept is lowercase with `!` subentries under a shared head (`exceptions!chai
 kept identical here, because a reader of either edition searches for the same
 identifier.
 
+### Chapter 8 pass, September 2026
+
+**The brief was wrong about the one thing the chapter is most about, and
+the trap catalogue was wrong with it.** `notes/02-traps.md` entry 40 said
+cancellation is lost by *catching `Exception`*. It is not:
+`asyncio.CancelledError.__mro__` is `(CancelledError, BaseException,
+object)` on the pinned interpreter, so a cancellation never passes through
+an `except Exception` clause at all. The entry had the clause that is
+**safe** in Python named as the dangerous one, which is the worst possible
+advice to hand a reader whose .NET training says the broad catch is the
+reckless one.
+
+What actually swallows a cancellation was then measured rather than
+guessed, and it is three things: `except BaseException`, a bare `except:`,
+and -- far the most common in real code -- an `except asyncio.CancelledError`
+block that does its cleanup and forgets to re-raise. `code/ch08/cancelled.py`
+runs all four cases and prints the inheritance chain above them, so the
+page shows the reader the mechanism rather than asserting it. Entry 40 is
+corrected in place and keeps its number; the reasoning is in that file's
+*Retired* section, under a heading that says corrected-rather-than-retired,
+because the habit was real and only the correction was wrong.
+
+**And the consequence is worse than an un-stoppable task, which is what
+made it worth a section rather than a footnote.** Reading
+`asyncio/timeouts.py` in the installed interpreter: `Timeout.__aexit__`
+raises `TimeoutError` only when `exc_type is not None`. A body that
+swallows the cancellation its own deadline sent therefore returns normally,
+the block exits normally, and **no `TimeoutError` is raised at all** -- the
+timeout silently does not fire. Observed in `code/ch08/deadline.py` and
+then confirmed against the source, in that order.
+
+**Trap 41's other half was never checkable here and is gone.** It said
+`HttpClient` has no default timeout. This repository has no .NET to ask,
+so the row now states only what the installed package answers: a default
+`httpx.AsyncClient` carries a five-second deadline applied separately to
+connect, read, write and pool. The chapter makes the same distinction
+structurally -- one whole-request deadline against four phase deadlines --
+and names no .NET figure it cannot verify.
+
+**One finding the brief did not have**, and it is the cold/hot difference
+paying out: a `Task` can be awaited any number of times and a coroutine
+cannot. The second `await` raises `RuntimeError: cannot reuse already
+awaited coroutine`. Added to the catalogue as entry 60 -- out of Chapter
+8's 36--41 block, because that file's numbers are never reused.
+
+**The brief's GIL clause collides with the overlap table, and the table
+wins.** The brief asks for "threads against processes under the GIL"; the
+table in `notes/01-curriculum.md` §6 gives the GIL to Chapter~1 and its
+event-loop consequence to the LangChain book's Chapter~3. So the chapter
+keeps only what is genuinely its own -- `to_thread` as the `Task.Run`
+translation, and its executor's `min(32, cpu_count + 4)` ceiling, which is
+the half a .NET reader gets wrong because their pool grows -- and points at
+Chapter~1 for the reason a process pool exists. The brief is left as
+written: it describes the map correctly and the overlap table is the
+stricter instrument, which is what "the strictest thing in the manifest"
+means in practice.
+
+**E4 ran, and it commits no measured number.** `make verify` re-runs every
+script under `code/measure/` on a machine nobody controls, so a timing in
+milliseconds would fail CI on its first green run. Every value
+`e04_blocking.py` writes is exact arithmetic on its own inputs -- four
+blocking calls of 100 ms cost 400 ms because one thread cannot overlap two
+of them -- and the measurement's job is to be asserted against bounds
+derived from those inputs, one-sided in the direction a slow machine makes
+easier to clear. **The assertions were watched failing before the clean run
+was believed**: an offender rewritten to `await` instead of blocking exits
+1 and names the floor it missed.
+
+What E4 measures that the LangChain book's Chapter~3 does not is the
+additivity: four blocking calls take 401 ms on the loop and 101 ms off it,
+and the worst bystander goes 20 -> 401 -> 21 ms. A thread pool hides that
+second half, which is exactly why a .NET mental model does not predict it.
+
+**An exercise key's number and the number the box prints are two
+different things, and nothing compares them.** The counter is per chapter
+and increments in DOCUMENT order, so writing the exercises in the order the
+sections needed them printed `e08_03_unblock.py` under a box headed
+*Exercise 8.2*. `check_structure.py --exercises` is happy -- it checks the
+key's shape, its chapter prefix and its three files, and has no idea what
+the counter will print -- and the reader is the one who meets the
+mismatch, in the one mechanism the whole book is read through. The five
+keys were renumbered to document order and `main-en.exr` now reads 8.1
+through 8.5 against `e08_01` through `e08_05`.
+
+**A check for it was considered and not taken**, on the issue's own scope
+rule: it is a real gap and it is a new gate rather than this chapter's
+work. Whoever adds it should count `\begin{exercise}` occurrences per
+chapter file in order and compare the ordinal with the key's second field;
+it is a few lines beside `check_exercises`, and the failure it would have
+caught is the one above.
+
+**Three sandbox facts worth not rediscovering.**
+
+- **`latexmk` needs `texlive-plain-generic` as well as `tex-gyre`.** The
+  recorded trap says newtx without TeX Gyre dies on the copyright page;
+  its neighbour is that newtx also wants `binhex.tex`, which Debian ships
+  in `texlive-plain-generic`, and without it latexmk stops before writing
+  a PDF with `Missing input file 'binhex.tex'`. Both packages, or neither.
+- **`pdfinfo` is not installed here**, and the diagram rule says to measure
+  before writing a caption. The quantity it prints is the page MediaBox,
+  which is twenty lines of Python against the PDF; the six new diagrams
+  measured 565--617 pt wide, every one width-bound, node text 8.15--8.90 pt.
+  Measure it however you like, but measure it.
+- **`\code{SynchronizationContext}` is a 21-character unbreakable run** and
+  gave a 27.6 pt overfull hbox mid-paragraph. `checklog.py`'s own message
+  prescribes the fix and it worked first time: start a sentence with it.
+  The inherited rule is confirmed rather than new.
+
+**And the merge back into `main` found one more, which no gate can.**
+Chapters 3, 6 and 7 were written in other sessions at the same time as
+this one, and every pass touched `notes/02-traps.md`. Git merged that file without a
+conflict, and the result contradicted its own header: the Chapter 3 pass had
+**documented** the owner column's format — `Ch. N §N.M, delivered` for a
+delivered trap, a bare `Ch. N` for a promise — while this pass had already
+written every row it owns as `Ch. 8 · delivered §8.2`. Two spellings for one
+column, each coherent alone, and a clean auto-merge is exactly what produces
+that: conflict markers fire on the same LINES, and these edits were in
+different rows of the same table. Every row this chapter owns is normalised
+to the documented form, and **Chapter 7's pass had independently written the
+documented one**, which is the evidence that the normalisation went the
+right way rather than merely made the file consistent. **A file that several
+sessions append to needs its format stated in the file**, which is what
+Chapter 3's header now does and what made the mismatch findable at all —
+and the merge is the only moment anybody looks, because before it no
+session's copy was wrong.
+
+**And main moved twice while this branch was open**, so the merge was done
+twice: Chapter 3 landed, then Chapter 7 landed while the first resolution
+was being measured. Every ledger and both page counts had to be re-measured
+each time, because each is a claim about a build and the build kept changing
+underneath. That is the cost of writing chapters in parallel, it is worth
+paying, and the thing that makes it survivable is that every number in this
+file has a command that regenerates it. **Re-measure after the merge, not
+before it**, and say which installation.
+
 ---
 
 ### Chapter 7 pass, September 2026
@@ -1397,16 +1533,17 @@ order:
    exercise-harness paragraph before writing an exercise, and the note on
    dumping the English token stream with `parity.py`'s own tokeniser before
    writing the Polish.
-2. **Chapters 8, 9, 11 and 12** (v0.2), with the trace-assert stage 01 in
-   Chapter 11 and experiments E4, E5 and E7. Chapter 10 and E6 are done.
+2. **Chapters 9, 11 and 12** (v0.2), with the trace-assert stage 01 in
+   Chapter 11 and experiments E5 and E7. Chapters 8 and 10, and E4 and E6,
+   are done.
 3. **Chapters 13 and 14 and Appendices A to D** (v1.0). Appendix B is
    written from `notes/02-traps.md`; Appendix C's version column prints
    from the preamble's macros and is never typed; Appendix D needs the
    open decision above settled first.
 4. **The experiments that have not run**, each free, each writing a value
-   file that a chapter reads with `\val{}`. The Status column in
-   `notes/01-curriculum.md` §4 says which those are; no count is stated
-   here, because one goes stale the next time a pass runs one.
+   file that a chapter reads with `\val{}`. `notes/01-curriculum.md` §4 is
+   the ledger; E4 is the worked example of committing bounds rather than
+   timings, which is what makes a stopwatch survive `make verify`.
 5. **The first Pages deployment**, which needs one human click.
 
 **Do not fill a measurement table with plausible numbers.** An empty table
