@@ -133,10 +133,10 @@ for.
 \label{sec:ch06-protocol}
 \index{exceptions!as protocol}
 
-\code{KeyError}, \code{StopIteration} and \code{AttributeError} are the
-three class names a Python log shows most often, and the instinct they meet
-from C\# is that each one is a fault with a bug behind it. Before you act on
-that, look at where they come from.
+\code{KeyError}, \code{StopIteration} and \code{AttributeError} read like
+faults: a key that was not there, a sequence that ran out, an attribute that
+does not exist. The instinct from C\# is that each one has a bug behind it.
+Before you act on that, look at where they come from.
 
 The clearest is the loop. A \code{for} statement does not test a
 has-more-items flag, because there is not one. It calls \code{next} until
