@@ -1457,16 +1457,31 @@ is the same each time: `code/measure/transcripts.py` and the CLAUDE.md ledgers a
 
 **And a conflicted pull request runs no CI at all, which reads exactly like
 a queue.** Observed: with the PR showing `mergeable_state: dirty`, a push
-carrying `.tex` and `.py` produced **zero** workflow runs — not a failure, not
-a pending check, nothing in `/actions/runs` for that SHA. The mechanism is
-that a `pull_request` workflow builds `refs/pull/N/merge`, and GitHub cannot
-compute that ref while the PR conflicts. Separately, `build.yml` carries
-`paths-ignore: ['**.md']` on **both** `push` and `pull_request`, so a
-documentation-only commit is also silent. Between the two, *no checks
-appeared* has three quite different causes and only one of them means
-anything is wrong. **Read `mergeable_state` and the workflow's own `on:`
-block before reading silence as progress** — which is this file's
-misread-instrument class in a new place.
+carrying `.tex` and `.py` produced **zero** workflow runs — not a failure,
+not a pending check, nothing in `/actions/runs` for that SHA. The mechanism
+is that a `pull_request` workflow builds `refs/pull/N/merge`, and GitHub
+cannot compute that ref while the PR conflicts. **Read `mergeable_state`
+before reading silence as progress.**
+
+> **The second half of this note was wrong and is left here corrected,
+> because getting it wrong is the finding.** It said that `build.yml`'s
+> `paths-ignore: ['**.md']` also silences a documentation-only commit on a
+> pull request, so that *no checks appeared* had two causes. It has one.
+> For a `pull_request` event GitHub evaluates the path filters against **the
+> PR's whole diff, base to head**, not against the push — and this PR's diff
+> carries `.tex` and `.py`, so a CLAUDE.md-only commit triggers a full run
+> like any other. Measured: pushing one **started** a run and **cancelled**
+> the in-flight compiles of the commit before it through the
+> `cancel-in-progress` concurrency group, which is the opposite of silent.
+> `paths-ignore` bites on **`push` to `main`**, where the ref is the branch
+> and the diff is the push.
+>
+> The two zero-run observations that produced the wrong reading were both
+> made while the PR was conflicted, so the confound was doing all the work
+> and the second explanation was free. That is this file's own class once
+> more: **a mechanism read off the shape of the evidence rather than run.**
+> The companion book records the same correction to the same sentence, which
+> is the tell that it is easy to get wrong in this exact direction.
 
 #### Two things measured on the way
 
