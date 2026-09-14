@@ -39,6 +39,10 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .pytest_cache/
+# coverage's data file. The REPORT is a committed transcript under
+# figures/transcripts/; the binary it is computed from is not.
+.coverage
+.pytest_cache/
 .hypothesis/
 dist/
 

@@ -41,6 +41,7 @@ dev = [
     "pytest==9.1.1",
     "pytest-asyncio==1.4.0",
     "hypothesis==6.168.0",
+    "coverage==7.16.1",
     "ruff==0.16.7",
     "pyright==1.1.414",
     "mypy==2.3.1",
@@ -59,9 +60,20 @@ module-root = "src"
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "exercises"]
-pythonpath = ["."]
+# "." makes `exercises` and `trace_assert` importable. A chapter directory
+# is listed as well when that chapter's EXERCISES import its example modules
+# -- ch11's do, because the exercise about fixtures is about the basket the
+# chapter already built, and duplicating it into exercises/ would be two
+# copies of the thing the exercise is about removing a copy of. Add an entry
+# when a chapter needs one, and note that these directories share one flat
+# namespace: two chapters cannot both put `pricing.py` on this list.
+pythonpath = [".", "ch11"]
 asyncio_mode = "auto"
 addopts = "-q"
+# An unregistered marker is nearly always a typo, and a typo'd marker is a
+# test that quietly never runs under the filter meant to select it. pytest
+# warns about one; this list is what makes the warning mean something.
+markers = ["slow: deselect with -m 'not slow'"]
 
 [tool.ruff]
 # 79, not 88: that is what fits a listing on the page at \footnotesize without
@@ -76,6 +88,11 @@ select = ["E", "F", "W", "I", "UP", "B", "N", "SIM"]
 pythonVersion = "3.14"
 typeCheckingMode = "strict"
 include = ["src", "ch*", "measure", "tests", "exercises"]
+# Mirrors [tool.pytest.ini_options] pythonpath: pyright does not read
+# that key, so a chapter directory an exercise imports from has to be
+# listed in BOTH or the type-check fails on an import the tests
+# resolve perfectly well. Keep the two lists in step.
+extraPaths = ["ch11"]
 # "ch*" rather than the exact chapter list, deliberately: pyright's
 # glob matches ch00 through ch14 as they arrive. A hard-coded "ch00"
 # left every future chapter's listings out of strict type-checking
