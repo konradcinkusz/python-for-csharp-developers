@@ -731,8 +731,10 @@ for reasons worth keeping rather than silently dropping:
 
 Written out of the suggested order, against issue #11. Everything below
 was settled against the installed interpreter, pyright's own bundled
-typeshed or a measurement, never from memory; the brief was right about its
-argument and wrong or incomplete about four things.
+typeshed or a measurement, never from memory. The brief was right about its
+argument; what it and the trap catalogue were wrong or incomplete about is
+listed below rather than counted, because a tally in this file is the class
+of claim nothing can check.
 
 **The trap catalogue was wrong, and the measurement is what said so.**
 `notes/02-traps.md` entry 23 read *`s += piece` in a loop is quadratic;
