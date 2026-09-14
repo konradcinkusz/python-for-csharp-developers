@@ -828,6 +828,27 @@ blank in the source. Only the fourth was measuring the book. **A harness
 that reads a PDF is an instrument, and it gets the same scepticism as one
 that reads a number.**
 
+**Found and not taken: `\pyregion` leaves one pdfTeX destination warning.**
+Both editions' logs carry `name{lstnumber.13.2.54} has been referenced but
+does not exist, replaced by a fixed one`, and `checklog.py` does not report
+it. What is established: line 54 of `code/ch13/structured.py` is the
+`# --8<-- [end:schema]` marker, which `includerangemarker=false` suppresses
+from the page, so hyperref references a destination for a line listings did
+not typeset. What is NOT established is why only one of this chapter's four
+regions does it -- the other three are the same macro on the same settings
+and warn about nothing.
+
+It is left alone deliberately. The effect is one substituted PDF
+destination: nothing in this book links to a listing's line, no text is
+wrong, and both editions build with zero errors and zero unresolved
+references. The fix would be in `\pyregion` or in `checklog.py`'s ignore
+list, and both are shared machinery that every later chapter inherits --
+which is the bar the scaffold review set for a change nobody has measured.
+Recorded here with the mechanism as far as it goes, so the next person
+meets the reasoning rather than the warning. **And the reason it is
+recorded rather than silently ignored is this file's own: an ignore list in
+a log checker is where a defect goes to become permanent.**
+
 **A converging diagram is too narrow, again.** `two-boundaries` was first
 drawn as two nodes meeting at one, rendered 434 pt wide and set its node
 text at 11.6 pt — half again the largest in the book, with a Polish aspect
