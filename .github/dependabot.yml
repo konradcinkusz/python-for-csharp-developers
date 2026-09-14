@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # Keep the pinned action versions current. Without this, workflows silently
+  # rot until an action major version is deprecated.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "ci"
+  # The code's pins are the book's pins, so a dependabot bump here is a
+  # proposal to move the title page. It opens a pull request and nothing
+  # more; the pins in preamble.tex move by hand, in the same commit, or
+  # `make pins` fails.
+  - package-ecosystem: uv
+    directory: "/code"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "deps"

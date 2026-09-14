@@ -1,0 +1,67 @@
+%% appE-manifest --- Manifest
+%%
+%% Generated, never written. Three things: the diagram manifest, the exercise
+%% manifest and the outstanding-work ledgers, printed rather than merely
+%% counted by the build, because a reader holding the PDF cannot run
+%% `make debt`.
+%%
+%% EVERY NUMBER ON THESE PAGES IS COMPUTED. code/measure/ledgers.py counts
+%% them out of the tree and writes figures/values/ledgers.tex, so `make verify`
+%% fails when a ledger moves and this appendix does not. An appendix of
+%% hand-typed counts goes stale in weeks and nothing can see it happen.
+
+\chapter{Manifest}
+\label{app:manifest}
+
+\noindent
+\emph{What does this book still owe you?}
+
+Every number below is counted out of the source by a script and pulled onto
+the page mechanically, exactly as every measured number in this book is. That
+is not tidiness: an appendix of hand-typed counts goes stale in weeks, and
+nothing can see it happen.
+
+\section{Chapters}
+\label{sec:E-chapters}
+
+Of the \val{ledger.chapters.total} chapters, \val{ledger.chapters.written} are
+written and \val{ledger.chapters.stubs} still print the red
+\emph{\lblNotWritten} box in place of their text. Of the
+\val{ledger.appendices.total} appendices, \val{ledger.appendices.stubs} are
+stubs. A stub carries the chapter's brief \dash{} what it must argue and what
+it must not repeat \dash{} so it is a contract rather than a placeholder.
+
+\section{Listings and exercises}
+\label{sec:E-listings}
+
+There are \val{ledger.listings} listing files under \code{code/} and
+\val{ledger.exercises} exercises, each with a starter and a test. Every one of
+them is run by the repository's build on every change, against the versions on
+the title page. \val{ledger.verifybox} listings carry the \emph{\lblVerify}
+box, meaning they have not been through that run; the number is printed here
+so that it cannot quietly be carried.
+
+\listofexercises
+
+\section{Diagrams}
+\label{sec:E-diagrams}
+
+There are \val{ledger.diagrams} diagrams in this edition, each drawn
+separately in each language, because a diagram with English labels in the
+Polish edition is the kind of half-translation that makes a bilingual book
+feel machine-made. The source of truth is a text file, committed, so a change
+reviews as a diff. The list below is written by the figure macro at the point
+where each figure is placed, so a diagram cannot be in the book and missing
+from it.
+
+\listofdiagrams
+
+\section{Measurements}
+\label{sec:E-measurements}
+
+Eight measurements are specified across the chapters, all free and finishing
+on a laptop. Each chapter that owns one names it in its brief, and the sentence
+the measurement would support is labelled as judgement until the script has
+run. No total of how many have run is printed here, deliberately: a count of
+that kind is a claim about the book that nothing derives from anything, and it
+decays silently.

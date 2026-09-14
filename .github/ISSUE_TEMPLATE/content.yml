@@ -1,0 +1,20 @@
+name: Content request
+description: Suggest a topic, or point out something the book should cover.
+title: "[content] "
+labels: ["content"]
+body:
+  - type: textarea
+    id: topic
+    attributes:
+      label: What is missing
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Where a C# habit produces Python that runs and is wrong
+      description: >
+        The book prioritises the places where a .NET background misleads
+        over completeness of language coverage. What goes wrong without this?
+    validations:
+      required: true

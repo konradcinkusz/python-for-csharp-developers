@@ -1,0 +1,40 @@
+% ============================================================
+%  body.tex --- the document body. ONE copy, read by both main files.
+%
+%  Two main files exist, one per language. Each defines \booklang and reads
+%  this file; nothing else about the wiring differs, so a chapter cannot go
+%  missing from one edition -- which is a defect a sibling repository shipped
+%  once, with every other check green, because the wiring lived in two copies.
+%  parity.py's C15 checks that both main files read this body and that this
+%  body still wires up a whole book.
+% ============================================================
+
+\begin{document}
+
+% ------------------------------------------------------------
+\frontmatter
+
+\input{frontmatter/\booklang/titlepage}
+\input{frontmatter/\booklang/copyright}
+
+\tableofcontents
+
+\input{frontmatter/\booklang/how-to-use}
+\input{frontmatter/\booklang/introduction}
+
+% ------------------------------------------------------------
+\mainmatter
+
+\input{structure}
+
+% ------------------------------------------------------------
+\appendix
+\part{\lblPartAppendices}
+\input{structure-appendices}
+
+% ------------------------------------------------------------
+\backmatter
+
+\printindex
+
+\end{document}

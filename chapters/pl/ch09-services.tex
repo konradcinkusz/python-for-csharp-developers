@@ -1,0 +1,38 @@
+%% ch09 --- Serwisy: FastAPI i pydantic dla tych, którzy znają Minimal API
+%%
+%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
+%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
+%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
+%% rozdziału oznacza usunięcie bloku \chapterstub{} i zastąpienie go
+%% rozdziałem -- po czym ten plik nie jest już generowany.
+
+\chapter{Serwisy: FastAPI i pydantic dla tych, którzy znają Minimal API}
+\label{ch:services}
+
+\chapterstub{%
+\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+
+Argument: FastAPI is Minimal APIs with the DI container replaced by function
+signatures, and pydantic is the model binder and validator you used to
+configure. Routing and path operations against \code{MapGet}; \code{Depends}
+against DI, with per-request lifetime by default and \code{yield}
+dependencies against a disposable scope; request models, validation errors
+and the 422 against \code{ProblemDetails}; response models and
+serialisation, \code{model\_dump} and aliases against
+\code{JsonPropertyName}; the generated OpenAPI against Swashbuckle;
+middleware against ASP.NET middleware, and its order; \code{pydantic-
+settings} against \code{IOptions} and configuration providers; uvicorn
+against Kestrel, workers against threads, and the reverse proxy in front;
+lifespan against \code{IHostedService}; background tasks; testing with
+\code{TestClient} and \code{ASGITransport}. Payoff: a service skeleton the
+reader can copy, and the mapping table. Measurement: experiment E5, uvicorn
+workers against concurrency, throughput and p50 and p95 with a mocked
+upstream, calibrated the way the LangChain book's chapter 13 recorded, free.
+Five exercises. Overlap rule: the LangChain book's chapter 13 serves agents
+over SSE; this chapter owns the framework mapping and hands streaming there.
+
+\medskip
+\textbf{Budżet słów:} 3000.\\
+\textbf{Wydanie:} v0.2.\\
+\textbf{Pomiar:} E5.
+}

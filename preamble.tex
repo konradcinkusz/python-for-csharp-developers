@@ -1,0 +1,653 @@
+% ============================================================
+%  preamble.tex --- styling, environments, macros
+%
+%  Shared by BOTH editions. main-en.tex and main-pl.tex each define \booklang
+%  before \input{preamble}; nothing else differs between them at this level.
+%  Every user-visible string lives in lang/en.tex or lang/pl.tex, so a label
+%  that appears in one edition and not the other is a missing macro rather
+%  than a silent divergence.
+%
+%  Lineage. The bilingual wiring (\booklang, lang/, body.tex, the generated
+%  structure) is the math book's; the chapter machinery (listings, the
+%  admonitions, verifybox, \pyfile and \pyregion, the Mermaid pipeline) is the
+%  LangChain book's. What is new here is the exercise macro, which ties every
+%  exercise to a starter file and a test under code/, because this book is
+%  read with an editor open beside it.
+% ============================================================
+
+% \booklang must be set by the main file. Default to English rather than
+% failing, so a stray \input{preamble} still compiles and says what it did.
+\providecommand{\booklang}{en}
+
+\usepackage{etoolbox}   % loaded first: the language switch below needs it
+
+% ---------- Page geometry ----------
+% ONE format: A4, 12pt, ONE-SIDED. This book is read on a screen with an
+% editor open beside it, and never printed as a bound book, so there is no
+% recto, no verso, no gutter, no mirrored margin and no blank leaf before a
+% chapter -- every one of those is a property of paper that a PDF viewer at
+% half a screen's width turns into wasted pixels.
+%
+% The margins are symmetric and the measure is about seventy-five characters
+% of prose, which is where the eye keeps the line return. The number that was
+% actually chosen is the MONOSPACE measure: at \footnotesize on this block a
+% listing line of 79 characters fits without wrapping, and 79 is the width
+% every listing under code/ is held to by tools/check_structure.py --lines.
+% A wrapped listing line is not an error TeX reports -- breaklines=true wraps
+% it silently and prints an arrow into the middle of what the reader is meant
+% to paste into an editor -- so the width is enforced in the source instead.
+\usepackage[
+  a4paper,
+  left=3.1cm, right=3.1cm, top=2.6cm, bottom=3.0cm,
+  head=26pt, headsep=0.8cm, footskip=1.4cm
+]{geometry}
+
+% ---------- Encoding & fonts ----------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\IfFileExists{lmodern.sty}{\usepackage{lmodern}}{}
+% newtxtext takes its TS1 symbols (\textcopyright, \textdegree) from TeX
+% Gyre Termes, which Debian packages SEPARATELY (tex-gyre): a machine with
+% newtx and without it dies on the copyright page with
+% `Font TS1/ntxtlf/m/n/10.95=ts1-qtmr ... not loadable`. There is no
+% inert-safe probe for a font metric in pdfTeX -- \IfFileExists searches
+% TEXINPUTS and not TFMFONTS, so it reports the metric missing on a machine
+% that has it, and \suppressfontnotfounderror is LuaTeX-only -- so nothing
+% here guesses. CI's full TeX Live is the reference; locally, install
+% tex-gyre. Both facts are recorded in CLAUDE.md under Build traps.
+\IfFileExists{newtxtext.sty}{\usepackage{newtxtext}}{}
+% amsmath before newtxmath, because newtxmath patches amsmath's internals.
+% amssymb only when newtxmath is absent: newtxmath supplies the AMS symbols
+% itself and loading both is a fatal clash (\Bbbk already defined) that is
+% invisible on a machine without newtx and fatal on a full TeX Live.
+\usepackage{amsmath}
+\IfFileExists{newtxmath.sty}{\usepackage{newtxmath}}{\usepackage{amssymb}}
+\IfFileExists{inconsolata.sty}{\usepackage[varqu,scaled=0.95]{inconsolata}}{}
+\IfFileExists{lmodern.sty}{\usepackage{microtype}}{\usepackage[expansion=false]{microtype}}
+
+% upquote is not a refinement. In T1 the input character ' is quoteright, so
+% a listings body sets f('x') with U+2019 at both ends of the literal, and
+% typed back in that is a SyntaxError. inconsolata's varqu option hides the
+% defect on a machine that has inconsolata; upquote makes ' the ASCII
+% apostrophe whatever the typewriter font is. In a book whose every listing is
+% meant to be pasted into an editor, this line is load-bearing.
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+
+% ---------- Language ----------
+% Loading babel with a language whose .ldf is absent is a *fatal* error, not
+% a warning, so both the package and each language file are probed before
+% either is requested. Both editions load the other language too, because the
+% glossary rows and the cheat sheet carry words from both.
+\IfFileExists{babel.sty}{%
+  \IfFileExists{polish.ldf}{%
+    \IfFileExists{british.ldf}{%
+      \ifdefstring{\booklang}{pl}%
+        {\usepackage[british,main=polish]{babel}}%
+        {\usepackage[polish,main=british]{babel}}%
+    }{\usepackage[polish]{babel}}%
+  }{%
+    \IfFileExists{british.ldf}{\usepackage[british]{babel}}{}%
+  }%
+}{}
+
+% babel-polish makes " an active shorthand. listings reads its body verbatim
+% and an active character in a verbatim context is a category-code accident
+% waiting to happen, so the shorthand is turned off. Polish quotation marks
+% come from \enquote, which csquotes sets per language.
+\ifdefstring{\booklang}{pl}{\AtBeginDocument{\shorthandoff{"}}}{}
+
+% ---------- Core packages ----------
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{imakeidx}
+% csquotes with autostyle follows babel's active language, so the identical
+% source \enquote{x} sets 'x' in the English edition and the Polish quotation
+% marks in the Polish one.
+\IfFileExists{csquotes.sty}{\usepackage[autostyle=true]{csquotes}}{%
+  \providecommand{\enquote}[1]{``##1''}}
+\usepackage[hidelinks]{hyperref}
+
+% ---------- Palette ----------
+% The same family as the two companion volumes, so the three read as a set.
+\definecolor{mblue}{HTML}{1F4E79}
+\definecolor{mteal}{HTML}{0E7C7B}
+\definecolor{mamber}{HTML}{B26A00}
+\definecolor{mred}{HTML}{9B2C2C}
+\definecolor{mviolet}{HTML}{7B4397}
+\definecolor{mgrey}{HTML}{5A5A5A}
+\definecolor{mlight}{HTML}{F4F6F8}
+\definecolor{mfaint}{HTML}{FBFCFD}
+\definecolor{codebg}{HTML}{FAFAFA}
+\definecolor{codeframe}{HTML}{D8DEE4}
+\definecolor{kw}{HTML}{0B5394}
+\definecolor{str}{HTML}{9B2C2C}
+\definecolor{cmt}{HTML}{4F7A4F}
+\definecolor{typ}{HTML}{0E7C7B}
+\definecolor{dec}{HTML}{7B4397}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=mblue,
+  urlcolor=mteal,
+  citecolor=mblue,
+  pdfauthor={Konrad Cinkusz}
+}
+
+% \ifpl{Polish text}{English text} -- for the handful of places where a
+% string is structural rather than content. Anything longer than a few words
+% belongs in lang/ or in the edition's own source, not here.
+% \DeclareRobustCommand, not \newcommand: a fragile \ifpl inside a moving
+% argument is written to the .toc one level expanded and fails on the next run
+% in exactly one of the two editions.
+\DeclareRobustCommand{\ifpl}[2]{\ifdefstring{\booklang}{pl}{#1}{#2}}
+\makeatletter
+\pdfstringdefDisableCommands{%
+  \ifdefstring{\booklang}{pl}{\let\ifpl\@firstoftwo}{\let\ifpl\@secondoftwo}%
+}
+\makeatother
+
+% ---------- Language strings ----------
+\input{lang/\booklang}
+
+% The PDF's subject, keyword list and document language read \lblPdf... from
+% the language file input on the line above, so they cannot sit in the colour
+% \hypersetup block, which runs before it. Two blocks is the ordering, not an
+% oversight; merging them raises Undefined control sequence and still writes
+% a PDF, with the three fields empty.
+\hypersetup{
+  pdfsubject={\lblPdfSubject},
+  pdfkeywords={\lblPdfKeywords},
+  pdflang={\lblPdfLang}
+}
+
+% ---------- Headings ----------
+% \raggedright on the title body is load-bearing: at \Huge on this block a
+% title that cannot break overflows the margin by 30 pt or more, and several
+% chapter titles here run past fifty characters.
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{mblue}\raggedright}
+  {\normalfont\normalsize\color{mgrey}\MakeUppercase{\chaptertitlename}\ \thechapter}
+  {8pt}{\Huge\raggedright}
+\titlespacing*{\chapter}{0pt}{10pt}{28pt}
+\titleformat{\section}{\normalfont\Large\bfseries\color{mblue}\raggedright}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries\color{mgrey}\raggedright}{\thesubsection}{0.7em}{}
+
+% Sections in the contents, subsections not: fourteen chapters of subsections
+% is a contents nobody reads, and the reader navigates by chapter and section.
+\setcounter{tocdepth}{1}
+\setcounter{secnumdepth}{2}
+
+% One-sided running head: the chapter on the left, the folio on the right.
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\nouppercase{\leftmark}}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[R]{\small\thepage}%
+  \renewcommand{\headrulewidth}{0pt}}
+
+% Drops the word "Chapter" from the head: the number is still there and the
+% longer titles no longer overflow. MUST come after \pagestyle{fancy}, which
+% installs its own \chaptermark and silently overwrites anything earlier.
+\renewcommand{\chaptermark}[1]{\markboth{\thechapter.\ #1}{}}
+
+% ============================================================
+%  CODE LISTINGS
+%  ---------------------------------------------------------
+%  Every listing in a chapter is a FILE under code/, pulled in with \pyfile or
+%  \pyregion, and CI runs it against the pinned versions. An in-source
+%  \begin{python} block is allowed for a fragment of three or four lines that
+%  exists to show a shape rather than to run; anything longer belongs in a
+%  file the reader can open in the editor beside the PDF.
+% ============================================================
+\lstdefinelanguage{pythonx}{
+  language=Python,
+  morekeywords={
+    async,await,match,case,nonlocal,yield,type,
+    TypedDict,Annotated,Protocol,Literal,Generic,Final,ClassVar,Self,
+    TypeVar,TypeGuard,TypeIs,Callable,Iterator,Iterable,Awaitable,
+    dataclass,field,BaseModel,Field,Enum,StrEnum,NamedTuple,
+    override,overload,property,staticmethod,classmethod
+  },
+  morekeywords=[2]{
+    gather,create_task,TaskGroup,to_thread,timeout,wait_for,Semaphore,Queue,
+    fixture,parametrize,monkeypatch,raises,mark,
+    Depends,FastAPI,APIRouter,HTTPException,
+    select,Session,Mapped,mapped_column,relationship,
+    model_validate,model_validate_json,model_dump,model_json_schema
+  },
+  sensitive=true
+}
+
+% listings' C# definition predates async, records and pattern matching.
+\lstdefinelanguage{csharpx}{
+  language=[Sharp]C,
+  morekeywords={
+    async,await,var,dynamic,record,init,required,nameof,yield,partial,
+    global,scoped,when,with,and,or,not,notnull,unmanaged,file,get,set,value,
+    where,select,from,orderby,let,join,into,ascending,descending,on,equals,
+    Task,ValueTask,CancellationToken,IEnumerable,IAsyncEnumerable,Func,Action
+  },
+  sensitive=true
+}
+
+\lstdefinestyle{bookcode}{
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{kw}\bfseries,
+  keywordstyle=[2]\color{typ},
+  stringstyle=\color{str},
+  commentstyle=\color{cmt}\itshape,
+  emphstyle=\color{dec}\bfseries,
+  numbers=left,
+  numberstyle=\ttfamily\tiny\color{mgrey},
+  numbersep=8pt,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{codeframe},
+  framesep=6pt,
+  breaklines=true,
+  breakatwhitespace=false,
+  postbreak=\mbox{\textcolor{mgrey}{$\hookrightarrow$}\space},
+  showstringspaces=false,
+  tabsize=4,
+  columns=fullflexible,
+  keepspaces=true,
+  captionpos=b,
+  aboveskip=1.2em,
+  belowskip=1.2em,
+  % Maps the characters most likely to be pasted into a listing by accident.
+  %
+  % Do NOT add a mapping for U+00A0 (non-breaking space). It looks like the
+  % obvious next entry and it makes `listings` abort the run with "Improper
+  % alphabetic constant" -- fatal, no PDF, and the message names neither the
+  % character nor this line. The ASCII-in-listings convention, checked by
+  % parity's C13, is the guard against it instead.
+  literate={ł}{{\l}}1 {Ł}{{\L}}1 {ą}{{\k a}}1 {ę}{{\k e}}1
+           {ś}{{\'s}}1 {ć}{{\'c}}1 {ż}{{\.z}}1 {ź}{{\'z}}1 {ó}{{\'o}}1 {ń}{{\'n}}1
+           {Ą}{{\k A}}1 {Ę}{{\k E}}1 {Ś}{{\'S}}1 {Ć}{{\'C}}1
+           {Ż}{{\.Z}}1 {Ź}{{\'Z}}1 {Ó}{{\'O}}1 {Ń}{{\'N}}1
+           {—}{{-{}-}}2 {–}{{-}}1 {‘}{{'}}1 {’}{{'}}1
+           {“}{{"}}1 {”}{{"}}1 {°}{{\textdegree}}1
+}
+
+\lstset{style=bookcode}
+
+\lstnewenvironment{python}[1][]
+  {\lstset{language=pythonx,style=bookcode,#1}}
+  {}
+
+% C# comparison snippets. The whole book is written for engineers arriving
+% from .NET, so listings come in pairs often enough that the C# half has its
+% own environment rather than a generic one.
+\lstnewenvironment{csharp}[1][]
+  {\lstset{language=csharpx,style=bookcode,#1}}
+  {}
+
+\lstnewenvironment{shellcmd}[1][]
+  {\lstset{language=bash,style=bookcode,numbers=none,keywordstyle=\color{mteal}\bfseries,#1}}
+  {}
+
+\lstnewenvironment{tomlcode}[1][]
+  {\lstset{style=bookcode,numbers=none,keywordstyle=\color{black},#1}}
+  {}
+
+\lstnewenvironment{yamlcode}[1][]
+  {\lstset{style=bookcode,numbers=none,keywordstyle=\color{black},#1}}
+  {}
+
+\lstnewenvironment{jsoncode}[1][]
+  {\lstset{style=bookcode,numbers=none,keywordstyle=\color{black},#1}}
+  {}
+
+% Terminal transcripts typed into the source. Allowed for a shell session the
+% reader is meant to reproduce; NOT for program output, which is \transcript
+% below, because an in-source transcript nobody ran reads exactly like one
+% that was, and that is where a remembered number hides.
+\lstnewenvironment{console}[1][]
+  {\lstset{style=bookcode,numbers=none,basicstyle=\ttfamily\footnotesize,
+           keywordstyle=\color{black},backgroundcolor=\color{white},#1}}
+  {}
+
+% External source file -- the preferred form. The path is relative to the
+% repository root, which is also the path the reader opens in the editor.
+% Usage: \pyfile{code/ch05/decorators.py}{Caption}{lst:label}
+\newcommand{\pyfile}[3]{%
+  \lstinputlisting[language=pythonx,style=bookcode,caption={#2},label={#3}]{#1}%
+}
+
+% A named region of an external file, delimited in the source by
+% `# --8<-- [start:name]` / `# --8<-- [end:name]`, so the book and the running
+% code cannot drift apart. tools/check_structure.py --listings fails when the
+% file or the region is missing.
+% Usage: \pyregion{code/ch05/decorators.py}{timing}{Caption}{lst:label}
+\newcommand{\pyregion}[4]{%
+  \lstinputlisting[
+    language=pythonx, style=bookcode,
+    linerange={--8<--\ [start:#2]--- 8<--\ [end:#2]},
+    includerangemarker=false,
+    caption={#3}, label={#4}]{#1}%
+}
+
+% The C# twin of \pyfile, for the comparison half of a pair.
+\newcommand{\csfile}[3]{%
+  \lstinputlisting[language=csharpx,style=bookcode,caption={#2},label={#3}]{#1}%
+}
+
+% A program's output, written by a script under code/measure/ and pulled in
+% whole. There is no typed form of this and there must not be: \val{} does
+% not expand inside a verbatim body, so a transcript typed into a chapter is
+% one that cannot quote a computed value, and a transcript nobody ran is
+% indistinguishable on the page from one that was.
+\newcommand{\transcript}[1]{%
+  \par\smallskip
+  \IfFileExists{figures/transcripts/#1.txt}{%
+    \lstinputlisting[style=bookcode,numbers=none,basicstyle=\ttfamily\footnotesize,
+      keywordstyle=\color{black},backgroundcolor=\color{white},
+      language={}]{figures/transcripts/#1.txt}%
+  }{%
+    \begin{tcolorbox}[enhanced, sharp corners, width=\linewidth,
+      colback=mlight, colframe=mgrey, boxrule=0.6pt,
+      left=8pt, right=8pt, top=6pt, bottom=6pt]
+      {\bfseries\color{mgrey}\small \lblTranscriptMissing}\\[2pt]
+      {\ttfamily\scriptsize\color{mgrey} figures/transcripts/#1.txt}
+    \end{tcolorbox}%
+  }%
+  \par\smallskip
+}
+
+% Inline literals. Underscores inside these must be written \_.
+\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\pkg}[1]{\texttt{\small\color{mblue}#1}}
+\newcommand{\api}[1]{\texttt{\small\color{mteal}#1}}
+
+% ============================================================
+%  ADMONITIONS
+%  ---------------------------------------------------------
+%  A deliberately small, fixed vocabulary. Two visual treatments carry the
+%  whole grammar: `tinted` is a block the reader may read in passing -- a
+%  tint and a thick left bar, no outline; `outlined` is a block the reader
+%  must stop at, with a full rule on white. A third treatment would mean the
+%  first two are not carrying their meaning.
+% ============================================================
+\tcbset{
+  mfa tinted/.style={
+    enhanced, breakable, sharp corners,
+    colback=mlight, boxrule=0pt, leftrule=3pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt,
+    before skip=13pt, after skip=13pt,
+    fonttitle=\bfseries\small,
+    coltitle=black, colbacktitle=mlight,
+    attach title to upper={\par\smallskip},
+  },
+  mfa outlined/.style={
+    enhanced, breakable, sharp corners,
+    colback=white, boxrule=0.6pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt,
+    before skip=13pt, after skip=13pt,
+    fonttitle=\bfseries\small,
+    coltitle=black, colbacktitle=white,
+    attach title to upper={\par\smallskip},
+  },
+}
+
+% Read in passing.
+\newtcolorbox{note}[1][]{mfa tinted, colframe=mblue, title={\lblNote}, #1}
+\newtcolorbox{warning}[1][]{mfa tinted, colframe=mred, title={\lblWarning}, #1}
+% The translation. The .NET reader is the book's only assumed reader, so this
+% box carries the C# side of a comparison and nothing else. Its use is
+% counted: a chapter with none is a chapter that has stopped translating.
+\newtcolorbox{csbox}[1][]{mfa tinted, colframe=mteal, title={\lblCsharp}, #1}
+% Anything that is preview, experimental or likely to move. Python moves more
+% slowly than the agent frameworks do, and this box should be rare here.
+\newtcolorbox{versionbox}[1][]{mfa tinted, colframe=mamber, title={\lblVersion}, #1}
+
+% Stop and read.
+% The misconception, named AFTER the reader has walked into it. Appendix B is
+% the catalogue; a trap box in a chapter is one entry of it, in place.
+\newtcolorbox{trapbox}[1][]{mfa outlined, colframe=mred, title={\lblTrap}, #1}
+% Marks a listing that has not been executed against the pinned versions.
+% `make debt` counts these, CI prints the count, and nothing ships to a reader
+% with one attached. Removing it means you ran the code.
+\newtcolorbox{verifybox}[1][]{mfa outlined, colframe=mgrey, title={\lblVerify}, #1}
+\newtcolorbox{exercisebox}[1][]{mfa outlined, colframe=mteal, title={\lblExercise}, #1}
+% The guiding project. Points at the stage of trace-assert this section
+% builds, under code/src/trace_assert/.
+\newtcolorbox{projectbox}[1][]{mfa outlined, colframe=mamber, title={\lblProject}, #1}
+
+% ============================================================
+%  EXERCISES
+%  ---------------------------------------------------------
+%  \exercise{key}{title}{body}
+%
+%  This is the mechanism the whole book is read through: the PDF on one half
+%  of the screen, an editor on the other. An exercise is therefore not a
+%  paragraph but a FILE the reader opens -- a starter under
+%  code/exercises/chNN/<key>.py -- and a TEST that decides whether it is done,
+%  test_<key>.py beside it. The box prints both paths and the one command
+%  that runs the test, and the manifest at the back lists every exercise.
+%
+%  The key is the file stem, with underscores, and it is written with
+%  \detokenize so the underscore reaches the page as a character rather than
+%  as a subscript. tools/check_structure.py --exercises fails when the starter
+%  or the test is missing, or when the key's chapter prefix disagrees with the
+%  chapter it sits in.
+% ============================================================
+\newcounter{exercise}[chapter]
+\renewcommand{\theexercise}{\thechapter.\arabic{exercise}}
+\makeatletter
+\newcommand{\exercisedir}{ch\two@digits{\value{chapter}}}
+\newcommand{\listofexercises}{%
+  \section*{\lblExerciseManifest}%
+  \phantomsection\addcontentsline{toc}{section}{\lblExerciseManifest}%
+  % The entries are subsection-level and tocdepth is 1 for the contents,
+  % so the depth is raised for this list alone or it prints empty --
+  % which it did, on the scaffold's first clean build.
+  \begingroup\c@tocdepth=2\relax\@starttoc{exr}\endgroup%
+}
+\makeatother
+\newcommand{\exercise}[3]{%
+  \refstepcounter{exercise}%
+  \addcontentsline{exr}{subsection}{\protect\numberline{\theexercise}\texttt{\protect\detokenize{#1}} --- #2}%
+  \begin{exercisebox}[title={\lblExercise~\theexercise\ \dash{} #2}]
+  #3
+  \par\medskip
+  {\small\setlength{\parindent}{0pt}%
+  \lblExerciseStarter: \texttt{code/exercises/\exercisedir/\detokenize{#1}.py}\\
+  \lblExerciseTest: \texttt{code/exercises/\exercisedir/test\_\detokenize{#1}.py}\\
+  \lblExerciseRun: \texttt{uv run pytest -k \detokenize{#1}}\par}
+  \end{exercisebox}%
+}
+
+% ============================================================
+%  DIAGRAMS --- Mermaid pipeline
+%  ---------------------------------------------------------
+%  \mermaidfig{key}{caption}{one-line manifest description}
+%
+%  Source of truth is figures/mermaid/<lang>/<key>.mmd, committed. `make
+%  diagrams` renders each to figures/diagrams/<lang>/<key>.pdf, which is build
+%  output and is not committed, so a diagram change reviews as a text diff.
+%  The source is per-language because a diagram with English labels in the
+%  Polish edition is exactly the half-translation that makes a bilingual book
+%  feel machine-made; CI checks that both languages carry the same keys.
+%
+%  If the rendered PDF is absent the macro draws a placeholder AND typesets
+%  the Mermaid source, in the flow rather than as a float, because a source
+%  typeset verbatim is often taller than a page and a float cannot break.
+% ============================================================
+\makeatletter
+\newcommand{\listofdiagrams}{%
+  \section*{\lblDiagramManifest}%
+  \phantomsection\addcontentsline{toc}{section}{\lblDiagramManifest}%
+  % The entries are subsection-level and tocdepth is 1 for the contents,
+  % so the depth is raised for this list alone or it prints empty --
+  % which it did, on the scaffold's first clean build.
+  \begingroup\c@tocdepth=2\relax\@starttoc{dgm}\endgroup%
+}
+\makeatother
+
+\newcommand{\mermaidfig}[3]{%
+  \addcontentsline{dgm}{subsection}{\protect\numberline{}\texttt{#1.mmd} --- #3}%
+  \IfFileExists{figures/diagrams/\booklang/#1.pdf}{%
+    \begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\linewidth,height=0.42\textheight,keepaspectratio]{figures/diagrams/\booklang/#1.pdf}%
+    \caption{#2}\label{fig:#1}
+    \end{figure}%
+  }{%
+    \par\medskip
+    \begin{tcolorbox}[
+      enhanced, breakable, width=\linewidth, sharp corners,
+      colback=white, colframe=mgrey, boxrule=0.8pt,
+      left=8pt, right=8pt, top=8pt, bottom=8pt]
+      {\bfseries\color{mgrey}\small \lblNotRendered}\\[4pt]
+      {\ttfamily\scriptsize\color{mgrey} figures/mermaid/\booklang/#1.mmd}\\[6pt]
+      \IfFileExists{figures/mermaid/\booklang/#1.mmd}{%
+        \lstinputlisting[style=bookcode,numbers=none,basicstyle=\ttfamily\scriptsize,
+                         backgroundcolor=\color{mlight},frame=none,
+                         keywordstyle=\color{black},language={}]{figures/mermaid/\booklang/#1.mmd}%
+      }{%
+        {\small\color{mred} \lblSourceMissing: \texttt{figures/mermaid/\booklang/#1.mmd}}%
+      }%
+    \end{tcolorbox}%
+    \captionof{figure}{#2}\label{fig:#1}
+    \par\medskip
+  }%
+}
+
+% ============================================================
+%  CHAPTER STUBS
+%  ---------------------------------------------------------
+%  Prints a visible marker so an unwritten chapter cannot be mistaken for a
+%  written one and the page count never flatters the draft. `make debt`
+%  counts them, and CI publishes the count on every build.
+% ============================================================
+\newcommand{\chapterstub}[1]{%
+  \begin{tcolorbox}[
+    enhanced, breakable, width=\linewidth, sharp corners,
+    colback=mlight, colframe=mred, boxrule=1pt,
+    borderline={0.6pt}{3pt}{mred, dashed},
+    left=12pt, right=12pt, top=12pt, bottom=12pt]
+    {\bfseries\color{mred}\large \lblNotWritten}\\[8pt]
+    \small\raggedright #1
+  \end{tcolorbox}%
+}
+
+% ============================================================
+%  COMPUTED VALUES
+%  ---------------------------------------------------------
+%  A number that came out of a measurement is written by a script under
+%  code/measure/ into figures/values/<name>.tex as
+%
+%      \pyval{e01.threads.speedup}{3.71}
+%
+%  and pulled into the text with \val{e01.threads.speedup}. The script is the
+%  source of truth and the book cannot disagree with it, because the book does
+%  not contain the digits. `make verify` fails when a committed value no
+%  longer matches its script. A value the scripts do not produce prints a
+%  visible marker.
+%
+%  \val also applies the edition's decimal separator, which is how the Polish
+%  edition gets its decimal comma without a translator having to remember.
+% ============================================================
+\newcommand{\bookdecimalmarker}{\ifpl{,}{.}}
+\IfFileExists{siunitx.sty}{%
+  \usepackage{siunitx}%
+  \sisetup{
+    group-digits = integer,
+    group-minimum-digits = 5,
+    group-separator = {\,},
+    output-decimal-marker = {\bookdecimalmarker}
+  }%
+  \newcommand{\booknum}[1]{\num{##1}}%
+}{%
+  \newcommand{\booknum}[1]{##1}%
+}
+
+\newcommand{\pyvalues}{}
+\makeatletter
+\newcommand{\pyval}[2]{\csgdef{pyval@#1}{#2}\listxadd{\pyvalues}{#1}}
+% \num on a non-numeric body is a FATAL siunitx error. The generator knows
+% whether it emitted a number or a word, so it writes \pyval for a number and
+% \pyvaltext for a word, and this end only enforces which macro reads which.
+\newcommand{\val}[1]{%
+  \ifcsdef{pyval@#1}{%
+    \ifcsdef{pyvaltext@#1}{%
+      \PackageError{pybook}{Value `#1' is not a number}%
+        {\string\val\space passes its body to siunitx, which refuses anything
+         that is not a number. Use \string\valtext{#1} instead.}%
+    }{}%
+    \booknum{\csuse{pyval@#1}}%
+  }{\textcolor{mred}{\textbf{[?\,#1]}}}%
+}
+\newcommand{\valtext}[1]{%
+  \ifcsdef{pyval@#1}{\csuse{pyval@#1}}%
+    {\textcolor{mred}{\textbf{[?\,#1]}}}%
+}
+\newcommand{\pyvaltext}[2]{%
+  \csgdef{pyval@#1}{#2}\csgdef{pyvaltext@#1}{}\listxadd{\pyvalues}{#1}%
+}
+\makeatother
+
+% figures/values/all.tex is generated by `make numbers` and does nothing but
+% \input each value file. A build with no values yet still compiles; every
+% \val{} in it prints a visible marker instead of a number.
+\IfFileExists{figures/values/all.tex}{\input{figures/values/all}}{%
+  \AtBeginDocument{\PackageWarning{pybook}{No computed values found. Run `make numbers`.}}}
+
+% ============================================================
+%  PINNED VERSIONS --- single source of truth
+%  Change these here; they propagate through both editions and Appendix C.
+%  Verified against pypi.org on \pinnedon (lang/<lang>.tex).
+%  tools/check_versions.py compares every one of them with PyPI on each build.
+%  Python itself is not on PyPI and is checked by hand against python.org.
+% ============================================================
+\newcommand{\bookedition}{0.1-dev}
+\newcommand{\bookyear}{2026}
+\newcommand{\pyver}{3.14}              % the minor the book targets
+\newcommand{\pypatch}{3.14.7}          % the exact interpreter the code ran on
+\newcommand{\uvver}{0.12.13}           % uv
+\newcommand{\ruffver}{0.16.7}          % ruff
+\newcommand{\pyrightver}{1.1.414}      % pyright
+\newcommand{\mypyver}{2.3.1}           % mypy
+\newcommand{\pydanticver}{2.13.5}      % pydantic
+\newcommand{\pysettingsver}{2.15.0}    % pydantic-settings
+\newcommand{\fastapiver}{0.141.1}      % fastapi
+\newcommand{\uvicornver}{0.53.0}       % uvicorn
+\newcommand{\sqlalchemyver}{2.0.52}    % sqlalchemy
+\newcommand{\alembicver}{1.20.0}       % alembic
+\newcommand{\pytestver}{9.1.1}         % pytest
+\newcommand{\pytestasyncver}{1.4.0}    % pytest-asyncio
+\newcommand{\hypothesisver}{6.168.0}   % hypothesis
+\newcommand{\httpxver}{0.28.1}         % httpx
+\newcommand{\structlogver}{26.1.0}     % structlog
+\newcommand{\otelver}{1.44.0}          % opentelemetry-sdk
+\newcommand{\polarsver}{1.44.2}        % polars
+\newcommand{\anthropicver}{1.5.0}      % anthropic
+\newcommand{\openaiver}{3.13.0}        % openai
+\newcommand{\pipauditver}{2.10.1}      % pip-audit
+
+% ============================================================
+%  INDEX
+%  Two-column, and its entries include \texttt{} names that do not hyphenate.
+%  Ragged right keeps multi-word entries off the margin; it cannot help a
+%  single token wider than the column, so keep verbatim index entries under
+%  about 29 characters and index longer names by concept instead.
+%  \raggedcolumns is the switch imakeidx's multicols actually reads.
+% ============================================================
+\apptocmd{\theindex}{\raggedcolumns\raggedright}{}{%
+  \PackageWarning{pybook}{Could not patch theindex for ragged setting}}
+\providecommand*\see[2]{}
+\renewcommand*\see[2]{\emph{\lblIndexSee} #1}
+\providecommand*\seealso[2]{}
+\renewcommand*\seealso[2]{\emph{\lblIndexSeeAlso} #1}
+
+\makeindex

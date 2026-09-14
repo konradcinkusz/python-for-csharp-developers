@@ -1,0 +1,62 @@
+% ============================================================
+%  lang/pl.tex --- każdy widoczny dla czytelnika napis w wydaniu polskim
+%
+%  Nic w chapters/pl/ nie może wpisywać na sztywno słowa, które składa też
+%  makro. Jeśli potrzebna jest etykieta, której tu nie ma, dodaj ją tutaj I w
+%  lang/en.tex; CI przerywa build, gdy oba pliki nie definiują tego samego
+%  zbioru makr (C3).
+% ============================================================
+
+% ---------- Tytuły części ----------
+\newcommand{\lblPartI}{Środowisko uruchomieniowe i narzędzia}
+\newcommand{\lblPartII}{Język, zmapowany}
+\newcommand{\lblPartIII}{Współbieżność}
+\newcommand{\lblPartIV}{Wdrażanie}
+\newcommand{\lblPartV}{Python do pracy z AI}
+\newcommand{\lblPartAppendices}{Dodatki}
+
+% ---------- Tytuły ramek ----------
+\newcommand{\lblNote}{Uwaga}
+\newcommand{\lblWarning}{Ostrożnie}
+\newcommand{\lblTrap}{Pułapka}
+\newcommand{\lblCsharp}{Po stronie C\#}
+\newcommand{\lblVersion}{Zależne od wersji}
+\newcommand{\lblVerify}{Uruchom, zanim zaufasz}
+\newcommand{\lblExercise}{Ćwiczenie}
+\newcommand{\lblProject}{Etap trace-assert}
+\newcommand{\lblMeasured}{Zmierzone}
+
+% ---------- Stopka ćwiczenia ----------
+\newcommand{\lblExerciseStarter}{Plik startowy}
+\newcommand{\lblExerciseTest}{Test}
+\newcommand{\lblExerciseRun}{Uruchom}
+
+% ---------- Znaczniki stanu builda ----------
+\newcommand{\lblNotWritten}{JESZCZE NIENAPISANE}
+\newcommand{\lblNotRendered}{NIEWYRENDEROWANE --- uruchom \texttt{make diagrams}}
+\newcommand{\lblSourceMissing}{Brak źródła Mermaid}
+\newcommand{\lblTranscriptMissing}{TRANSKRYPT NIEWYGENEROWANY --- uruchom \texttt{make numbers}}
+\newcommand{\lblValueMissing}{brak wartości}
+\newcommand{\lblDiagramManifest}{Manifest diagramów}
+\newcommand{\lblExerciseManifest}{Manifest ćwiczeń}
+
+% ---------- Żywe paginy frontmatter ----------
+\newcommand{\lblHowToUse}{Jak korzystać z tej książki}
+\newcommand{\lblIntroduction}{Wprowadzenie}
+
+% Myślnik interpunkcyjny. Polski składa półpauzę ze spacją po obu stronach,
+% angielski pauzę bez spacji. Autorzy piszą \dash i nigdy nie wstawiają
+% myślnika wprost.
+\newcommand{\dash}{--}
+
+% ---------- Odsyłacze w indeksie ----------
+\newcommand{\lblIndexSee}{zob.}
+\newcommand{\lblIndexSeeAlso}{zob.\ też}
+
+% Data ostatniego sprawdzenia przypiętych wersji względem PyPI.
+\newcommand{\pinnedon}{wrzesień 2026}
+
+% ---------- Metadane PDF ----------
+\newcommand{\lblPdfSubject}{Czytanie, pisanie i wdrażanie Pythona, kiedy C\# jest twoim pierwszym językiem}
+\newcommand{\lblPdfKeywords}{python, dotnet, csharp, zmiana technologii, uv, pydantic, fastapi, sqlalchemy, pytest, asyncio}
+\newcommand{\lblPdfLang}{pl-PL}

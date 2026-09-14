@@ -1,0 +1,82 @@
+# ============================================================
+#  code/ -- every listing, every exercise and every measurement in the book,
+#  as one uv project locked to the versions on the title page.
+#
+#  The pins here are the SAME versions preamble.tex prints; the build's
+#  `versions` job compares both against PyPI on every push, and
+#  tools/check_structure.py --pins fails when the two disagree with each
+#  other. Change a version in both places or in neither.
+#
+#  Run from this directory:
+#      uv sync --locked          # the environment, exactly as CI has it
+#      uv run pytest             # every listing and every exercise solution
+#      uv run ruff check .       # lint, 79 columns, because the page is
+#      uv run pyright            # the checker the book pins first
+# ============================================================
+[project]
+name = "python-for-dotnet-engineers"
+version = "0.1.0.dev0"
+description = "Listings, exercises and measurements for Python for .NET Engineers"
+readme = "README.md"
+requires-python = ">=3.14,<3.15"
+license = "MIT"
+dependencies = [
+    "pydantic==2.13.5",
+    "pydantic-settings==2.15.0",
+    "fastapi==0.141.1",
+    "uvicorn==0.53.0",
+    "sqlalchemy==2.0.52",
+    "alembic==1.20.0",
+    "httpx==0.28.1",
+    "structlog==26.1.0",
+    "opentelemetry-sdk==1.44.0",
+    "polars==1.44.2",
+    "anthropic==1.5.0",
+    "openai==3.13.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==9.1.1",
+    "pytest-asyncio==1.4.0",
+    "hypothesis==6.168.0",
+    "ruff==0.16.7",
+    "pyright==1.1.414",
+    "mypy==2.3.1",
+    "pip-audit==2.10.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.8,<0.13"]
+build-backend = "uv_build"
+
+# The one package this project builds is the guiding project. Listings and
+# exercises are plain files, run by tests, and are not packaged.
+[tool.uv.build-backend]
+module-name = "trace_assert"
+module-root = "src"
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "exercises"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+addopts = "-q"
+
+[tool.ruff]
+# 79, not 88: that is what fits a listing on the page at \footnotesize without
+# wrapping, and tools/check_structure.py --lines holds every file here to it.
+line-length = 79
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "N", "SIM"]
+
+[tool.pyright]
+pythonVersion = "3.14"
+typeCheckingMode = "strict"
+include = ["src", "ch00", "measure", "tests", "exercises"]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+files = ["src"]

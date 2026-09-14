@@ -1,0 +1,67 @@
+% ============================================================
+%  lang/en.tex --- every user-visible string in the English edition
+%
+%  Nothing in chapters/en/ may hard-code a word that a macro also typesets.
+%  If a label is needed and is not here, add it here AND in lang/pl.tex; CI
+%  fails the build when the two files do not define the same macro set (C3).
+% ============================================================
+
+% ---------- Part titles ----------
+% Part titles live here rather than in structure.tex: nothing outside a
+% language file may hard-code a word the other edition also sets.
+\newcommand{\lblPartI}{Runtime and toolchain}
+\newcommand{\lblPartII}{The language, mapped}
+\newcommand{\lblPartIII}{Concurrency}
+\newcommand{\lblPartIV}{Shipping}
+\newcommand{\lblPartV}{Python for AI work}
+\newcommand{\lblPartAppendices}{Appendices}
+
+% ---------- Admonition titles ----------
+\newcommand{\lblNote}{Note}
+\newcommand{\lblWarning}{Watch out}
+\newcommand{\lblTrap}{The trap}
+\newcommand{\lblCsharp}{In C\# terms}
+\newcommand{\lblVersion}{Version sensitive}
+\newcommand{\lblVerify}{Run this before you trust it}
+\newcommand{\lblExercise}{Exercise}
+\newcommand{\lblProject}{trace-assert stage}
+\newcommand{\lblMeasured}{Measured}
+
+% ---------- The exercise footer ----------
+% An exercise names the file the reader opens in the editor beside the PDF,
+% the test that decides whether it is done, and the one command that runs it.
+\newcommand{\lblExerciseStarter}{Starter}
+\newcommand{\lblExerciseTest}{Test}
+\newcommand{\lblExerciseRun}{Run}
+
+% ---------- Build-state markers ----------
+\newcommand{\lblNotWritten}{NOT YET WRITTEN}
+\newcommand{\lblNotRendered}{NOT RENDERED --- run \texttt{make diagrams}}
+\newcommand{\lblSourceMissing}{Mermaid source missing}
+\newcommand{\lblTranscriptMissing}{TRANSCRIPT NOT GENERATED --- run \texttt{make numbers}}
+\newcommand{\lblValueMissing}{value missing}
+\newcommand{\lblDiagramManifest}{Diagram manifest}
+\newcommand{\lblExerciseManifest}{Exercise manifest}
+
+% ---------- Front-matter running heads ----------
+\newcommand{\lblHowToUse}{How to use this book}
+\newcommand{\lblIntroduction}{Introduction}
+
+% The punctuation dash. English sets an em dash closed up; Polish sets a
+% spaced en dash. Authors write \dash and never type a dash directly.
+\newcommand{\dash}{---}
+
+% ---------- Index cross-references ----------
+\newcommand{\lblIndexSee}{see}
+\newcommand{\lblIndexSeeAlso}{see also}
+
+% The date the pins were last checked against PyPI. User-visible, so it lives
+% here rather than in preamble.tex.
+\newcommand{\pinnedon}{September 2026}
+
+% ---------- PDF metadata ----------
+% The subject, keyword list and document language differ between the editions.
+% The PDF *title* stays in the main files, because those are the wiring.
+\newcommand{\lblPdfSubject}{Reading, writing and shipping Python when C\# is your first language}
+\newcommand{\lblPdfKeywords}{python, dotnet, csharp, career transition, uv, pydantic, fastapi, sqlalchemy, pytest, asyncio}
+\newcommand{\lblPdfLang}{en-GB}

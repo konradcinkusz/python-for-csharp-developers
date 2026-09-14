@@ -1,0 +1,39 @@
+%% ch02 --- Środowiska i pakowanie: uv, pyproject i plik blokady
+%%
+%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
+%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
+%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
+%% rozdziału oznacza usunięcie bloku \chapterstub{} i zastąpienie go
+%% rozdziałem -- po czym ten plik nie jest już generowany.
+
+\chapter{Środowiska i pakowanie: uv, pyproject i plik blokady}
+\label{ch:packaging}
+
+\chapterstub{%
+\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+
+Argument: a Python environment is a directory, not a machine setting, and
+the reason .NET engineers get burned is that nothing in Python enforces
+that. The map: uv and venv against NuGet and \code{dotnet restore};
+\code{pyproject.toml} against \code{.csproj}; \code{uv.lock} against
+\code{packages.lock.json}; the \code{src/} layout against project folders;
+ruff against analysers plus \code{dotnet format}; pre-commit against
+nothing, because .NET has no equivalent. The \code{[project]} table,
+dependency groups, \code{uv run}, \code{uv sync --locked}, \code{uvx}, entry
+points against \code{Program.cs}. Payoff: a repository skeleton the reader
+can copy \dash{} this book's own \code{code/} directory is that skeleton and
+is what CI runs on every push, so the skeleton is verified by construction.
+Traps to elicit: a global \code{pip install}; activating the environment
+instead of \code{uv run}; no lockfile committed; a \code{requirements.txt}
+treated as a lockfile. Listings: the book's own \code{pyproject.toml} pulled
+in by region; a shell transcript of \code{uv init}, \code{uv add} and
+\code{uv run}. Measurement: experiment E2, cold \code{uv sync} against
+\code{pip install -r} on the same lockfile, free. Overlap rule: the
+LangChain book's chapter 2 has a half-page toolchain table; this is the full
+treatment, and that book should point back here once this ships.
+
+\medskip
+\textbf{Budżet słów:} 3000.\\
+\textbf{Wydanie:} v0.1.\\
+\textbf{Pomiar:} E2.
+}

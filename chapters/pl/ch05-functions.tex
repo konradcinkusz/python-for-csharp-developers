@@ -1,0 +1,36 @@
+%% ch05 --- Funkcje i sterowanie: dekoratory, składanie list, generatory, menedżery kontekstu
+%%
+%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
+%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
+%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
+%% rozdziału oznacza usunięcie bloku \chapterstub{} i zastąpienie go
+%% rozdziałem -- po czym ten plik nie jest już generowany.
+
+\chapter{Funkcje i sterowanie: dekoratory, składanie list, generatory, menedżery kontekstu}
+\label{ch:functions}
+
+\chapterstub{%
+\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+
+Argument: Python's control-flow vocabulary maps onto C\# feature for
+feature, and the mapping is where the idioms live. A decorator against an
+attribute AND against middleware \dash{} a decorator runs, an attribute is
+metadata, and confusing the two is the chapter's headline; \code{*args} and
+\code{**kwargs} against \code{params}, optional and named arguments;
+keyword-only and positional-only parameters; closures and late binding;
+comprehensions against LINQ (eager, where \code{IEnumerable} is deferred
+\dash{} and a generator expression IS deferred); generators against
+\code{yield return}, and \code{send()}; \code{with} against \code{using},
+and \code{contextlib}; \code{match} against switch expressions and pattern
+matching; first-class functions against delegates and \code{Func<>};
+\code{functools.partial} and \code{lru\_cache}. Payoff: rewrite a LINQ
+pipeline as a comprehension and know when to reach for \code{itertools}
+instead. Listings: the same pipeline in LINQ and as comprehensions; a
+decorator that is middleware, timing and retrying a call. Five exercises.
+Overlap rule: the LangChain book's chapter 7 uses decorators for agent
+middleware; this chapter owns the mechanism and that one owns the use.
+
+\medskip
+\textbf{Budżet słów:} 3000.\\
+\textbf{Wydanie:} v0.1.
+}

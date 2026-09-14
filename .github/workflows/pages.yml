@@ -1,0 +1,156 @@
+name: Pages
+
+# Builds BOTH editions and publishes the PDFs to GitHub Pages, next to the
+# two-minute summary page, so the book has an address:
+#
+#   https://konradcinkusz.github.io/python-for-csharp-developers/
+#   .../Python-for-dotNET-Engineers.pdf     .../book-en.pdf
+#   .../Python-dla-inzynierow-dotNET.pdf    .../book-pl.pdf
+#
+# It duplicates the compile steps from build.yml deliberately. Pages must never
+# publish a PDF that did not build, so it runs the same gate -- checklog.py --
+# against its own logs rather than trusting another workflow's.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build both editions and publish
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      # FIRST, deliberately. A repository whose Pages site does not exist yet
+      # fails here in seconds rather than after a full build it cannot publish.
+      - name: Configure Pages
+        id: configure_pages
+        uses: actions/configure-pages@v5
+        with:
+          # Creating a repository's FIRST Pages site is an administrative
+          # action, and `administration` is not a scope a workflow's
+          # permissions block can grant GITHUB_TOKEN -- so no value of
+          # enablement makes the first run succeed. Once a site exists, "Get
+          # Pages site" finds it and this is harmless to leave set.
+          #
+          # The fix is a human, once: a repository admin visits
+          # Settings -> Pages -> Build and deployment -> Source and chooses
+          # "GitHub Actions". Every push after that publishes.
+          enablement: true
+
+      - name: Explain a Pages-configuration failure, if that is what happened
+        if: ${{ failure() && steps.configure_pages.conclusion == 'failure' }}
+        run: |
+          {
+            echo "## Pages build failed at Settings, not at the book"
+            echo ""
+            echo "This repository has never had a GitHub Pages site created,"
+            echo "and creating one is an administrative action the default"
+            echo "\`GITHUB_TOKEN\` cannot be granted. **Fix once, by hand:** a"
+            echo "repository admin visits **Settings -> Pages -> Build and"
+            echo "deployment -> Source** and sets it to **GitHub Actions**."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.13"
+          enable-cache: true
+          cache-dependency-glob: "code/uv.lock"
+
+      - name: Regenerate every number and refuse to publish on drift
+        run: |
+          cd code && uv sync --locked
+          for f in measure/*.py; do uv run python "$f"; done
+          cd ..
+          drift=$(git diff --name-only -- figures/values figures/transcripts)
+          new=$(git ls-files --others --exclude-standard -- figures/values figures/transcripts)
+          if [ -n "$drift" ] || [ -n "$new" ]; then
+            echo "::error::A computed value differs from what code/measure now produces."
+            [ -n "$drift" ] && git diff -- figures/values figures/transcripts
+            [ -n "$new" ] && echo "$new"
+            exit 1
+          fi
+          { echo '% Generated in CI --- do not edit.';
+            for v in figures/values/*.tex; do
+              case "$v" in */all.tex) continue;; esac
+              echo "\\input{${v%.tex}}"
+            done; } > figures/values/all.tex
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Render diagrams
+        run: |
+          shopt -s nullglob
+          SRC=(figures/mermaid/*/*.mmd)
+          [ ${#SRC[@]} -eq 0 ] && exit 0
+          printf '{"args":["--no-sandbox","--disable-dev-shm-usage"]}\n' > .puppeteer.json
+          npm install -g @mermaid-js/mermaid-cli@11
+          for f in "${SRC[@]}"; do
+            lang=$(basename "$(dirname "$f")"); key=$(basename "$f" .mmd)
+            mkdir -p "figures/diagrams/$lang"
+            timeout 180 mmdc \
+              -i "$f" -o "figures/diagrams/$lang/$key.pdf" \
+              -p .puppeteer.json -c figures/mermaid/config.json \
+              -b transparent --pdfFit
+          done
+
+      - name: Compile the English edition
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: main-en.tex
+          args: -pdf -interaction=nonstopmode -halt-on-error -file-line-error
+
+      - name: Compile the Polish edition
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: main-pl.tex
+          args: -pdf -interaction=nonstopmode -halt-on-error -file-line-error
+
+      - name: Refuse to publish a build that only looked like it worked
+        run: python3 tools/checklog.py main-en.log main-pl.log
+
+      - name: Assemble the site
+        run: |
+          mkdir -p _site
+          cp -r docs/. _site/
+          cp main-en.pdf "_site/Python-for-dotNET-Engineers.pdf"
+          cp main-pl.pdf "_site/Python-dla-inzynierow-dotNET.pdf"
+          cp main-en.pdf _site/book-en.pdf
+          cp main-pl.pdf _site/book-pl.pdf
+          ls -la _site
+
+      - name: Report what was built
+        if: ${{ always() && hashFiles('main-en.log') != '' }}
+        continue-on-error: true
+        run: |
+          {
+            echo "## What this run built"
+            echo ""
+            echo '```'
+            python3 tools/checklog.py --summary main-en.log main-pl.log || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

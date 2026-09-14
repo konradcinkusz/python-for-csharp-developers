@@ -1,0 +1,143 @@
+\chapter*{\lblIntroduction}
+\phantomsection
+\addcontentsline{toc}{chapter}{\lblIntroduction}
+\markboth{\lblIntroduction}{\lblIntroduction}
+
+\section*{Who this book is for}
+
+You have shipped services in C\#. You know what a connection pool is for, why
+idempotency matters on a retried request, what a cancellation token does and
+roughly what you would look at first when a service degrades under load. You
+have been asked \dash{} by a job advertisement, by a team you joined, by the
+fact that the interesting tooling in your field is now written in it \dash{}
+to do the same in Python. And you have discovered that a fortnight is enough to
+be productive and not nearly enough to stop writing Python that a Python
+reviewer quietly rewrites.
+
+This book is for that fortnight and the year after it. It assumes you are a
+senior engineer and it does not assume you know Python. It is a translation
+dictionary from C\# to Python, and a field manual for putting Python into
+production written by somebody who does that for a living.
+
+\section*{What this book is not}
+
+\begin{itemize}[leftmargin=1.4em]
+  \item It is not a Python course from zero. It never explains what a loop is,
+        and it spends its pages on the places where a decade of C\# produces
+        Python that works and reads wrong.
+  \item It is not a catalogue of libraries. It picks one tool for each job
+        \dash{} \pkg{uv}, \pkg{ruff}, \pkg{pydantic}, \pkg{FastAPI},
+        \pkg{SQLAlchemy}, \pkg{pytest} \dash{} pins the version, and says why.
+        Alternatives get one sentence.
+  \item It is not another book about AI. Part~V is short, and it stops at one
+        model call and one structured output.
+  \item It is not the LangChain book. That book, \emph{LangChain, LangGraph and
+        Async Python}, is already written for an engineer arriving from .NET,
+        and this one is its volume zero: the language, the toolchain, the
+        idioms and the production habits that book assumes. Agent frameworks
+        stay there. Microsoft's Agent Framework stays in the third volume.
+        Together the three are meant to be read as one course, and none of
+        them repeats a section of another.
+\end{itemize}
+
+\mermaidfig{book-map}{Where this book sits: volume zero of a trilogy, with the same reader on both stacks}{the trilogy}
+
+\section*{Why now}
+
+Three things changed in the two years before this book was written, and each
+removed an excuse.
+
+Python~\pyver{} made the free-threaded build an officially supported way to
+run the interpreter rather than an experiment, which means the one sentence
+every .NET engineer knows about Python \dash{} \enquote{it has a global
+interpreter lock} \dash{} now needs a second sentence, and
+Chapter~\ref{ch:runtime} supplies it and measures it.
+
+The toolchain converged. For most of Python's history the honest answer to
+\enquote{what is the equivalent of \code{dotnet restore}} was a shrug and a
+list; the answer is now \pkg{uv}, and Chapter~\ref{ch:packaging} is written as
+if that were settled, because it is.
+
+And the typing story matured to the point where a C\# engineer's instincts are
+an asset rather than a liability, provided they learn exactly where the checker
+stops. That is Chapter~\ref{ch:typing}, and it is the chapter this book was
+started for.
+
+\section*{How the book is organised}
+
+Five parts, fourteen chapters, each under three thousand words.
+
+\textbf{Part~I \dash{} \lblPartI} (Chapters~\ref{ch:runtime}
+to~\ref{ch:typing}) is where .NET engineers fall over first: the runtime, the
+environment, the packaging, the typing. Nothing in it is hard and all of it is
+different, and getting it wrong is what produces the six-month-old project
+that nobody can install.
+
+\textbf{Part~II \dash{} \lblPartII} (Chapters~\ref{ch:objects}
+to~\ref{ch:imports}) is the dictionary proper: objects, functions, errors,
+imports. Each chapter is a mapping table and the reasons the mapping is not
+one to one.
+
+\textbf{Part~III \dash{} \lblPartIII} (Chapter~\ref{ch:asyncio}) is one
+chapter, deliberately, because the LangChain book already spends two on the
+event loop for an agent workload. This one is the translation from the Task
+Parallel Library, and it is the chapter .NET engineers think they do not need.
+
+\textbf{Part~IV \dash{} \lblPartIV} (Chapters~\ref{ch:services}
+to~\ref{ch:observability}) is production: a service, a database, a test suite
+and the operational surface \dash{} logs, traces, containers, audits \dash{}
+each mapped from the ASP.NET Core and EF Core equivalents.
+
+\textbf{Part~V \dash{} \lblPartV} (Chapters~\ref{ch:aitoolkit}
+and~\ref{ch:traceassert}) is the AI engineer's kit \dash{} the three things
+every SDK in this field is made of \dash{} and the completion of the guiding
+project.
+
+Chapters are independent enough to read out of order after Part~I, with two
+exceptions: Chapter~\ref{ch:testing} assumes Chapter~\ref{ch:functions}, and
+Chapter~\ref{ch:traceassert} assumes everything.
+
+\section*{The guiding project}
+
+The book builds one thing across its length: \textbf{\code{trace-assert}}, a
+port to Python of the first layer of \code{agent-eval-bench} \dash{}
+deterministic assertions over the execution trace of an agent, written as
+\pkg{pytest} tests. \emph{Did the agent call the tool it was supposed to? In
+the order it was supposed to? With arguments that validate? Without calling
+anything it was forbidden?} Those are questions a test can answer with no
+model, no budget and no judgement, and they are the cheapest evaluation an
+agent can have.
+
+It arrives in three stages. Chapter~\ref{ch:testing} lays the skeleton \dash{}
+the trace model, a fixture and the first two assertions. Chapter~\ref{ch:aitoolkit}
+records a real model call as trace events. Chapter~\ref{ch:traceassert}
+completes the assertion set, packages it, and closes on a table comparing what
+the same instrument cost to build in .NET, in TypeScript and in Python.
+
+The project is not a toy chosen for teaching. It is a thing the author needed,
+and the reader finishes the book with a package, a post and an interview
+answer, which is the honest reason to choose a project at all.
+
+\section*{The rules this book holds itself to}
+
+\begin{note}
+\textbf{Every listing is a file, and every file is run.} The code lives under
+\code{code/} as a project of its own, locked to the versions on the title
+page, and the repository's build runs every listing and every exercise test on
+every change. A listing that has not been through that says so in a box.
+\end{note}
+
+\begin{note}
+\textbf{Measurements over assertions.} A claim about what is faster, cheaper
+or safer comes with a script and a number, or it is labelled as judgement.
+Eight measurements are specified across the chapters, all of them free and
+finishing on a laptop; until the one behind a claim has run, the claim says
+so.
+\end{note}
+
+\begin{note}
+\textbf{Hard frames.} Fourteen chapters, none over three thousand words, each
+publishable on its own, in three releases. The frames exist because the
+author's other projects have taught him what an unbounded book becomes, and
+the build enforces them rather than trusting anybody to remember.
+\end{note}

@@ -1,0 +1,160 @@
+\chapter*{\lblHowToUse}
+\phantomsection
+\addcontentsline{toc}{chapter}{\lblHowToUse}
+\markboth{\lblHowToUse}{\lblHowToUse}
+
+\noindent
+This book is laid out for a screen and not for a shelf. The page is A4, the
+document is one-sided, and every design decision below assumes the same
+picture: \textbf{the PDF open on one half of the screen, an editor open on the
+other}, and a terminal somewhere under the editor. If you read it on a train
+with no laptop you will get the argument and miss the point, because the point
+is what happens in the editor.
+
+\section*{The loop}
+
+Every chapter is read the same way, and the loop is short enough to become a
+habit by chapter three:
+
+\begin{enumerate}[leftmargin=1.6em, itemsep=3pt]
+  \item Read a section. It ends on a listing, and the listing is a
+        \emph{file}: its path is printed above it, relative to the repository
+        root, and it is the file you open in the editor.
+  \item Run the file. Every listing in this book runs as printed, on the
+        versions on the title page, and the repository's build runs it again on
+        every change. If it does not run for you, one of you has the wrong
+        version, and the title page says which.
+  \item Do the exercise. An exercise is a starter file and a test beside it.
+        Make the test pass, then read what the test checked and why.
+  \item Move on. The next section assumes you did the previous three.
+\end{enumerate}
+
+\noindent
+\mermaidfig{reading-loop}{The loop: read a section in the PDF, open and run its listing in the editor, make the exercise's test pass, move on}{the reading loop}
+
+Here is the whole loop, once, before there is anything to learn from it. The
+listing below is a file; open it.
+
+\pyfile{code/ch00/loop.py}{The first listing, and the shape every later one has}{lst:ch00-loop}
+
+\noindent
+Run it from the repository root and it prints this, which is also generated
+rather than typed \dash{} the line below is what the pinned interpreter printed
+when the book was last built:
+
+\transcript{ch00-loop}
+
+\noindent
+And the exercise that goes with it. It is numbered 0.1 because this chapter
+is not a chapter; the first real one is Exercise~1.1.
+
+\exercise{e00_01_hello}{Make the first test pass}{%
+Open the starter file. It contains one function that raises
+\code{NotImplementedError}, and the test beside it fails until the function
+returns what the test expects. Make it pass. Then run the test again with
+\code{-v} and read what pytest printed, because the way pytest reports a
+failure is the first thing in this book that has no .NET equivalent worth
+naming.}
+
+\noindent
+Every exercise in the book prints those three lines: the file you open, the
+file that decides whether you are done, and the one command that runs it. The
+starter for every exercise fails its test on purpose, and the repository's
+build checks that it does \dash{} an exercise whose starter already passes is
+not an exercise.
+
+\section*{What a chapter is}
+
+Fourteen chapters, and each is held to the same contract:
+
+\begin{itemize}[leftmargin=1.4em, itemsep=2pt]
+  \item \textbf{One argument}, stated in the first paragraph and paid off by
+        the last. A chapter is a claim about where a C\# habit stops working
+        and what replaces it, not a tour of a library.
+  \item \textbf{Under three thousand words} of prose, listings not counted.
+        The build counts them and refuses a chapter that is over. Three
+        thousand words is a sitting; the book is fourteen sittings.
+  \item \textbf{A mapping table}, C\# on the left and Python on the right,
+        because the reader already has the concept and needs the name.
+  \item \textbf{Listings that are files}, every one of them run on the pinned
+        versions before it is printed. Where a listing has not been run it
+        says so, in a box, and the build counts the boxes.
+  \item \textbf{Traps}, elicited before they are named. Where a C\# habit
+        produces Python that runs and is wrong, the chapter lets you write it
+        first. Appendix~\ref{app:traps} is the catalogue.
+  \item \textbf{Exercises} with a starter and a test, as above.
+  \item \textbf{Independence.} A chapter names what it assumes from earlier
+        ones and can be read on its own; each was written to be published on
+        its own.
+\end{itemize}
+
+\section*{The boxes}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{\lblNote} & Something worth knowing that the argument does not need. \\
+\textbf{\lblWarning} & Something that will cost you an afternoon. \\
+\textbf{\lblCsharp} & The translation. The C\# side of the sentence you have
+  just read, and nothing else; a reader without .NET behind them can skip
+  every one of these and lose no content. \\
+\textbf{\lblTrap} & A misconception, named after you have walked into it.
+  Every one is in Appendix~\ref{app:traps}. \\
+\textbf{\lblVersion} & Preview, experimental, or likely to move. Rare in a
+  book about a language; common in its last two chapters. \\
+\textbf{\lblVerify} & A listing that has not been executed against the pinned
+  versions. Nothing ships to a reader with one of these attached. \\
+\textbf{\lblExercise} & A starter file and a test. \\
+\textbf{\lblProject} & The stage of \code{trace-assert} this section builds.
+  See the Introduction. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section*{Two rules this book holds itself to}
+
+\begin{note}
+\textbf{Every listing was run, or says it was not.} The code under
+\code{code/} is a project of its own, with a lockfile, and the repository's
+build installs exactly the versions on the title page and runs every listing
+and every exercise test on every change. A listing that has not been through
+that carries a \emph{\lblVerify} box, and the build prints how many there
+are. When that number is zero the book is entitled to its title page.
+\end{note}
+
+\begin{note}
+\textbf{What has not been measured is labelled as judgement.} Where the book
+says one thing is faster than another, there is a script under
+\code{code/measure/} that produced the number, and the number reaches the page
+mechanically rather than by being typed. Where no script has run yet, the
+sentence says so, and the table that would hold the numbers stays empty.
+Empty tables are not an oversight; they are the mechanism.
+\end{note}
+
+\section*{Three releases}
+
+The book ships in three parts, and each is complete on its own.
+Version~0.1 is Parts~I and~II \dash{} the runtime, the toolchain and the
+language. Version~0.2 adds Parts~III and~IV \dash{} concurrency and
+shipping. Version~1.0 adds Part~V and the appendices. A chapter that is not
+yet written prints a red box saying so, and the build counts those too.
+
+\section*{If you already write Python}
+
+Read Appendix~\ref{app:traps} first, and be honest about the entries you did
+not know. Then read Chapters~\ref{ch:asyncio} and~\ref{ch:testing} anyway,
+because they are where a C\# background produces Python that runs and is
+wrong, and a year of writing Python is not always enough to notice.
+
+\section*{Both languages, one source}
+
+This book exists in English and in Polish, built from one repository. The two
+editions share their chapters, their listings, their exercises and their
+numbering; only the prose differs. A check on every build proves the two have
+the same structure and the same numbers, so a correction applied to one
+edition cannot silently miss the other. English is the first language of the
+book: the code, the identifiers and every listing comment are English in both
+editions, because the reader is being trained to read English code.
+Where a Polish term has no settled form in real use, the Polish edition
+keeps the English word and inflects it, and says so where it does.

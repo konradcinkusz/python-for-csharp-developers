@@ -1,0 +1,35 @@
+%% ch11 --- Testy: pytest dla tych, którzy znają xUnit, i szkielet trace-assert
+%%
+%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
+%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
+%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
+%% rozdziału oznacza usunięcie bloku \chapterstub{} i zastąpienie go
+%% rozdziałem -- po czym ten plik nie jest już generowany.
+
+\chapter{Testy: pytest dla tych, którzy znają xUnit, i szkielet trace-assert}
+\label{ch:testing}
+
+\chapterstub{%
+\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+
+Argument: pytest is xUnit with the class removed and the fixture graph made
+explicit. Discovery against attributes; a plain \code{assert} with assertion
+rewriting against \code{Assert.Equal}; fixtures against a constructor,
+\code{IClassFixture} and \code{IAsyncLifetime}, with function, class, module
+and session scopes; \code{parametrize} against \code{Theory} and
+\code{InlineData}; \code{conftest.py}; \code{monkeypatch} and
+\code{unittest.mock} against Moq and NSubstitute, and the trap of patching
+where a name is defined rather than where it is looked up; \code{tmp\_path},
+\code{caplog} and \code{capsys}; markers and \code{-k}; async tests;
+hypothesis against FsCheck; coverage. The trace-assert skeleton: a
+\code{Trace} of \code{Event} records, a \code{trace} fixture, the first two
+assertions, and the package layout under \code{code/src/trace\_assert/}
+\dash{} which is what this book's own CI has been running since chapter 1.
+Payoff: a suite that runs with no network, no database server and no model,
+and the first stage of the guiding project. Five exercises.
+
+\medskip
+\textbf{Budżet słów:} 3000.\\
+\textbf{Wydanie:} v0.2.\\
+\textbf{Projekt przewodni:} trace-assert stage 01: the trace model and the first two assertions.
+}
