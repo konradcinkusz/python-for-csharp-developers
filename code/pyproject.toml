@@ -88,7 +88,8 @@ include = ["src", "ch*", "measure", "tests", "exercises"]
 # gets. pyright searches the file's own directory, so that resolves inside
 # ch10/ and not from measure/. This names the chapter directories the
 # measurement scripts reach into; add one when a chapter's measurement
-# does.
+# does -- ch13 is here because E8 times the corpus that ch13's
+# what_survives.py prints, rather than carrying a second copy of it.
 [[tool.pyright.executionEnvironments]]
 root = "measure"
 # "src" as well as the chapter directories: an executionEnvironment
@@ -99,7 +100,7 @@ root = "measure"
 # without it pyright reports `"ASSERTIONS" is unknown import symbol` for a
 # name that resolves perfectly at runtime, which is a config gap wearing a
 # type error's clothes. Found by merging two chapters' passes together.
-extraPaths = ["ch10", "src"]
+extraPaths = ["ch10", "ch13", "src"]
 
 [[tool.pyright.executionEnvironments]]
 root = "."

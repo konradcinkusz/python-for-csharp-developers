@@ -102,7 +102,7 @@ restate a total here or in `CLAUDE.md`** — the math book's ledger said
 | E5 | 9 | uvicorn workers against concurrency: throughput, p50, p95, mocked upstream, calibrated the way the LangChain book's Chapter 13 recorded | free | not run |
 | E6 | 10 | The N+1 reproduced and counted from the engine's echo, before and after `selectinload`, on SQLite | free | **run**, Chapter 10 pass, `code/measure/e06_nplusone.py` |
 | E7 | 12 | Image size and cold start of three Dockerfile shapes | free; needs Docker, so CI rather than the sandbox | not run |
-| E8 | 13 | Validation cost of one structured output across pydantic strict, pydantic lax and a dataclass over `json` | free | not run |
+| E8 | 13 | Validation cost of one structured output across pydantic strict, pydantic lax and a dataclass over `json` | free | **run**, the chapter 13 pass; `code/measure/e08_validation.py` |
 
 Each result goes into `code/measure/<experiment>.py`, which writes
 `figures/values/<experiment>.tex`; the chapter reads it with `\val{}` and
@@ -172,6 +172,15 @@ verifiable rather than stated.
 > ruler. The placeholder is replaced rather than kept beside the real
 > model, since a finished package with two trace types is a package whose
 > public names are not all claims.
+>
+> **Chapter 13 shipped stage 02 against the placeholder**, because it was
+> written in parallel and `main` still carried one. Its `Recorder` is
+> ported onto the specification's model in the merge, and the porting
+> question was settled by asking which chapter introduces the model to the
+> READER: Chapter 11, which is still a stub, so nothing written teaches the
+> placeholder and Chapter 13 only extends it. An extension can be ported;
+> an introduction could not have been. The full reasoning and the cost are
+> in `CLAUDE.md` under the Chapter 14 pass.
 >
 > And the full assertion set lands in stage `final`, which means the two
 > assertions stage 01 was to add are already in `assertions.py` when

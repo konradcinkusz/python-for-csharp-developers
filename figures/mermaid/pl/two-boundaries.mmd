@@ -1,0 +1,5 @@
+flowchart LR
+    I["<b>Wejscie na granicy</b><br/>klient, ktorego nie kontrolujesz.<br/>FastAPI waliduje zadanie do<br/>modelu, zanim Twoja funkcja<br/>w ogole sie zacznie"]
+    P["<b>Pomiedzy nimi</b><br/>Twoj wlasny kod, gdzie kazda<br/>wartosc jest tym typem, ktory<br/>deklaruje, i nic nie jest<br/>sprawdzane ponownie"]
+    O["<b>Powrot od dostawcy</b><br/>usluga, ktorej nie kontrolujesz.<br/>Ten sam mechanizm, walidujacy<br/>tekst do typu, o ktory prosiles<br/>model"]
+    I --> P --> O

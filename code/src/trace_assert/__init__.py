@@ -40,12 +40,14 @@ from .assertions import (
     tool_called_with,
     tool_not_called,
 )
+from .recorder import Recorder
 from .trace import Event, Span, ToolCall, Trace, Turn
 
 __all__ = [
     "ASSERTIONS",
     "INTERNAL_ID",
     "Event",
+    "Recorder",
     "Span",
     "ToolCall",
     "Trace",

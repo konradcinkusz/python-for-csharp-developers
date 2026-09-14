@@ -2,7 +2,8 @@ built   python_for_dotnet_engineers-0.1.0.dev0
 name    python-for-dotnet-engineers
 python  >=3.14, <3.15
 needs   13 packages
-modules 3
+modules 4
         trace_assert/__init__.py
         trace_assert/assertions.py
+        trace_assert/recorder.py
         trace_assert/trace.py
