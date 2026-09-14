@@ -1,0 +1,6 @@
+flowchart LR
+    W["<b>You write a hint</b><br/>port: int is a claim<br/>about a value, in the source"]
+    R["<b>Python runs the file</b><br/>the claim is never read,<br/>never checked, never enforced"]
+    C["<b>A checker reads the file</b><br/>a second compiler you invite,<br/>and it cannot stop the first"]
+    W --> R
+    W -.->|"separately, and only<br/>if you ask for it"| C

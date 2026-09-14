@@ -39,6 +39,13 @@ TRANSCRIPTS = {
     "ch00-loop": "ch00/loop.py",
     "ch02-where-am-i": "ch02/where_am_i.py",
     "ch02-lockfile": "ch02/lockfile.py",
+    "ch03-hint-is-a-claim": "ch03/hint_is_a_claim.py",
+    "ch03-dto-four-ways": "ch03/dto_four_ways.py",
+    "ch03-defaults": "ch03/defaults.py",
+    "ch07-runs-once": "ch07/runs_once.py",
+    "ch07-two-ways": "ch07/two_ways.py",
+    "ch07-shadowing": "ch07/shadowing.py",
+    "ch07-cycles": "ch07/cycles.py",
 }
 
 
