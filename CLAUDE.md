@@ -23,9 +23,9 @@ repository's `CLAUDE.md`, and it is not repeated here.
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
 | Code | `code/` is a locked uv project: the `trace-assert` skeleton and its stage 02, those nine chapters' listings and exercises, experiments E1, E2, E3, E4, E5, E6 and E8, and the measurement, ledger and transcript scripts, and CI runs all of it | every other chapter's listings and exercises; every experiment the manifest's Status column still marks *not run* |
 
-**The scaffold plus eight chapters.** The scaffold existed so that the shape of
+**The scaffold plus nine chapters.** The scaffold existed so that the shape of
 the book could be argued with before any chapter was written, and so that the
-first one was written into a build that already had every gate. Those eight
+first one was written into a build that already had every gate. Those nine
 were written in parallel, by separate passes that could not see each other,
 each against the issue that came up first rather than against the reading
 order — which is possible because a chapter names what it borrows and borrows
@@ -848,7 +848,8 @@ for reasons worth keeping rather than silently dropping:
 ### Chapter 2 pass, September 2026 --- the one that moved the preamble
 
 Written into the scaffold in parallel with the other chapters in flight, in
-sessions that did not know about each other; this one merged last. So it is
+sessions that did not know about each other; this one merged after most of
+them, with Chapters 1 and 9 following it. So it is
 not the first chapter into the scaffold and the heading no longer says it is:
 the passes ran at once and the merge order decided which arrived first, which
 is not a fact about a chapter. What is true of this one is that it is the only
