@@ -371,7 +371,12 @@ szybkie, że nie ma powodu, żeby nie uruchamiać go przy każdym zapisie.
 \pkg{pre-commit} jest tym, co czyni je nieuniknionym dla wszystkich
 pozostałych: hak gita, zadeklarowany w pliku, który puszcza formatter i linter
 po plikach dotkniętych commitem i odmawia commita, gdy są niezadowolone. Nic w
-.NET tego nie robi, bo nic w .NET tego nie potrzebuje.
+.NET nie robi tego rutynowo, bo build już to robi.
+
+Własny szkielet tej książki puszcza linter i checker w CI, a nie w haku, i to
+rozróżnienie warto mieć: hak żyje na maszynie jednego programisty i da się go
+pominąć flagą, a buildu nie. Uczciwy układ to jedno i drugie, przy czym hak
+jest tą połową, która oszczędza ci rundy, a nie tą, na której można polegać.
 
 \begin{exercise}{e02_02_install_set}{Co wdrożenie naprawdę instaluje?}
 Dokończ funkcję, która odpowiada na pytanie, dla którego istnieje podział na

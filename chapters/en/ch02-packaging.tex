@@ -369,8 +369,14 @@ The last piece is the linter. \pkg{ruff} replaces the analysers and
 enough that there is no reason not to run it on every save. \pkg{pre-commit}
 is what makes it unavoidable for everybody else: a git hook, declared in a
 file, that runs the formatter and the linter over the files a commit touches
-and refuses the commit if they are unhappy. Nothing in .NET does this because
-nothing in .NET needs to.
+and refuses the commit if they are unhappy. Nothing in .NET does this as a
+matter of course, because the build is already doing it.
+
+This book's own skeleton runs the linter and the checker in CI rather than in
+a hook, and the distinction is worth having: a hook lives on one developer's
+machine and can be skipped with a flag, where a build cannot. The honest
+arrangement is both, and the hook is the half that saves you the round trip
+rather than the half you can rely on.
 
 \begin{exercise}{e02_02_install_set}{What does a deployment actually install?}
 Finish a function that answers the question the \code{[project]} and
