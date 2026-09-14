@@ -19,7 +19,7 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **2 of 14 written: Chapters 3 and 12, both editions.** The other twelve are briefs printed where the chapter will go | 1, 2, 4--11, 13, 14 |
+| Chapters | **2 of 14 written: Chapters 3 and 12, both editions.** The other twelve are briefs printed where the chapter will go | 1, 2, 4 to 11, 13, 14 |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
 | Code | `code/` is a locked uv project: the `trace-assert` skeleton, Chapter 3's seven listings, Chapter 12's five listings and three Dockerfiles, nine exercises, the measurement scripts, and CI runs all of it | every other chapter's listings and exercises; seven of the eight experiments |
 
@@ -35,8 +35,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | PAGES_EN | 0 | 0 | 0 | 0 |
-| `main-pl` | PAGES_PL | 0 | 0 | 0 | 0 |
+| `main-en` | 70 | 0 | 0 | 0 | 0 |
+| `main-pl` | 73 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -52,11 +52,11 @@ for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **13 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **12 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- N_LISTINGS listing references, every file and region present · N_EXERCISES exercises, each
-  with a starter, a solution and a test · N_TRANSCRIPTS transcript references, every
-  file present · N_CODEFILES code files, none over 79 columns · 19 pins agree between
+- 32 listing references, every file and region present · 9 exercises, each
+  with a starter, a solution and a test · 20 transcript references, every
+  file present · 54 code files, none over 79 columns · 19 pins agree between
   `preamble.tex` and `code/pyproject.toml`
 - **1 `verifybox` block** — Chapter 12's three Dockerfiles, which could not
   be built because no container registry is reachable from the machine that
@@ -65,9 +65,9 @@ does not:
   was not run. **That figure is per edition, which is what Appendix E
   prints; `make debt`'s `shots` target greps both editions and says 2.**
   Quote whichever you mean, and say which
-- N_DIAGRAMS Mermaid sources, N_DIAG_PER per language, all rendering, all placed
-- N_VALUES computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · N_LABELS labels in each edition,
+- 14 Mermaid sources, seven per language, all rendering, all placed
+- 22 computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · 64 labels in each edition,
   0 mismatches
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
@@ -878,6 +878,18 @@ ten-minute one and fail on every machine without a daemon. The chapter's
 table of image sizes is absent rather than estimated, and every comparison
 it makes between the three shapes is labelled as an argument from what they
 contain.
+
+**And the two-machines rule above now has a size.** The Chapter 3 pass
+recorded that this container is a bare TeX Live and that CI will paginate
+differently; this pass measured the gap, because CI compiled the same commit
+with a clean tree while the local numbers were still on screen. On the tree
+that carried Chapter 12 and not Chapter 3, bare gave **54 and 56** and CI
+gave **53 and 54** -- one page in the English edition and two in the Polish,
+on identical source, with both builds reporting zero errors and zero overfull
+boxes. That is why nothing failed and only the page count showed it, and it
+is worth knowing which direction the gap runs: the full installation sets
+*tighter*, so a bare measurement is the pessimistic one. The numbers in the
+Status table are this machine's, per the convention that pass established.
 
 **What was measured instead, and it is deliberately not E7.** Ask of any
 blocked measurement whether it splits, which is the math book's rule: the
