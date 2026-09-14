@@ -102,7 +102,7 @@ restate a total here or in `CLAUDE.md`** — the math book's ledger said
 | E5 | 9 | uvicorn workers against concurrency: throughput, p50, p95, mocked upstream, calibrated the way the LangChain book's Chapter 13 recorded | free | not run |
 | E6 | 10 | The N+1 reproduced and counted from the engine's echo, before and after `selectinload`, on SQLite | free | not run |
 | E7 | 12 | Image size and cold start of three Dockerfile shapes | free; needs Docker, so CI rather than the sandbox | not run |
-| E8 | 13 | Validation cost of one structured output across pydantic strict, pydantic lax and a dataclass over `json` | free | not run |
+| E8 | 13 | Validation cost of one structured output across pydantic strict, pydantic lax and a dataclass over `json` | free | **run**, the chapter 13 pass; `code/measure/e08_validation.py` |
 
 Each result goes into `code/measure/<experiment>.py`, which writes
 `figures/values/<experiment>.tex`; the chapter reads it with `\val{}` and

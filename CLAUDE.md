@@ -19,14 +19,16 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **0 of 14 written.** Every chapter is a brief printed where the chapter will go | all fourteen |
+| Chapters | **1 of 14 written: 13, *The AI engineer's kit*.** The other thirteen are a brief printed where the chapter will go | thirteen |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: the `trace-assert` skeleton, the first listing, the first exercise, the two measurement scripts, and CI runs all of it | every chapter's listings and exercises; the eight experiments |
+| Code | `code/` is a locked uv project: the `trace-assert` skeleton and its stage 02, chapter 13's five listings and four exercises, E8, and CI runs all of it | the remaining chapters' listings and exercises; seven experiments |
 
-**This is the scaffold.** It exists so that the shape of the book can be
-argued with before Chapter 1 is written, and so that the first chapter is
-written into a build that already has every gate. Nothing in it teaches
-Python yet.
+**The scaffold has its first chapter.** The scaffold existed so that the
+shape of the book could be argued with before a chapter was written, and so
+that the first chapter went into a build that already had every gate. That
+happened: Chapter 13 was written against the gates rather than before them,
+and each one of them caught something on the day — the list, rather than a
+count of it, is under *The chapter 13 pass* below.
 
 **Two editions, one paper size, both clean.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
@@ -34,8 +36,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 37 | 0 | 0 | 0 | 0 |
-| `main-pl` | 37 | 0 | 0 | 0 | 0 |
+| `main-en` | 52 | 0 | 0 | 0 | 0 |
+| `main-pl` | 52 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -46,18 +48,19 @@ for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **14 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **13 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 2 listing references, every file and region present · 1 exercise, with a
-  starter, a solution and a test · 2 transcript references, every file
-  present · 14 code files, none over 79 columns · 19 pins agree between
+- 16 listing references, every file and region present · 5 exercises, each
+  with a starter, a solution and a test · 10 transcript references, every
+  file present · 33 code files, none over 79 columns · 19 pins agree between
   `preamble.tex` and `code/pyproject.toml`
 - **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
   reader that something was not run
-- 4 Mermaid sources, two per language, all rendering, both placed
-- 9 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 26 labels in each edition,
-  0 mismatches
+- 10 Mermaid sources, five per language, all rendering, all placed
+- 19 computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · 48 labels in each edition,
+  0 mismatches · chapter 13 at 2540 prose words in English and 2220 in
+  Polish, against a budget of 3000
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
   runs each one; neither that file nor this one states a total, because a
@@ -668,10 +671,13 @@ every one reproduced on a scratch copy before being fixed:
   `` `$HOME` `` in a brief). `$` is escaped in both branches of
   `latexify()` now, the same way `&`, `%`, `#` and `_` already are.
 
-Both editions still build to 37 pages with zero errors, zero unresolved
-references and zero overfull boxes; parity reports 0 failures and 0
-warnings; `reflist.py` 27 labels in each edition, 0 mismatches; every code
-gate green, including the rewritten `test_listings.py`.
+At the end of that pass both editions built to 37 pages with zero errors,
+zero unresolved references and zero overfull boxes; parity reported 0
+failures and 0 warnings; `reflist.py` 27 labels in each edition, 0
+mismatches; every code gate green, including the rewritten
+`test_listings.py`. Those are this pass's figures and stay as history; the
+live ones are in the Status table at the top, which is the only place in
+this file that is meant to be current.
 
 **Four candidates from the second round were considered and not taken**,
 for reasons worth keeping rather than silently dropping:
@@ -702,6 +708,113 @@ for reasons worth keeping rather than silently dropping:
   general (`\pysettingsver` names `pydantic-settings`, not
   `pysettings`), so the dict is the one place that mapping can live.
 
+
+### The chapter 13 pass, September 2026
+
+The first chapter written, and the first test of whether a scaffold built
+before any prose survives contact with some. It did, and what it caught is
+worth more than the chapter.
+
+**The brief was wrong about E8, and the measurement is the better story.**
+The brief specifies E8 as *validation cost* across pydantic strict, pydantic
+lax and a dataclass over `json`, which presumes a trade: safety costs time,
+pick a point on the curve. Measured, on the pinned versions, the trade does
+not exist.
+
+- **Strict costs nothing over lax.** The two came out within a few per cent
+  of each other, on either side, run to run. The advice trap 57 exists to
+  give — turn strict on — is therefore free, which is a much stronger thing
+  to be able to say than "it is worth it".
+- **`model_validate_json` beats `json.loads` alone**, and the gap widens
+  with the reply. On a 33-field payload the standard library's parser on its
+  own took more than twice as long as pydantic took to parse the same bytes
+  *and* check every field. pydantic-core parses in compiled code straight
+  into the model's fields and never materialises the intermediate Python
+  dict, which is exactly what `json.loads` is doing all that work to build.
+- So the section the brief expected — here is the cost, here is the benefit,
+  choose — is not written, because it would have been false. What is written
+  is that the cheap option is the expensive one.
+
+**E8 commits no timing, and that is forced rather than chosen.** `make
+verify` re-runs every script and fails on any byte that moved, so a
+microsecond figure would fail on the next machine. The trilogy's rule (a
+machine-dependent residual is a BOUND, never a figure) has a mechanical
+enforcer here, and the math book's later refinement is the one that matters:
+the bound is a **decision written in the source and asserted**, not an
+observation rounded up. E8 therefore commits exact rejection counts, which
+are properties of the code, plus two generous ceilings checked on every run.
+
+**And the count E8 reports is a better answer than the timing would have
+been.** Of seven replies that are valid JSON and wrong, lax refuses four,
+strict refuses six and the dataclass refuses two. The one payload the
+dataclass rejects is the one that was *fine* — a provider added a field —
+so its single refusal is a false alarm. That is countable, machine-
+independent, and it is what the section now turns on.
+
+**The brief says "an httpx client". It is `httpx2`, which is a different
+distribution.** Both SDKs at these pins require `httpx2` (anthropic
+`httpx2<3,>=2.0.0`, openai `httpx2<3,>=2.7.0`); this book pins `httpx`
+0.28.1 for the reader's own client. The classes share an ancestry and a
+spelling and are not the same package, so
+`isinstance(client._client, httpx.Client)` is **False** on an SDK client
+that is obviously an httpx client. Nothing in anybody's documentation says
+so; one `importlib.metadata.requires` call does.
+
+**And the two SDKs disagree about whether the wrong one is an error.**
+Measured against a local server, not inferred: `anthropic` refuses an
+`httpx.Client` with a `TypeError` naming both packages, and `openai`
+accepts it and **works** on a plain request. The first draft of this note
+said openai breaks; it does not, on the path that was tested, and the
+chapter says only what was tested. It is a new trap, 60 in `notes/02`.
+
+**A measurement that imports the listing it measures needs the checker told
+so.** E8 imports its corpus from `code/ch13/what_survives.py` rather than
+carrying a second copy, because two copies of a corpus is how the table on
+the page stops measuring what the experiment measures. At run time the
+script puts `ch13/` on `sys.path`; pyright cannot see that, and reported
+eighteen cascading unknown-type errors. The fix is a scoped
+`[[tool.pyright.executionEnvironments]]` with `root = "measure"` — scoped
+deliberately, so that a name in one chapter's directory cannot quietly
+resolve from anywhere else.
+
+**A long exercise key overflows the exercise manifest, and the key is the
+half that cannot break.** `e13_02_schema_for_the_wire` plus its Polish
+title gave a 2.8 pt overfull hbox in `main-pl` and nothing in `main-en` —
+the entry is `\texttt{}` and a `\texttt{}` run does not hyphenate, so the
+line broke inside the *title* and was still over. Renamed to
+`e13_02_wire_schema` and both editions came back at zero. This is the
+companion books' manifest-column finding arriving in a new column: **keep
+the key short; the copy beside it can wrap and the key cannot.**
+
+**Every listing in this chapter runs with no provider and no API key**, and
+the mechanism generalises. An SDK talks HTTP, so a local server answering
+in the shape the SDK parses is indistinguishable from a provider as far as
+the SDK is concerned. `code/ch13/fake_provider.py` is that server; the
+structured-output path (`responses.parse(text_format=...)`) runs against it
+end to end, schema on the wire and all. The rule the LangChain book set —
+every stage's tests pass with no model — survives the chapter that looked
+most likely to break it.
+
+**Three things the sandbox needed that the scaffold did not record.** The
+preinstalled uv is 0.8.17, which knows Python 3.14 only as a release
+candidate, and `astral.sh` answers 403 through the proxy — so uv 0.12.13
+comes from its PyPI wheel (`pip download uv==0.12.13`, unzip, it is a
+single binary). There is no TeX in the sandbox image; `apt-get install`
+of `latexmk texlive-latex-extra texlive-fonts-extra tex-gyre
+texlive-lang-polish texlive-science` builds both editions, and `tex-gyre`
+is the one the preamble's own comment warns about. And `pdfinfo` is not
+installed either, so a diagram's page size was read out of the PDF's
+`/MediaBox` directly — the width formula in the scaffold note works
+unchanged on it.
+
+**A converging diagram is too narrow, again.** `two-boundaries` was first
+drawn as two nodes meeting at one, rendered 434 pt wide and set its node
+text at 11.6 pt — half again the largest in the book, with a Polish aspect
+ratio of 1.45, right on the crossover where the height cap starts to bind.
+Redrawn as a three-node chain it is 645/656 pt and 7.8/7.7 pt, in band with
+the other four. The companion books' rule held without modification: above
+the crossover only the width matters, and a chain is what widens.
+
 ---
 
 ## After each pass
@@ -728,22 +841,26 @@ Tag from a local clone.
 
 ## What is left
 
-Nothing in the book is written. The outstanding work is tracked as GitHub
-issues under the `chapter`, `appendix`, `experiment` and `infrastructure`
-labels — **work from the labels, not from a list here**, because a list in
-this file is the class of claim nothing can check. In rough order:
+One chapter is written, Chapter 13. The outstanding work is tracked as
+GitHub issues under the `chapter`, `appendix`, `experiment` and
+`infrastructure` labels — **work from the labels, not from a list here**,
+because a list in this file is the class of claim nothing can check. In
+rough order:
 
 1. **Chapters 1 to 7**, which are v0.1. Suggested order: 1, 2, 3 first,
    because every later chapter's listings assume the reader trusts the
    environment; then 4 to 7 in order, each leaning on the last.
 2. **Chapters 8 to 12** (v0.2), with the trace-assert stage 01 in Chapter 11
    and experiments E4 to E7.
-3. **Chapters 13 and 14 and Appendices A to D** (v1.0). Appendix B is
-   written from `notes/02-traps.md`; Appendix C's version column prints
-   from the preamble's macros and is never typed; Appendix D needs the
-   open decision above settled first.
-4. **The eight experiments**, each free, each writing a value file that a
-   chapter reads with `\val{}`.
+3. **Chapter 14 and Appendices A to D** (v1.0). Chapter 13 is written and
+   carries trace-assert stage 02, so Chapter 14 inherits a `Recorder` and
+   the decision about what a model call records. Appendix B is written from
+   `notes/02-traps.md`; Appendix C's version column prints from the
+   preamble's macros and is never typed; Appendix D needs the open decision
+   above settled first.
+4. **The experiments that have not run**, each free, each writing a value
+   file that a chapter reads with `\val{}`. E8 has run; the Status column in
+   `notes/01-curriculum.md` §4 is the ledger and no total is stated here.
 5. **The first Pages deployment**, which needs one human click.
 
 **Do not fill a measurement table with plausible numbers.** An empty table

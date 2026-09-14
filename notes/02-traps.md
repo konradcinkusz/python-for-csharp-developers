@@ -95,9 +95,10 @@ and never reused; a retired entry keeps its number and says why.
 
 | # | The habit, in the reader's voice | What Python does | Owner |
 |---|---|---|---|
-| 56 | The SDK is magic | Every AI SDK is a pydantic model, an httpx client and a streaming iterator; read the installed, pinned package | Ch. 13 |
-| 57 | `model_validate_json` is `JsonSerializer.Deserialize` | Lax mode coerces where `System.Text.Json` refuses; strict mode is what a C# engineer expects, and E8 prices both | Ch. 13 |
-| 58 | A notebook is where Python happens | A notebook is a REPL with a memory of every cell you ran in any order; nothing in this book is one, and Chapter 13 says when one is right | Ch. 13 |
+| 56 | The SDK is magic | Every AI SDK is a pydantic model, an httpx client and a streaming iterator; read the installed, pinned package | Ch. 13, **delivered** §13.1 and §13.5 |
+| 57 | `model_validate_json` is `JsonSerializer.Deserialize` | Lax mode coerces where `System.Text.Json` refuses; strict mode is what a C# engineer expects, and E8 prices both | Ch. 13, **delivered** §13.3, priced §13.4 |
+| 58 | A notebook is where Python happens | A notebook is a REPL with a memory of every cell you ran in any order; nothing in this book is one, and Chapter 13 says when one is right | Ch. 13, **delivered** §13.7 |
+| 60 | The SDK uses the `httpx` I pinned | Both SDKs depend on the `httpx2` distribution, not `httpx`: `isinstance(c._client, httpx.Client)` is False, and of the two SDKs one refuses a mismatched client and the other accepts it | Ch. 13, **delivered** §13.5 |
 | 59 | A trace assertion needs a model to evaluate | The first layer of agent-eval-bench is deterministic; it runs with no model, which is why it can run in CI | Ch. 14 |
 
 ## Retired
