@@ -1,0 +1,5 @@
+schema keys   additionalProperties, description, required, title, type
+required      ["summary", "severity", "needs_human"]
+
+lax           2 True
+strict        2 errors: ['int_type', 'bool_type']

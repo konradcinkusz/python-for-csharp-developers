@@ -81,6 +81,17 @@ include = ["src", "ch*", "measure", "tests", "exercises"]
 # left every future chapter's listings out of strict type-checking
 # while the CI step stayed green -- proved on a scratch ch01/probe.py.
 
+# A measurement imports the LISTING it measures, rather than carrying a
+# second copy of its fixtures: E8 times the corpus that ch13's
+# what_survives.py prints, so the table on the page and the experiment
+# cannot come apart. At run time measure/e08_validation.py puts ch13/ on
+# sys.path; this is the same statement made to the checker, scoped to
+# measure/ so that a name in one chapter's directory cannot quietly
+# resolve from anywhere else.
+[[tool.pyright.executionEnvironments]]
+root = "measure"
+extraPaths = ["ch13"]
+
 [tool.mypy]
 python_version = "3.14"
 strict = true

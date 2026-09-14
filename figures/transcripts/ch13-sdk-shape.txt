@@ -1,0 +1,12 @@
+pydantic      2.13.5
+httpx         0.28.1
+httpx2        2.12.0
+
+results are pydantic models   True
+Message is a              ['Message', 'BaseModel', 'BaseModel', 'object']
+unknown fields are            'allow'
+
+anthropic  1.5.0    transport httpx2
+                    requires  httpx2<3,>=2.0.0
+openai     3.13.0   transport httpx2
+                    requires  httpx2<3,>=2.7.0
