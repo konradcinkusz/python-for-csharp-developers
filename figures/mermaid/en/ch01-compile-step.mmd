@@ -1,0 +1,5 @@
+flowchart LR
+    P1["widget.py<br/>the file you edit"] --> P2["compiled to bytecode<br/>on first import, and<br/>cached in __pycache__"]
+    P2 --> P3["the evaluation loop<br/>runs the bytecode"]
+    C1["Widget.cs<br/>the file you edit"] --> C2["compiled to IL<br/>at build time, and<br/>shipped in the assembly"]
+    C2 --> C3["the JIT emits machine<br/>code on first call"]
