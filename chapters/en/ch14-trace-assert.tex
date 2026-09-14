@@ -234,7 +234,7 @@ each.
 Layer & assertions and judge & judge only & assertions only \\
 Types & records, nullable reference types & \pkg{zod} schemas, parsed at the edge & frozen dataclasses, \pkg{pyright} strict \\
 Async & none needed; the trace is in memory & the worker is a queue consumer & none needed \\
-Framework & xUnit, one test per scenario & its own runner & \pkg{pytest}, one test per claim \\
+Framework & xUnit v3, one test per scenario & \pkg{vitest} & \pkg{pytest}, one test per claim \\
 Refusal & a JSON schema rejects a bad assertion & the schema parses at the edge & the function raises \\
 Packaging & a project reference, never published & private, deployed as a container & a wheel on an index \\
 \bottomrule
