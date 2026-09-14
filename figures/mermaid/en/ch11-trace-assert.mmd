@@ -1,0 +1,5 @@
+flowchart LR
+    R["The trace fixture hands the test<br/>a Recorder: mutable, one per test"]
+    C["The code under test records<br/>what it did: recorder.tool_call(name)"]
+    A["recorder.trace is an immutable<br/>snapshot the assertions read"]
+    R --> C --> A

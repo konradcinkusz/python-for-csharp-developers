@@ -1,36 +1,428 @@
 %% ch11 --- Testy: pytest dla tych, którzy znają xUnit, i szkielet trace-assert
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie zalążkowego bloku (tego, który zaczyna się po
-%% linii \chapter) i zastąpienie go rozdziałem -- po czym ten plik nie jest
-%% już generowany.
+%% Napisane we wrześniu 2026 pod pytest \pytestver, pytest-asyncio
+%% \pytestasyncver, hypothesis \hypothesisver i coverage \coveragever.
+%% Każdy listing to plik w code/ch11/, który uruchamia własne testy, gdy
+%% odpalisz go jako skrypt, i CI uruchamia je wszystkie. Trzy transkrypty
+%% generuje code/measure/transcripts.py, dwa z nich z celowo NIEUDANYCH
+%% uruchomień plików trap_*.py, których zestaw testów nigdy nie zbiera.
 
 \chapter{Testy: pytest dla tych, którzy znają xUnit, i szkielet trace-assert}
 \label{ch:testing}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\noindent
+pytest to xUnit z usuniętą klasą i z jawnie wypisanym grafem fixture'ów. To
+całe mapowanie i prawie wszystko inne z niego wynika: nie ma typu bazowego
+do odziedziczenia, atrybutu do przypięcia ani konstruktora do przeciążenia,
+więc to, co one niosły \dash{} setup, teardown, współdzielony stan,
+przypadki sterowane danymi \dash{} musiało trafić gdzieś indziej, a tym
+gdzieś jest graf nazwanych funkcji, o które test prosi, wypisując ich nazwy.
 
-Argument: pytest is xUnit with the class removed and the fixture graph made
-explicit. Discovery against attributes; a plain \code{assert} with assertion
-rewriting against \code{Assert.Equal}; fixtures against a constructor,
-\code{IClassFixture} and \code{IAsyncLifetime}, with function, class, module
-and session scopes; \code{parametrize} against \code{Theory} and
-\code{InlineData}; \code{conftest.py}; \code{monkeypatch} and
-\code{unittest.mock} against Moq and NSubstitute, and the trap of patching
-where a name is defined rather than where it is looked up; \code{tmp\_path},
-\code{caplog} and \code{capsys}; markers and \code{-k}; async tests;
-hypothesis against FsCheck; coverage. The trace-assert skeleton: a
-\code{Trace} of \code{Event} records, a \code{trace} fixture, the first two
-assertions, and the package layout under \code{code/src/trace\_assert/}
-\dash{} which is what this book's own CI has been running since chapter 1.
-Payoff: a suite that runs with no network, no database server and no model,
-and the first stage of the guiding project. Five exercises.
+Części, które się przenoszą, to te, których się spodziewasz. Ta, która się
+nie przenosi, jest źródłem incydentów i nie jest nią graf fixture'ów: jest
+nią podmiana zależności, przy której test w Pythonie potrafi przejść z
+powodu niemającego nic wspólnego z testowanym kodem. To
+\S\ref{sec:testing-patching} i to jest powód, dla którego ten rozdział
+istnieje w książce dla ludzi, którzy już umieją testować.
 
-\medskip
-\textbf{Budżet słów:} 3000.\\
-\textbf{Wydanie:} v0.2.\\
-\textbf{Projekt przewodni:} trace-assert stage 01: the trace model and the first two assertions.
-}
+\section{Co pytest zabrał}
+\label{sec:testing-discovery}
+\index{pytest!wykrywanie testów}
+
+Moduł, którego nazwa zaczyna się od \code{test\_}, zawierający funkcje o
+nazwach zaczynających się od \code{test\_}, jest zestawem testów. Nie ma
+\code{[Fact]}, nie ma \code{TestClass} i nie ma czego rejestrować.
+
+\pyregion{code/ch11/test_pricing.py}{plain}{Test to funkcja w pliku i tyle}{lst:ch11-plain}
+
+\noindent
+Każdy listing w tym rozdziale to plik, który uruchomisz na dwa sposoby
+\dash{} pod pytest albo jako skrypt, dzięki trzem linijkom na jego końcu:
+
+\pyregion{code/ch11/test_pricing.py}{runner}{Trzy linijki, dzięki którym plik z testami uruchamia się sam}{lst:ch11-runner}
+
+\begin{csbox}
+\code{[Fact]} staje się konwencją nazewniczą; \code{[Theory]} z
+\code{[InlineData]} staje się \api{parametrize}
+(\S\ref{sec:testing-parametrize}); konstruktor i \code{IDisposable} stają
+się fixture z \code{yield} w środku; \code{IClassFixture<T>} staje się
+zakresem. Wzorzec wykrywania rządzi \emph{szukaniem}: podaj plik w linii
+poleceń, a pytest go zbierze niezależnie od nazwy \dash{} tak uruchamiane są
+dwa celowo nieudane pliki z tego rozdziału.
+\end{csbox}
+
+\noindent
+To, co zastępuje \code{Assert.Equal}, jest dziwniejsze i warto się przy tym
+zatrzymać w pierwszej kolejności. Piszesz goły \code{assert} \dash{} słowo
+kluczowe języka, to samo, które znika pod \code{-O} \dash{} a pytest
+przepisuje je przy imporcie tak, żeby porażka sama się tłumaczyła. Oto co
+wypisują dwie porażki z \code{code/ch11/trap\_assert.py}, wygenerowane przez
+uruchomienie tego pliku, a nie zapamiętane:
+
+\transcript{ch11-assert-rewrite}
+
+\noindent
+Nikt nie napisał komunikatu. pytest odtworzył podwyrażenie, które dało tę
+wartość, a dla kolekcji znalazł różniący się indeks. Biblioteka asercji
+istnieje po to, żeby ci to kupić, a tutaj słowo kluczowe języka i biblioteka
+są tym samym.
+
+\begin{trapbox}
+\code{assert} to nie jest ta instrukcja z buildów debugowych, o której
+myślisz. To jest biblioteka asercji, bo pytest przepisuje bajtkod każdego
+modułu, który zbierze. Konsekwencja jest jednak realna: uruchom interpreter
+z \code{-O}, a każdy \code{assert} w twojej \emph{aplikacji} zniknie \dash{}
+więc \code{assert} jest do testów i do niezmienników, które możesz stracić,
+nigdy do walidacji danych wejściowych. Dodatek~\ref{app:traps} ma ten wpis.
+\end{trapbox}
+
+\noindent
+Oczekiwane wyjątki to menedżer kontekstu zamiast atrybutu, a argument
+\code{match} to wyrażenie regularne dopasowywane do komunikatu:
+
+\pyregion{code/ch11/test_pricing.py}{raises}{Assert.Throws jako menedżer kontekstu}{lst:ch11-raises}
+
+\section{Fixture: konstruktor zamieniony w graf}
+\label{sec:testing-fixtures}
+\index{pytest!fixture}
+
+Fixture to funkcja z dekoratorem, a test prosi o nią, wymieniając ją jako
+parametr. Nic nie jest wstrzykiwane po typie i nie ma kontenera: nazwa
+parametru \emph{jest} wyszukiwaniem.
+
+\pyregion{code/ch11/test_pricing.py}{fixture}{O fixture prosi się po nazwie, nigdy po typie}{lst:ch11-fixture}
+
+\noindent
+Fixture sam może poprosić o fixture i tu słowo graf zaczyna zarabiać na
+siebie \dash{} i tu różnica wobec konstruktora przestaje być kosmetyczna.
+Konstruktor wykonuje się dla każdego testu w klasie, niezależnie od tego,
+czy test tego chciał; fixture wykonuje się tylko dla testów, które go
+nazwały, i tylko tak głęboko, jak go nazwały.
+
+\mermaidfig{ch11-fixture-graph}{Test nazywa to, czego potrzebuje, pytest rozwiązuje każdą nazwę do fixture, a fixture może nazwać kolejny}{graf fixture'ów}
+
+\pyregion{code/ch11/test_pricing.py}{graph}{Fixture proszący o fixture}{lst:ch11-graph}
+
+\noindent
+Teardown to \code{yield}, a nie druga metoda. Wszystko przed nim to setup,
+wszystko po nim wykonuje się, gdy test się kończy \dash{} także wtedy, gdy
+test nie przeszedł, co jest dokładnie tą gwarancją, którą daje \code{using},
+i powodem, dla którego \code{IAsyncLifetime} ma dwie metody:
+
+\pyregion{code/ch11/test_pricing.py}{teardown}{Setup, yield, teardown, w jednej funkcji}{lst:ch11-teardown}
+
+\noindent
+Jak długo fixture żyje, decyduje jeden argument, a cztery wartości mapują
+się na rzeczy, które już uruchamiasz:
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{\code{scope=}} & \textbf{Czemu odpowiada} \\
+\midrule
+\code{"function"} & Konstruktor: nowy na każdy test. Domyślny i ten, przy
+  którym warto zostać, dopóki coś nie zaboli. \\
+\code{"class"} & \code{IClassFixture<T>}: współdzielony przez testy w jednej
+  klasie, w rzadkim pliku pytest, który w ogóle ma klasę. \\
+\code{"module"} & Współdzielony przez jeden plik. \\
+\code{"session"} & \code{ICollectionFixture<T>} nad całością: budowany raz
+  na cały przebieg. Kontener z bazą mieszka tutaj; mutowalny stan nie
+  może. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent
+Fixture, którego potrzebuje kilka plików, trafia do \code{conftest.py} obok
+nich. Ten plik nie jest przez nic importowany i nigdzie nie jest wymieniany:
+pytest znajduje go, idąc w górę od każdego pliku z testami, a każdy fixture
+w nim jest dostępny dla wszystkiego poniżej. To najbliższa rzecz, jaką
+pytest ma do korzenia kompozycji, a Rozdział~\ref{ch:imports} dowodził, że
+korzeń kompozycji to funkcja, a nie kontener.
+
+\begin{trapbox}
+Nie ma klasy testowej, na której można by powiesić fixture, a sięgnięcie po
+nią jest pierwszym odruchem inżyniera .NET. Plik pytest z klasą to zwykle
+plik, którego autor wciąż pisał xUnit; klasa kupuje grupowanie i
+\code{scope="class"}, a kosztuje poziom wcięcia i \code{self}, którego nikt
+nie czyta. Zacznij bez niej.
+\end{trapbox}
+
+\begin{exercise}{e11_01_fixture}{Usuń duplikację fixture'em}
+Dwa testy w pliku startowym budują ten sam koszyk, linijka po linijce.
+Zastąp duplikację jednym fixture o nazwie \code{basket} i spraw, żeby oba
+testy o niego prosiły. Test obok uruchamia pytest na twoim pliku, a potem
+patrzy, jak go napisałeś: twoje testy muszą przechodzić, fixture musi
+istnieć, a koszyk musi być budowany raz.
+\end{exercise}
+
+\section{Jeden test, cztery przypadki}
+\label{sec:testing-parametrize}
+\index{pytest!parametrize}
+
+\api{parametrize} to \code{[Theory]} i \code{[InlineData]} w jednym
+dekoratorze. Pierwszy argument nazywa parametry, drugi to lista przypadków,
+a pytest generuje po jednym teście na przypadek, z identyfikatorem, po
+którym można wybierać w linii poleceń.
+
+\pyregion{code/ch11/test_pricing.py}{parametrize}{Cztery przypadki, jedna funkcja testowa}{lst:ch11-parametrize}
+
+\begin{csbox}
+Każdy przypadek jest w raporcie osobnym testem, dokładnie tak jak wiersz
+\code{[InlineData]}: cztery przejścia zamiast jednego, a porażka nazywa
+przypadek, który nie przeszedł. Tam gdzie \code{[MemberData]} wzięłoby
+właściwość, \api{parametrize} bierze dowolny obiekt iterowalny, więc
+składanie listy albo odczyt pliku przy imporcie działają bez ceremonii
+\dash{} a nałożenie dwóch dekoratorów \api{parametrize} na jedną funkcję
+daje iloczyn kartezjański.
+\end{csbox}
+
+\begin{exercise}{e11_02_parametrize}{Zwiń cztery testy w jeden}
+Plik startowy ma cztery testy, które różnią się tylko liczbami. Zrób z nich
+jeden test sparametryzowany, zachowując wszystkie cztery przypadki.
+Sprawdzenie wymaga dokładnie jednej funkcji testowej w pliku, dekoratora
+parametrize i czterech testów, które nadal przechodzą.
+\end{exercise}
+
+\section{Podmiana zależności i pułapka}
+\label{sec:testing-patching}
+\index{pytest!monkeypatch}
+
+Oto jedna rzecz w tym rozdziale, która będzie cię kosztować popołudnie.
+
+Python ma dwa narzędzia do podmiany. \api{monkeypatch} to wbudowany fixture,
+który ustawia atrybut i cofa to przy teardownie; \pkg{unittest.mock} to Moq
+z biblioteki standardowej, z nagrywaniem i weryfikacją. Oba biorą rzecz do
+podmiany jako \emph{napis}, a wybranie tego napisu źle daje ci test, który
+przechodzi z niewłaściwego powodu albo nie przechodzi bez widocznej
+przyczyny.
+
+Testowany moduł robi najzwyklejszą rzecz w Pythonie:
+
+\begin{python}
+# code/ch11/invoice.py
+from rates import vat_rate_percent
+
+def gross_bound(net_pence: int) -> int:
+    return net_pence + net_pence * vat_rate_percent() // 100
+\end{python}
+
+\noindent
+Podmieniasz więc stawkę. Jest zdefiniowana w \code{rates}, więc to nazywasz.
+Tym testem jest \code{trap\_patch.py}, trzymany w repozytorium po to, żeby
+jego porażka była prawdziwa:
+
+\transcript{ch11-patch-trap}
+
+\noindent
+Podmiana się wykonała. Stawka się nie zmieniła. Nic nie ostrzegło.
+
+Rozdział~\ref{ch:imports} ma powód i mieści się on w jednym zdaniu: moduł to
+obiekt, który wykonuje się raz. \code{from rates import vat\_rate\_percent}
+wykonało się przy imporcie i związało \emph{obiekt} funkcji z przestrzenią
+nazw modułu \code{invoice}. Są teraz dwie nazwy dla jednej funkcji, a
+przepięcie jednej z nich zostawia drugą tam, gdzie wskazywała zawsze.
+
+\mermaidfig{ch11-patch-target}{Jeden import, dwie nazwy dla jednego obiektu funkcji i tylko jedna z nich jest tą, którą czyta wywołanie}{gdzie musi trafić podmiana}
+
+\begin{trapbox}
+Podmieniaj tam, gdzie nazwa jest \emph{wyszukiwana}, a nie tam, gdzie jest
+zdefiniowana. Która to nazwa, zdecydował import: \code{from x import y}
+wiąże w module importującym, więc podmieniaj \code{importer.y};
+\code{import x} i potem \code{x.y()} wyszukuje atrybut w chwili wywołania,
+więc podmieniaj \code{x.y}. Reguła nie brzmi \enquote{zawsze podmieniaj
+importera} \dash{} brzmi \enquote{podmieniaj nazwę, którą rozwiązuje
+wołający kod}. Dodatek~\ref{app:traps} ma ten wpis i jest to wpis, który
+najbardziej warto znać na pamięć.
+\end{trapbox}
+
+\noindent
+Obie połowy są asercjami w \code{code/ch11/test\_patching.py}, więc build
+tej książki nie przejdzie w dniu, w którym którakolwiek przestanie być
+prawdziwa. Właściwy cel:
+
+\pyregion{code/ch11/test_patching.py}{right}{Podmiana nazwy, którą czyta wywołanie}{lst:ch11-right}
+
+\noindent
+A ten sam zły cel jest właściwym celem dla drugiego zapisu, i to właśnie
+czyni z tego regułę o importach, a nie regułę o podmienianiu:
+
+\pyregion{code/ch11/test_patching.py}{qualified}{Wywołanie kwalifikowane rozwiązuje nazwę w chwili wywołania, więc celem jest definicja}{lst:ch11-qualified}
+
+\noindent
+\pkg{unittest.mock} to druga połowa. \code{patch} jako menedżer kontekstu
+jest zakresem, a rodzina \code{assert\_called} to \code{Verify}:
+
+\pyregion{code/ch11/test_patching.py}{mock}{unittest.mock, czyli Moq z mniejszą liczbą lambd}{lst:ch11-mock}
+
+\begin{warning}
+Goły \api{Mock} odpowiada na każdy atrybut i przyjmuje każde wywołanie, więc
+\code{rate.assert\_called\_onse\_with()} \dash{} zwróć uwagę na literówkę
+\dash{} sam jest atrybutem mocka, zwraca mocka i przechodzi. \api{Mock} ma
+argument \code{spec}, a \code{patch} ma \code{autospec=True} właśnie na to;
+użyj jednego z nich wszędzie tam, gdzie dubler zastępuje coś o sygnaturze
+wartej uszanowania.
+\end{warning}
+
+\begin{exercise}{e11_03_patch_target}{Nazwij cel, który czyta wywołanie}
+Plik startowy trzyma jeden napis: cel podmiany, który prawie każdy pisze
+najpierw, a który nie robi zupełnie nic. Zmień go na nazwę, którą
+\code{gross\_bound} rozwiązuje w chwili wywołania. Test podmienia to, co
+nazywa twój napis, a potem sprawdza, czy podmiana dotarła do wywołania.
+\end{exercise}
+
+\section{Fixture'y, których nie napisałeś}
+\label{sec:testing-builtin}
+\index{pytest!wbudowane fixture'y}
+
+pytest dostarcza fixture'y do trzech rzeczy, które test najczęściej musi
+przygotować ręcznie. \api{tmp\_path} to \api{Path} do pustego katalogu,
+unikalnego dla testu i usuwanego po nim:
+
+\pyregion{code/ch11/test_builtins.py}{tmp_path}{Katalog roboczy, którego nikt nie musi sprzątać}{lst:ch11-tmppath}
+
+\noindent
+\api{caplog} przechwytuje \emph{rekordy} logu, a nie sformatowane linie, i o
+to właśnie chodzi: asercja na sformatowanym napisie wiąże test z
+formatterem, a formatter jest tą częścią, która najpewniej się zmieni i
+najmniej warta jest testowania.
+
+\pyregion{code/ch11/test_builtins.py}{caplog}{Asercja na polach rekordu, a nie na wyrenderowanej linii}{lst:ch11-caplog}
+
+\noindent
+\api{capsys} odczytuje to, co zostało wypisane, a \code{readouterr()} zwraca
+oba strumienie i je czyści.
+
+\pyregion{code/ch11/test_builtins.py}{capsys}{Odczytanie stdout}{lst:ch11-capsys}
+
+\noindent
+Markery to \code{[Trait]}, a wybieranie to \code{-m} dla markerów i
+\code{-k} dla fragmentu nazwy testu. Marker trzeba zarejestrować w
+\code{pyproject.toml}, inaczej pytest ostrzega \dash{} niezarejestrowany
+marker to prawie zawsze literówka, a marker z literówką to test, który po
+cichu nigdy nie uruchamia się pod filtrem, który miał go wybrać.
+
+\pyregion{code/ch11/test_builtins.py}{markers}{Marker i powód, dla którego trzeba go zadeklarować}{lst:ch11-markers}
+
+\begin{exercise}{e11_04_tmp_path}{Niech katalog należy do testu}
+Zaimplementuj \code{write\_report}, które bierze katalog i zapisuje w nim
+jeden plik. Nie może tworzyć katalogu, sprzątać go ani wybierać jego nazwy:
+test podaje \api{tmp\_path}, a funkcji, która sama decyduje, dokąd trafia
+jej wynik, nie da się przetestować bez dotykania maszyny, na której działa.
+\end{exercise}
+
+\section{Testy asynchroniczne, testy własności i co mierzy coverage}
+\label{sec:testing-async}
+\index{pytest!testy asynchroniczne}
+
+Test asynchroniczny to test z \code{async} z przodu. Nie ma opakowania, nie
+ma \code{.Result} i nie ma \code{GetAwaiter}, bo \pkg{pytest-asyncio}
+uruchamia korutynę na pętli, którą sam zarządza.
+
+\pyregion{code/ch11/test_async_property.py}{async}{Test asynchroniczny, z pętlą obsłużoną za ciebie}{lst:ch11-async}
+
+\begin{warning}
+Działa to, bo \code{code/pyproject.toml} ustawia
+\code{asyncio\_mode = "auto"}. W domyślnym trybie strict nieoznaczony test
+asynchroniczny nie zostaje uznany za nieudany \dash{} zostaje
+\emph{pominięty}, z ostrzeżeniem. Zestaw testów, który raportuje zieleń, nie
+uruchomiwszy żadnego ze swoich testów asynchronicznych, to najgorszy możliwy
+tu wynik, więc ustaw tryb raz, w pliku projektu, i nigdy per test.
+Rozdział~\ref{ch:asyncio} to reszta tej historii.
+\end{warning}
+
+\noindent
+hypothesis to FsCheck: podaj własność, a biblioteka znajdzie przypadek,
+który ją łamie. Dodatkowo zwęża porażkę do najmniejszej postaci i zapamiętuje
+ją, więc przypadek znaleziony raz jest odtwarzany przy każdym późniejszym
+uruchomieniu, zamiast czekać, aż to samo losowanie wypadnie ponownie.
+
+\pyregion{code/ch11/test_async_property.py}{hypothesis}{Własność, a wejścia wymyśla biblioteka}{lst:ch11-hypothesis}
+
+\noindent
+Coverage na koniec i krótko, bo ta liczba jest warta mniej niż jej reputacja.
+\pkg{coverage} to coverlet: zapisuje, które linie się wykonały. Oto co mówi o
+\code{code/ch11/pricing.py} pod testem, który woła każdą funkcję w nim i
+sprawdza w gruncie rzeczy nic:
+
+\transcript{ch11-coverage}
+
+\noindent
+Moduł jest pokryty w całości, w jedynym sensie, o jaki narzędziu chodzi.
+Każda linia się wykonała; żadna z asercji w
+\code{code/ch11/trap\_coverage.py} nie mówi, co którakolwiek z nich miała
+zwrócić, więc moduł mógłby zwracać dowolną liczbę całkowitą, a raport
+byłby ten sam. Coverage znajduje kod, do którego nie dociera żaden test, i
+jest to rzecz realna i warta wiedzy. Nigdy nie potrafił powiedzieć, czy kod,
+do którego dotarł, został sprawdzony, a cel wyrażony w procentach kupuje
+testy, które wykonują, a nie testy, które asertują.
+
+\section{trace-assert, etap 01}
+\label{sec:testing-traceassert}
+\index{trace-assert!etap 01}
+
+\begin{projectbox}
+Etap 01: model śladu, fixture \code{trace} i pierwsze dwie asercje, w
+\code{code/src/trace\_assert/}. Etap 02 zapisuje do niego prawdziwe
+wywołanie modelu w Rozdziale~\ref{ch:aitoolkit};
+Rozdział~\ref{ch:traceassert} portuje resztę zestawu asercji, pakuje go i
+porównuje trzy porty.
+\end{projectbox}
+
+\noindent
+Projekt przewodni to port pierwszej warstwy agent-eval-bench:
+deterministyczne asercje o tym, co agent \emph{zrobił}, wyrażone jako
+funkcje pytest. Projekt tego rozwiązania nie należy do tej książki, a port
+idzie za oryginałem, zamiast wymyślać go od nowa \dash{} trzy porty jednego
+projektu to jedyne porównanie warte zrobienia w
+Rozdziale~\ref{ch:traceassert}.
+
+Dwa obiekty, a podział między nimi to całość etapu 01. \api{Recorder} jest
+mutowalny i należy do przebiegu; \api{Trace} jest niezmienny i należy do
+asercji, bo asercja, która może edytować dowód, nie jest asercją.
+
+\mermaidfig{ch11-trace-assert}{Fixture daje testowi mutowalny Recorder; asercje czytają jego niezmienny zrzut}{kształt etapu 01 trace-assert}
+
+\noindent
+Fixture to cztery linijki w module wtyczki, a jedna linijka
+\code{conftest.py} go rejestruje. Ta linijka staje się punktem wejścia w
+metadanych samego pakietu w Rozdziale~\ref{ch:traceassert} i od tego
+momentu wystarczy zainstalować trace-assert; etapowanie jest celowe, bo
+punkt wejścia to pakowanie.
+
+\pyfile{code/src/trace_assert/plugin.py}{Fixture trace jako moduł wtyczki}{lst:ch11-plugin}
+
+\noindent
+Potem dwie asercje. Schemat, z którego pochodzą, opisuje je jako parę: jedna
+stwierdza, że narzędzie zostało wywołane, druga, że nie zostało, a ścieżka
+odmowy potrzebuje obu \dash{} agent, który odmawia w tekście i mimo to woła
+narzędzie, przechodzi tę pierwszą samodzielnie.
+
+\pyfile{code/src/trace_assert/assertions.py}{Pierwsze dwie asercje i komunikaty, którymi się nie udają}{lst:ch11-assertions}
+
+\noindent
+Dwie rzeczy w środku należą do pytest, a nie do trace-assert. \code{\_\_%
+tracebackhide\_\_} trzyma ten plik poza raportem porażki, więc czytelnik
+widzi linijkę w \emph{swoim} teście i komunikat, a nie linijkę wewnątrz
+biblioteki, która zgłosiła wyjątek. A podanie obu ograniczeń podnosi
+\api{ValueError}, zamiast po cichu rozstrzygać: schemat oryginału też
+odrzuca tę kombinację i podaje powód \dash{} jedno z nich zostałoby
+zignorowane, a ty dalej wierzyłbyś w ograniczenie, którego nic nigdy nie
+sprawdziło.
+
+\begin{exercise}{e11_05_trace}{Zapewnij odmowę i nieobecność}
+Agent od zwrotów może wypłacać do limitu, a powyżej niego musi eskalować.
+Zaimplementuj \code{handle\_refund} tak, żeby zapisywał, co zrobił, a potem
+przeczytaj test: stwierdza on wywołanie, które miało nastąpić, \emph{oraz}
+to, które nastąpić nie może. Trafienie w tę drugą połowę jest tym
+ćwiczeniem.
+\end{exercise}
+
+\noindent
+To jest ten zestaw testów, który ta książka uruchamia od
+Rozdziału~\ref{ch:runtime}: bez sieci, bez serwera bazy danych i bez modelu,
+i to właśnie pozwala mu chodzić przy każdym pushu. Ocena tego, czy
+\emph{odpowiedź} agenta była dobra, to inny problem i należy do tomu o
+LangChain. Tutaj należy warstwa pod nią \dash{} ta deterministyczna, a więc
+ta, która potrafi zablokować merge.

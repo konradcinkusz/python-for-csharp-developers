@@ -1,0 +1,5 @@
+flowchart LR
+    I["invoice.py runs<br/>from rates import vat_rate_percent<br/>once, at import"]
+    N["The function object is now bound<br/>to TWO names: rates.vat_rate_percent<br/>and invoice.vat_rate_percent"]
+    P["Replacing one does not touch<br/>the other. Patch the name<br/>the calling code reads."]
+    I --> N --> P
