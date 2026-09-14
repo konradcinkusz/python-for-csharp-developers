@@ -1065,20 +1065,23 @@ one instance is not yet a class.
 
 **It is a class now, and the merges said so rather than any argument.**
 Chapters 6 and 8 each hit the identical defect independently, each found it
-the same way — by reading the finished PDF rather than by any gate — and
-each renamed its files for the same reason; both notes are below. Chapters
-3 and 7 wrote their keys in document order and so had nothing to catch. So
-three of the five written chapters needed the renaming, three separate
-passes each rediscovered it from the page, and what separates them from the
-other two is which order somebody happened to write the files in — which
+by reading the finished PDF rather than by any gate, and each renamed its
+files for the same reason; both notes are below. The chapters that escaped
+it escaped because somebody happened to write the files in the order the
+sections wanted, which is not a practice and cannot be relied on — which
 is what a gate is for.
 
-**Do not update this paragraph again; write the check.** It has been
-corrected twice, once per merge, and each correction was a count that went
-stale the moment another pass landed — which is this file's own rule about
-a tally, demonstrated on the note that argues for the gate. The check is
-specified in Chapter 6's note, it is a few lines beside `check_exercises`,
-and writing it closes all three findings and retires this paragraph.
+**No count of which chapters is stated here, deliberately, and the
+omission was paid for.** This paragraph carried one, it went stale on the
+first merge, the correction went stale on the second, and the correction to
+*that* named the wrong chapter as the sole exception because it was written
+from the feel of the file rather than from the files. Three corrections to
+one tally in one afternoon, in the note that argues for the gate — which
+is this file's own rule about a count of occurrences, demonstrated on
+itself. Name the rule, open the chapters if you need the roll call, and
+**write the check**: it is specified in Chapter 6's note, it is a few lines
+beside `check_exercises`, and it retires this paragraph along with all
+three findings.
 
 ### Chapter 6 pass, September 2026
 
