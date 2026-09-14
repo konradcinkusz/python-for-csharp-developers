@@ -20,7 +20,8 @@ def describe_interpreter() -> str:
     # sys._is_gil_enabled() exists from Python 3.13 and answers False only
     # on the free-threaded build (python3.14t). On the default build it is
     # True, and chapter 1 measures what that costs.
-    gil = sys._is_gil_enabled()  # noqa: SLF001 -- it is the documented probe
+    # Private by name only: the documentation names it as the probe.
+    gil = sys._is_gil_enabled()  # pyright: ignore[reportPrivateUsage]
     return f"Python {version}, GIL enabled: {gil}"
 
 

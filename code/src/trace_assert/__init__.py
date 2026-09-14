@@ -15,11 +15,16 @@ small as the chapters have earned.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
 
 __all__ = ["Event", "Trace", "__version__"]
 
 __version__ = "0.0.1"
+
+
+def _empty_payload() -> dict[str, object]:
+    """A typed empty dict: `default_factory=dict` is dict[Unknown, Unknown]
+    to a strict checker, and that is the chapter 3 lesson arriving early."""
+    return {}
 
 
 @dataclass(frozen=True, slots=True)
@@ -34,7 +39,7 @@ class Event:
 
     kind: str
     name: str
-    payload: dict[str, Any] = field(default_factory=dict)
+    payload: dict[str, object] = field(default_factory=_empty_payload)
 
 
 @dataclass(frozen=True, slots=True)

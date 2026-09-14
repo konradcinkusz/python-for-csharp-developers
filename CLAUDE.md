@@ -389,6 +389,17 @@ are listed by name and their reasoning is in the companion books.
 - **A background `make ... > log 2>&1; echo "MAKE_EXIT $?"` is reported as
   exit 0 whatever make did** (inherited). Read the log's own `MAKE_EXIT`
   line, and treat an unchanged page count as a failed build.
+- **And the scaffold's own first CI run failed on exactly that trap.** The
+  code workspace's checks were run once as a background job whose compound
+  command ended in an `echo`, the notification said exit 0, and the log was
+  never read for the exit lines of the steps inside it. pyright had failed
+  on two errors the whole time — a private-name use in the first listing and a
+  `default_factory=dict` that a strict checker types as
+  `dict[Unknown, Unknown]` — and CI found both in forty seconds. **Run
+  `make code` in the foreground before a push, and read pyright's own last
+  line.** The `dict[Unknown, Unknown]` half is worth keeping as Chapter 3
+  material: it is the checker being right about a default that is
+  untyped, and the fix is a named factory with a return type.
 - **`make verify` reads uncommitted as stale and staged as current**, by
   design, because testing `git status --porcelain` would make the gate
   unusable mid-commit. So `git add figures/values figures/transcripts` is a
