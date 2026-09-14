@@ -38,9 +38,9 @@ listing below is a file; open it.
 \pyfile{code/ch00/loop.py}{The first listing, and the shape every later one has}{lst:ch00-loop}
 
 \noindent
-Run it from the repository root and it prints this, which is also generated
-rather than typed \dash{} the line below is what the pinned interpreter printed
-when the book was last built:
+Run it from \code{code/}, the directory its own docstring names, and it
+prints this, which is also generated rather than typed \dash{} the line below
+is what the pinned interpreter printed when the book was last built:
 
 \transcript{ch00-loop}
 
@@ -48,13 +48,14 @@ when the book was last built:
 And the exercise that goes with it. It is numbered 0.1 because this chapter
 is not a chapter; the first real one is Exercise~1.1.
 
-\exercise{e00_01_hello}{Make the first test pass}{%
+\begin{exercise}{e00_01_hello}{Make the first test pass}
 Open the starter file. It contains one function that raises
 \code{NotImplementedError}, and the test beside it fails until the function
 returns what the test expects. Make it pass. Then run the test again with
 \code{-v} and read what pytest printed, because the way pytest reports a
 failure is the first thing in this book that has no .NET equivalent worth
-naming.}
+naming.
+\end{exercise}
 
 \noindent
 Every exercise in the book prints those three lines: the file you open, the

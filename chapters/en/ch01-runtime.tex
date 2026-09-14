@@ -22,18 +22,18 @@ supported since 3.14 under PEP 779) is a separate binary,
 \code{python3.14t}, rather than a flag. Bytecode and \code{\_\_pycache\_\_}
 against IL and the JIT; \code{python -m} against \code{dotnet run}; a module
 against an assembly; \code{sys.path} against assembly probing; what \code{if
-\_\_name\_\_ == \enquote{\_\_main\_\_}} is actually for. Payoff: the reader
-can say which of four workloads the GIL hurts and measure it \dash{}
-experiment E1, CPU-bound work on the default and the free-threaded build,
-four threads, on the pinned interpreter. Traps to elicit: \enquote{threads
-are useless in Python} (false for I/O), \enquote{the free-threaded build is
-the default now} (false), \enquote{Python has no compile step} (bytecode is
-compiled and cached). Listings: \code{python -m dis} on a five-line
-function; a thread pool on CPU-bound and on I/O-bound work, timed; detecting
-the free-threaded build from \code{sys}. Three exercises. Overlap rule: the
-LangChain book's chapter 3 covers the GIL in the context of an event loop;
-this chapter owns the runtime model and points there, in one sentence, for
-the async consequence.
+\_\_name\_\_ == "\_\_main\_\_"} is actually for. Payoff: the reader can say
+which of four workloads the GIL hurts and measure it \dash{} experiment E1,
+CPU-bound work on the default and the free-threaded build, four threads, on
+the pinned interpreter. Traps to elicit: \enquote{threads are useless in
+Python} (false for I/O), \enquote{the free-threaded build is the default
+now} (false), \enquote{Python has no compile step} (bytecode is compiled and
+cached). Listings: \code{python -m dis} on a five-line function; a thread
+pool on CPU-bound and on I/O-bound work, timed; detecting the free-threaded
+build from \code{sys}. Three exercises. Overlap rule: the LangChain book's
+chapter 3 covers the GIL in the context of an event loop; this chapter owns
+the runtime model and points there, in one sentence, for the async
+consequence.
 
 \medskip
 \textbf{Word budget:} 3000.\\

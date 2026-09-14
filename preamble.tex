@@ -152,6 +152,13 @@
 \makeatletter
 \pdfstringdefDisableCommands{%
   \ifdefstring{\booklang}{pl}{\let\ifpl\@firstoftwo}{\let\ifpl\@secondoftwo}%
+  % \api{}, \pkg{} and \code{} are allowed in a section title, and a title
+  % becomes a PDF bookmark. hyperref drops the \color command from a bookmark
+  % string but keeps its ARGUMENT, so a title carrying \api{model\_validate}
+  % made a bookmark reading "mtealmodel_validate" and warned "Token not
+  % allowed" twice. The colour name is gobbled here instead. Measured on a
+  % probe against this preamble before the line was added.
+  \def\color#1{}%
 }
 \makeatother
 
@@ -245,7 +252,11 @@
   keywordstyle=\color{kw}\bfseries,
   keywordstyle=[2]\color{typ},
   stringstyle=\color{str},
-  commentstyle=\color{cmt}\itshape,
+  % Colour only, no \itshape: inconsolata (zi4) has no italic shape, so an
+  % italic comment style is substituted with upright on every machine that
+  % has the font, and the log carries "Font shape `T1/zi4/m/it' undefined"
+  % on every build. The colour already marks a comment.
+  commentstyle=\color{cmt},
   emphstyle=\color{dec}\bfseries,
   numbers=left,
   numberstyle=\ttfamily\tiny\color{mgrey},
@@ -317,29 +328,53 @@
            keywordstyle=\color{black},backgroundcolor=\color{white},#1}}
   {}
 
+% The path is printed above every file listing, in the repository-relative
+% form the reader opens in the editor beside the PDF. That is the whole point
+% of a listing being a file, and the front matter promises it. The \nobreak
+% keeps the path on the same page as the listing it names.
+\newcommand{\listingpath}[1]{%
+  \par\medskip\noindent
+  {\ttfamily\footnotesize\color{mgrey}\detokenize{#1}}%
+  \par\nobreak}
+
 % External source file -- the preferred form. The path is relative to the
 % repository root, which is also the path the reader opens in the editor.
 % Usage: \pyfile{code/ch05/decorators.py}{Caption}{lst:label}
 \newcommand{\pyfile}[3]{%
-  \lstinputlisting[language=pythonx,style=bookcode,caption={#2},label={#3}]{#1}%
+  \listingpath{#1}%
+  \lstinputlisting[language=pythonx,style=bookcode,aboveskip=0.3em,
+    caption={#2},label={#3}]{#1}%
 }
 
 % A named region of an external file, delimited in the source by
 % `# --8<-- [start:name]` / `# --8<-- [end:name]`, so the book and the running
 % code cannot drift apart. tools/check_structure.py --listings fails when the
 % file or the region is missing.
+%
+% The markers are matched through listings' range prefix and suffix keys,
+% with linerange={name-name}. The form this was inherited with -- a linerange
+% whose two ends were the whole marker strings -- matched nothing and printed
+% the WHOLE FILE, with no warning: measured on a three-region probe file
+% before this was rewritten, and the same definition sits unused in the
+% sibling book it came from. A region name is a word, never a number, because
+% a number is a line number to listings. The line numbers printed are the
+% file's own, so a region's listing says where in the file it sits.
 % Usage: \pyregion{code/ch05/decorators.py}{timing}{Caption}{lst:label}
+\lstset{
+  rangebeginprefix=\#\ --8<--\ [start:, rangebeginsuffix=],
+  rangeendprefix=\#\ --8<--\ [end:, rangeendsuffix=],
+  includerangemarker=false}
 \newcommand{\pyregion}[4]{%
-  \lstinputlisting[
-    language=pythonx, style=bookcode,
-    linerange={--8<--\ [start:#2]--- 8<--\ [end:#2]},
-    includerangemarker=false,
-    caption={#3}, label={#4}]{#1}%
+  \listingpath{#1}%
+  \lstinputlisting[language=pythonx,style=bookcode,aboveskip=0.3em,
+    linerange={#2-#2},caption={#3},label={#4}]{#1}%
 }
 
 % The C# twin of \pyfile, for the comparison half of a pair.
 \newcommand{\csfile}[3]{%
-  \lstinputlisting[language=csharpx,style=bookcode,caption={#2},label={#3}]{#1}%
+  \listingpath{#1}%
+  \lstinputlisting[language=csharpx,style=bookcode,aboveskip=0.3em,
+    caption={#2},label={#3}]{#1}%
 }
 
 % A program's output, written by a script under code/measure/ and pulled in
@@ -426,7 +461,7 @@
 % ============================================================
 %  EXERCISES
 %  ---------------------------------------------------------
-%  \exercise{key}{title}{body}
+%  \begin{exercise}{key}{title} ... \end{exercise}
 %
 %  This is the mechanism the whole book is read through: the PDF on one half
 %  of the screen, an editor on the other. An exercise is therefore not a
@@ -434,6 +469,11 @@
 %  code/exercises/chNN/<key>.py -- and a TEST that decides whether it is done,
 %  test_<key>.py beside it. The box prints both paths and the one command
 %  that runs the test, and the manifest at the back lists every exercise.
+%
+%  An ENVIRONMENT, not a macro with a body argument: a macro argument cannot
+%  contain verbatim material, so an exercise written as \exercise{key}{title}
+%  {body} could never show the reader a code fragment, and the first chapter
+%  that tried would have died on `\begin{python}` inside the braces.
 %
 %  The key is the file stem, with underscores, and it is written with
 %  \detokenize so the underscore reaches the page as a character rather than
@@ -454,16 +494,16 @@
   \begingroup\c@tocdepth=2\relax\@starttoc{exr}\endgroup%
 }
 \makeatother
-\newcommand{\exercise}[3]{%
+\NewDocumentEnvironment{exercise}{mm}{%
   \refstepcounter{exercise}%
   \addcontentsline{exr}{subsection}{\protect\numberline{\theexercise}\texttt{\protect\detokenize{#1}} --- #2}%
-  \begin{exercisebox}[title={\lblExercise~\theexercise\ \dash{} #2}]
-  #3
+  \begin{exercisebox}[title={\lblExercise~\theexercise\ \dash{} #2}]%
+}{%
   \par\medskip
   {\small\setlength{\parindent}{0pt}%
   \lblExerciseStarter: \texttt{code/exercises/\exercisedir/\detokenize{#1}.py}\\
   \lblExerciseTest: \texttt{code/exercises/\exercisedir/test\_\detokenize{#1}.py}\\
-  \lblExerciseRun: \texttt{uv run pytest -k \detokenize{#1}}\par}
+  \lblExerciseRun: \texttt{cd code \&\& uv run pytest -k \detokenize{#1}}\par}%
   \end{exercisebox}%
 }
 
@@ -586,11 +626,11 @@
          that is not a number. Use \string\valtext{#1} instead.}%
     }{}%
     \booknum{\csuse{pyval@#1}}%
-  }{\textcolor{mred}{\textbf{[?\,#1]}}}%
+  }{\textcolor{mred}{\textbf{[\lblValueMissing: #1]}}}%
 }
 \newcommand{\valtext}[1]{%
   \ifcsdef{pyval@#1}{\csuse{pyval@#1}}%
-    {\textcolor{mred}{\textbf{[?\,#1]}}}%
+    {\textcolor{mred}{\textbf{[\lblValueMissing: #1]}}}%
 }
 \newcommand{\pyvaltext}[2]{%
   \csgdef{pyval@#1}{#2}\csgdef{pyvaltext@#1}{}\listxadd{\pyvalues}{#1}%

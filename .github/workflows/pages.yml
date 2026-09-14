@@ -66,6 +66,20 @@ jobs:
             echo "deployment -> Source** and sets it to **GitHub Actions**."
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      # The source gates cost seconds and need no PDF, and a workflow that
+      # publishes a book must run the same gates as the one that checks a
+      # pull request -- a push straight to main is not checked by build.yml
+      # before this runs.
+      - name: The source gates
+        run: |
+          python3 tools/gen_stubs.py --check
+          python3 tools/parity.py
+          python3 tools/check_structure.py --listings --exercises --transcripts \
+            --lines --pins --words
+
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.12.13"

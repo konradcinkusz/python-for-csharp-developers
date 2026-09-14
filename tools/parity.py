@@ -46,7 +46,7 @@ TREES = ("chapters", "appendices", "frontmatter")
 # misconceptions, which is a content difference wearing a translation's
 # clothes.
 BOXES = (
-    "note warning csbox versionbox trapbox verifybox exercisebox projectbox "
+    "note warning csbox versionbox trapbox verifybox exercisebox projectbox exercise "
     "enumerate itemize description tabularx figure"
 ).split()
 
@@ -74,7 +74,6 @@ KEYED: dict[str, tuple[str, int, tuple[int, ...]]] = {
     "csfile": ("LISTFILE", 3, (0, 2)),
     "pyregion": ("LISTREGION", 4, (0, 1, 3)),
     "transcript": ("TRANSCRIPT", 1, (0,)),
-    "exercise": ("EXERCISE", 3, (0,)),
     "chapterstub": ("STUB", 1, ()),
     "index": ("INDEX", 1, ()),
 }
@@ -241,6 +240,16 @@ def tokenise(path: Path) -> Doc:
                     inner = inner[_optional(inner, 0):] if inner.startswith("[") else inner
                     emit("LISTING", f"{body}:{_digest(inner.strip())}", i)
                     i = j + len(endtok)
+                    continue
+                if body == "exercise":
+                    # \begin{exercise}{key}{title}: the key is a file stem and
+                    # must be identical in both editions; the title is prose.
+                    key, pos = _balanced(src_nc, nxt)
+                    _title, pos = _balanced(src_nc, pos)
+                    doc.exercises.append(key.strip())
+                    emit("EXERCISE", key.strip(), i)
+                    emit("BEGIN", body, i)
+                    i = pos
                     continue
                 if body in BOXES:
                     emit("BEGIN", body, i)
@@ -459,7 +468,14 @@ def check_notation(rep: Report, path: Path) -> None:
                     f"use \\transcript{{}} for output written by code/measure")
 
     if path.parts[-2] == "pl":
+        # A straight quote INSIDE \code{} is code, and a Polish quotation mark
+        # there would be wrong: \code{if \_\_name\_\_ == "\_\_main\_\_"} is
+        # what the reader types. Only prose owes \enquote{}.
+        code_spans = [(c.start(), c.end())
+                      for c in re.finditer(r"\\code\{[^{}]*\}", src)]
         for m in re.finditer(r'(?<![\\%])"', src):
+            if any(a <= m.start() < b for a, b in code_spans):
+                continue
             if not in_listing(m.start()):
                 rep.soft("C10-notation",
                          f"{rel}:{src.count(chr(10), 0, m.start())+1} "

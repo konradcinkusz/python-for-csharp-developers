@@ -9,7 +9,8 @@
 #
 #  Run from this directory:
 #      uv sync --locked          # the environment, exactly as CI has it
-#      uv run pytest             # every listing and every exercise solution
+#      PYBOOK_SOLUTIONS=1 uv run pytest   # every listing, every exercise SOLUTION
+#      PYBOOK_STARTERS=fail uv run pytest exercises   # every starter must fail
 #      uv run ruff check .       # lint, 79 columns, because the page is
 #      uv run pyright            # the checker the book pins first
 # ============================================================

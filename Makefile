@@ -31,9 +31,15 @@ all: numbers diagrams en pl check
 #
 # The SOURCE gates come first and need no PDF. Run them before a build, not
 # after: they cost seconds against a build that costs minutes.
+# parity.py is NOT piped into tail. A pipeline's exit status is the LAST
+# command's, so `parity.py | tail -n 3` could not fail this target however
+# many checks failed -- the gate the whole bilingual design rests on was
+# advisory in the one place a person runs it. The output is captured instead:
+# the summary on success, everything on failure.
 check:
 	@python3 tools/gen_stubs.py --check
-	@python3 tools/parity.py | tail -n 3
+	@out=$$(python3 tools/parity.py) || { echo "$$out"; exit 1; }; \
+	 echo "$$out" | tail -n 3
 	@python3 tools/check_structure.py --listings
 	@python3 tools/check_structure.py --exercises
 	@python3 tools/check_structure.py --transcripts
@@ -41,7 +47,10 @@ check:
 	@python3 tools/check_structure.py --pins
 	@python3 tools/check_structure.py --words
 	@python3 tools/checklog.py main-en.log main-pl.log
-	@python3 tools/reflist.py 2>/dev/null || true
+	@# reflist needs both aux trees, so it is skipped -- and says so -- on a
+	@# tree without a build, and is a hard failure on one with a build.
+	@if [ -f main-en.aux ] && [ -f main-pl.aux ]; then python3 tools/reflist.py; \
+	 else echo "  (cross-reference comparison skipped: build both editions first)"; fi
 
 en: numbers
 	latexmk -pdf -interaction=nonstopmode -file-line-error main-en.tex
@@ -167,9 +176,10 @@ csbox:
 	@python3 tools/check_structure.py --csbox
 
 translate:
-	@python3 tools/parity.py | tail -n 3
-	@python3 tools/reflist.py 2>/dev/null || \
-	  echo "  (cross-reference comparison needs a completed build of both editions)"
+	@out=$$(python3 tools/parity.py) || { echo "$$out"; exit 1; }; \
+	 echo "$$out" | tail -n 3
+	@if [ -f main-en.aux ] && [ -f main-pl.aux ]; then python3 tools/reflist.py; \
+	 else echo "  (cross-reference comparison skipped: build both editions first)"; fi
 
 shots:
 	@printf "  verifybox blocks: "

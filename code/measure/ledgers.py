@@ -35,7 +35,7 @@ OUT = ROOT / "figures" / "values" / "ledgers.tex"
 
 RE_STUB = re.compile(r"\\chapterstub\{")
 RE_VERIFY = re.compile(r"\\begin\{verifybox\}")
-RE_EXERCISE = re.compile(r"\\exercise\{([^}]*)\}")
+RE_EXERCISE = re.compile(r"\\begin\{exercise\}\{([^}]*)\}")
 
 
 def tex_files(tree: str, lang: str) -> list[Path]:

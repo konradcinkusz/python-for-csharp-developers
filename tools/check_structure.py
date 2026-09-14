@@ -11,7 +11,7 @@ be trusted to remember:
                 exists under the repository, and does every region marker
                 exist in its file? A listing the reader is told to open must
                 be there to open.
-  --exercises   Does every \\exercise{key} have its starter, its solution and
+  --exercises   Does every \\begin{exercise}{key} have its starter, its solution and
                 its test under code/exercises/, is the key unique, and does
                 its chapter prefix agree with the chapter it sits in?
   --transcripts Does every \\transcript{stem} name a file under
@@ -52,7 +52,10 @@ RE_COMMENT = re.compile(r"(?<!\\)%.*$", re.M)
 RE_PYFILE = re.compile(r"\\(?:pyfile|csfile)\{([^}]*)\}")
 RE_PYREGION = re.compile(r"\\pyregion\{([^}]*)\}\{([^}]*)\}")
 RE_TRANSCRIPT = re.compile(r"\\transcript\{([^}]*)\}")
-RE_EXERCISE = re.compile(r"\\exercise\{([^}]*)\}")
+RE_EXERCISE = re.compile(r"\\begin\{exercise\}\{([^}]*)\}")
+# The macro form the environment replaced. It no longer exists, and a chapter
+# that uses it would otherwise be an exercise this check cannot see.
+RE_OLD_EXERCISE = re.compile(r"\\exercise\{")
 RE_CSBOX = re.compile(r"\\begin\{csbox\}")
 RE_CHAPTER_FILE = re.compile(r"^ch(\d\d)-")
 # Only the pinned block: a macro whose name ends in "ver", whose body is a
@@ -160,6 +163,10 @@ def check_exercises(soft: bool) -> int:
             src = RE_COMMENT.sub("", p.read_text(encoding="utf8"))
             m = RE_CHAPTER_FILE.match(p.name)
             chap = m.group(1) if m else ("00" if tree == "frontmatter" else None)
+            for e in RE_OLD_EXERCISE.finditer(src):
+                problems.append(f"{p.relative_to(ROOT)}: \\exercise{{...}} is the old macro "
+                                f"form; write \\begin{{exercise}}{{key}}{{title}} ... "
+                                f"\\end{{exercise}}")
             for e in RE_EXERCISE.finditer(src):
                 key = e.group(1)
                 rel = p.relative_to(ROOT)
@@ -218,8 +225,20 @@ def check_pins(soft: bool) -> int:
     if not m or m.group(1) != pyv:
         problems.append(f"Python: preamble.tex says {m.group(1) if m else '?'}, "
                         f"code/.python-version says {pyv}")
+    # uv is not in pyproject.toml -- it installs pyproject.toml -- so its pin
+    # lives in the preamble and in every workflow's setup-uv step. Three
+    # workflows carried the same string by hand and nothing compared them.
+    uv_ci = 0
+    for wf in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
+        for w in re.findall(r'^\s*version:\s*"([^"]+)"', wf.read_text(encoding="utf8"),
+                            flags=re.M):
+            uv_ci += 1
+            if w != tex_pins.get("uv"):
+                problems.append(f"{wf.relative_to(ROOT)} installs uv {w}; preamble.tex "
+                                f"pins {tex_pins.get('uv', '?')}")
     return result("pins", problems, soft,
-                  f"{len(toml_pins)} pins agree between preamble.tex and pyproject.toml")
+                  f"{len(toml_pins)} pins agree between preamble.tex and pyproject.toml; "
+                  f"uv {tex_pins.get('uv', '?')} in preamble.tex and {uv_ci} workflow step(s)")
 
 
 def prose_words(src: str) -> int:

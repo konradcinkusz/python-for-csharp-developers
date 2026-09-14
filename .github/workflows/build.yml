@@ -193,7 +193,11 @@ jobs:
     name: Compile ${{ matrix.lang }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: [code, diagrams]
+    # parity is in the list on purpose: without it the compile ran beside the
+    # parity job rather than behind it, and a pull request could carry a green
+    # compile next to a red parity check -- which is not "parity as a hard
+    # gate", whatever the comment above said.
+    needs: [code, parity, diagrams]
     strategy:
       fail-fast: false
       matrix:

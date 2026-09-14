@@ -123,24 +123,25 @@ def latexify(s: str) -> str:
         body = body.replace("&", r"\&").replace("~", r"\textasciitilde{}")
         return r"\code{" + body + "}"
 
-    out, last = [], 0
-    for m in re.finditer(r"\\code\{([^{}]*)\}", s):
-        seg = s[last:m.start()]
+    def prose(seg: str) -> str:
+        # Prose only: the quote and dash rewrites used to run over the whole
+        # string AFTER the \code{} conversion, so a brief carrying
+        # `if __name__ == "__main__"` got \enquote{} inside its \code{} and
+        # printed curly quotes in a code span.
         for a, b in (("&", r"\&"), ("%", r"\%"), ("#", r"\#"), ("_", r"\_")):
             seg = seg.replace(a, b)
-        out.append(seg)
+        seg = re.sub(r'"([^"]{1,200}?)"',
+                     lambda m: r"\enquote{" + " ".join(m.group(1).split()) + "}",
+                     seg, flags=re.S)
+        return re.sub(r"(?<!-)-- ", r"\\dash{} ", seg)
+
+    out, last = [], 0
+    for m in re.finditer(r"\\code\{([^{}]*)\}", s):
+        out.append(prose(s[last:m.start()]))
         out.append(fix(m))
         last = m.end()
-    seg = s[last:]
-    for a, b in (("&", r"\&"), ("%", r"\%"), ("#", r"\#"), ("_", r"\_")):
-        seg = seg.replace(a, b)
-    out.append(seg)
-    s = "".join(out)
-    s = re.sub(r'"([^"]{1,200}?)"',
-               lambda m: r"\enquote{" + " ".join(m.group(1).split()) + "}", s,
-               flags=re.S)
-    s = re.sub(r"(?<!-)-- ", r"\\dash{} ", s)
-    return s
+    out.append(prose(s[last:]))
+    return "".join(out)
 
 
 def check_brief(pid: str, brief: str) -> list[str]:
