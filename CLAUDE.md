@@ -19,9 +19,9 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **11 of 14 written: Chapter 1 *CPython and the GIL*, Chapter 2 *Environments and packaging*, Chapter 3 *Typing*, Chapter 5 *Functions and control flow*, Chapter 6 *Errors*, Chapter 7 *Imports and dependency injection*, Chapter 8 *asyncio*, Chapter 10 *Data*, Chapter 11 *Testing*, Chapter 12 *Observability and operations* and Chapter 13 *The AI engineer's kit* — both editions** | 4, 9, 14 |
+| Chapters | **12 of 14 written: Chapter 1 *CPython and the GIL*, Chapter 2 *Environments and packaging*, Chapter 3 *Typing*, Chapter 5 *Functions and control flow*, Chapter 6 *Errors*, Chapter 7 *Imports and dependency injection*, Chapter 8 *asyncio*, Chapter 9 *Services*, Chapter 10 *Data*, Chapter 11 *Testing*, Chapter 12 *Observability and operations* and Chapter 13 *The AI engineer's kit* — both editions** | 4, 14 |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: `trace-assert` at stages 01 and 02, Chapters 1, 2, 3, 5, 6, 7, 8, 10, 11, 12 and 13's listings and exercises, Chapter 12's three Dockerfiles, E1, E2, E3, E4, E6 and E8, and the measurement, ledger and transcript scripts, and CI runs all of it | every other chapter's listings and exercises; every experiment the manifest's Status column still marks *not run* |
+| Code | `code/` is a locked uv project: `trace-assert` at stages 01 and 02, those twelve chapters' listings and exercises, Chapter 12's three Dockerfiles, experiments E1, E2, E3, E4, E5, E6 and E8, and the measurement, ledger and transcript scripts, and CI runs all of it | every other chapter's listings and exercises; every experiment the manifest's Status column still marks *not run* |
 
 **The scaffold plus eleven chapters.** The scaffold existed so that the shape
 of the book could be argued with before any chapter was written, and so that
@@ -38,7 +38,7 @@ to the preamble, by the Chapter 2 pass, whose own subject exposed it — see
 written”**, and each was right from where it stood, because no pass could
 see another. That is the clearest evidence in this file of what parallel
 passes cost: every session re-measured every ledger, and two of them merged
-`main` eight times each, because almost every one of those merges was
+`main` five and nine times, because almost every one of those merges was
 overtaken before its own CI had finished. The openers name merge positions
 now rather than claiming a first — a contradiction is not evidence once it
 is sitting in one file, and the cost is recorded here instead, where it
@@ -60,8 +60,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 187 | 0 | 0 | 0 | 0 |
-| `main-pl` | 189 | 0 | 0 | 0 | 0 |
+| `main-en` | 201 | 0 | 0 | 0 | 0 |
+| `main-pl` | 203 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -107,16 +107,23 @@ the fonts before measuring anything page-level**; the list is in *Build
 traps*.
 
 
+And one small tell the Chapter 9 pass earned: an unrendered diagram is
+visible in the LOG rather than only on the page. `\mermaidfig`'s fallback
+uses `\captionof`, which emits a `caption` package warning about
+`\setcaptiontype`, so three such warnings in an otherwise clean build meant
+three diagrams had not been rendered. Run `make diagrams` before believing a
+page count.
+
 **Debt ledgers, reported by CI on every build** (`make debt`), and printed
 for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **3 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **2 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 228 listing references, every file and region present · 46 exercises,
-  each with a starter, a solution and a test · 88 transcript references,
-  every file present · 256 code files, none over 79 columns · 21 pins
+- 252 listing references, every file and region present · 51 exercises,
+  each with a starter, a solution and a test · 96 transcript references,
+  every file present · 281 code files, none over 79 columns · 21 pins
   agree between `preamble.tex` and `code/pyproject.toml`
 - **1 `verifybox` block** — Chapter 12's three Dockerfiles, which could not
   be built because no container registry is reachable from the machine that
@@ -125,21 +132,21 @@ does not:
   was not run. **That figure is per edition, which is what Appendix E
   prints; `make debt`'s `shots` target greps both editions and says 2.**
   Quote whichever you mean, and say which
-- 68 Mermaid sources, thirty-four per language, all rendering, all placed
-- 119 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 254 labels in each edition,
+- 74 Mermaid sources, thirty-seven per language, all rendering, all placed
+- 148 computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · 278 labels in each edition,
   0 mismatches
 - Prose words against a budget of 3,000, and `csbox` translation boxes, English
   first: Chapter 1 at 2,399 / 2,098 with 2 boxes, Chapter 2 at 2,721 / 2,330
   with 5, Chapter 3 at 2,915 / 2,516 with 2, Chapter 5 at 2,535 / 2,258 with 2,
   Chapter 6 at 2,638 / 2,311 with 3, Chapter 7 at 2,581 / 2,242 with 3, Chapter
-  8 at 2,269 / 1,990 with 2, Chapter 10 at 2,386 / 2,069 with 3, Chapter 11 at
-  2,572 / 2,260 with 2, Chapter 12 at 2,765 / 2,388 with 2, Chapter 13 at 2,543
-  / 2,223 with 2. These are what `--words` and `--csbox` print and they move
-  with any prose edit, so re-read them from the tool rather than from here.
-  **`reflist.py` reads the `.aux` tree**, so its label count is a fact about
-  the last build rather than about the source: rebuild before quoting it, or it
-  reports the tree you had before your merge.
+  8 at 2,269 / 1,990 with 2, Chapter 9 at 2,507 / 2,176 with 2, Chapter 10 at
+  2,386 / 2,069 with 3, Chapter 11 at 2,572 / 2,260 with 2, Chapter 12 at 2,765
+  / 2,388 with 2, Chapter 13 at 2,543 / 2,223 with 2. These are what `--words`
+  and `--csbox` print and they move with any prose edit, so re-read them from
+  the tool rather than from here. **`reflist.py` reads the `.aux` tree**, so
+  its label count is a fact about the last build rather than about the source:
+  rebuild before quoting it, or it reports the tree you had before your merge.
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
   runs each one; neither that file nor this one states a total, because a
@@ -567,7 +574,11 @@ are listed by name and their reasoning is in the companion books.
   package this book asks for. The full local set is `latexmk`,
   `texlive-latex-base`, `-latex-recommended`, `-latex-extra`,
   `-fonts-recommended`, `-fonts-extra`, `-science`, `-lang-polish`,
-  `-lang-english`, `-plain-generic` and `tex-gyre`.
+  `-lang-english`, `-plain-generic` and `tex-gyre`. And a build that failed
+  for a missing package fails again after the package is installed, from its
+  own aux tree rather than from the source; `make clean` clears it,
+  `latexmk -C` alone does not, because it leaves the per-`\include` `.aux`
+  files under `chapters/`.
 - **A `\pyvaltext` body reaches the page as LaTeX, so the script that
   writes one owes it the same escaping a chapter owes.** `platform.machine()`
   on the commonest architecture in the world returns `x86_64`, the
@@ -1121,7 +1132,8 @@ stronger form than it asked:
 ### Chapter 2 pass, September 2026 --- the one that moved the preamble
 
 Written into the scaffold in parallel with the other chapters in flight, in
-sessions that did not know about each other; this one merged last. So it is
+sessions that did not know about each other; this one merged after most of
+them, with Chapters 1 and 9 following it. So it is
 not the first chapter into the scaffold and the heading no longer says it is:
 the passes ran at once and the merge order decided which arrived first, which
 is not a fact about a chapter. What is true of this one is that it is the only
@@ -2115,6 +2127,209 @@ paying, and the thing that makes it survivable is that every number in this
 file has a command that regenerates it. **Re-measure after the merge, not
 before it**, and say which installation.
 
+### Chapter 9 pass, September 2026 --- Services, and experiment E5
+
+Written out of order and, as it turned out, in parallel with Chapters 1, 2,
+3, 6, 7, 8, 10 and 13, every one of which landed while this branch was open:
+the sessions took whichever issue came up first, and none of those chapters
+needed any of the others. This one merged `main` eight times and was the
+last of the nine in. Chapter 9's measurement is free, its brief was the
+most specific in the manifest, and a chapter with seven listings, five
+exercises, three figures and twenty-nine computed values is what tells you
+whether the gates hold against content rather than against a scaffold.
+
+**The brief was right about the framework and wrong about nothing**, which
+has not been true of the first chapter of either companion volume. What was
+wrong was the folklore around it, and all of it was settled by reading the
+installed package.
+
+#### Three claims a .NET habit gets backwards, each checked in the package
+
+- **`Field(alias=...)` is not `JsonPropertyName`.** It renames the field on
+  the way IN as well, so a model carrying `alias="incidentId"` can no longer
+  be built as `Model(incident_id=...)`: the call raises a validation error
+  naming a missing `incidentId`, and pyright says so statically, because the
+  synthesised `__init__` takes the alias. `serialization_alias` is the
+  output-only one and is what the chapter uses. A model whose input and
+  output shapes differ makes FastAPI emit **two** OpenAPI schemas, suffixed
+  `-Input` and `-Output`, where Swashbuckle emits one.
+- **`extra="forbid"` does not police the environment.** It rejects an
+  unknown key in a `.env` file (`extra_forbidden`) and an unknown keyword
+  passed to the constructor, and it ignores an unknown `OPS_` variable in
+  the environment entirely, at every value of `extra`, because the
+  environment source only looks up names the model declares. The prefix is
+  real isolation in the other direction: a bare `DATABASE_URL` does not
+  reach a model declared with `env_prefix="OPS_"`.
+- **A secret file's NAME carries the env prefix**, case-insensitively. With
+  `env_prefix="OPS_"`, `api_key` in the secrets directory is not found and
+  `ops_api_key` or `OPS_API_KEY` is. Measured across four spellings.
+
+And one mechanism read out of starlette rather than remembered: **the last
+middleware registered is the outermost**, because `add_middleware` does
+`self.user_middleware.insert(0, ...)`. That is the reverse of ASP.NET Core
+and nothing warns. It is trap 60.
+
+#### Experiment E5, and what the calibration guard was worth
+
+The brief said to calibrate the way the LangChain book's chapter 13 recorded.
+It was the instruction that paid for itself twice.
+
+**The first run flagged four cells as client-bound and they were not
+quoted.** Driving the service through `httpx.AsyncClient` put the no-op
+ceiling at 282 requests a second, and the awaited cells at concurrency 40
+read 309 -- above their own calibration cell, which is not a number about a
+server. Replacing the driver with raw asyncio sockets took the ceiling to
+several thousand and no cell has reached half of it since.
+
+**Then the multi-worker rows carried a constant +44 ms and it was real.**
+Reproduced with a raw socket client, so not an artefact of the HTTP library;
+located by timing the first byte against the last (headers at 0.9 ms, body at
+44.0 ms); and explained by reading two installed packages. `--workers N`
+makes uvicorn bind the listening socket itself, in `Config.bind_socket`, with
+`socket.socket(family=AF_INET)`, whose `proto` is **0**; accepted sockets
+inherit that; and `asyncio.base_events._set_nodelay` sets `TCP_NODELAY` only
+when `sock.proto == socket.IPPROTO_TCP`. So Nagle stays on in multiprocess
+mode and off in single-worker mode, where the socket comes from `getaddrinfo`
+with `proto` 6. The body is a second write and waits out the client's delayed
+ACK.
+
+**`TCP_QUICKACK` cancels it, and WHERE it is set is the whole of it**: before
+the request it does nothing (44.01 ms) and after the response headers have
+been read it takes the same exchange to 0.45 ms. It is not a mode; it fires
+an ACK the kernel is already sitting on, so it has to be set while that ACK
+is pending. The driver therefore re-arms after each header read, which is why
+the table in the chapter measures workers rather than TCP -- and the chapter
+prints the artefact separately, in a `versionbox`, because no ordinary client
+sets that option.
+
+**The CPU row still did not scale, and the reason is not the GIL.** Four
+workers on four cores moved CPU-bound throughput by 1.07. Workers share one
+listening socket, so the worker that is in `accept()` first takes the
+connection and keeps it: measured over forty keep-alive connections, three of
+four workers got any at all and one took thirty-three. Balancing is per
+CONNECTION, not per request, which is the difference from Kestrel's thread
+pool and is trap 62. The survey is a cell of the experiment rather than a
+hypothesis in the prose.
+
+**The absolute numbers are this machine's and the ratios are the finding.**
+Between two runs on the same tree the CPU service time moved 26 ms to 19 ms
+and the calibration ceiling 3067 to 4666, while the awaited ratio stayed at
+1.00 and the memory ratio at 4.2.
+
+#### A latency benchmark cannot be re-run by `make numbers`
+
+`make numbers` runs every script under `code/measure/` on every build and
+`make verify` fails when a committed value would change. A benchmark re-run
+on every build drifts by construction, so `make verify` would have failed on
+a tree nobody had edited.
+
+So `e05_workers.py` has two modes. `--run` measures and writes
+`code/measure/data/e05_workers.json`, which is committed; with no argument it
+DERIVES `figures/values/e05.tex` from that JSON, deterministically, and
+touches nothing else. Re-measuring is a deliberate act with a date on it, and
+the drift gate still covers everything the book prints. **Any experiment
+whose result is a time needs this shape**; one whose result is a count does
+not.
+
+#### A second instance of the double-dash ligature, and a sharper measurement
+
+The Chapter 2 pass found that `\code{}` set `--` as an en-dash ligature and
+fixed it in `preamble.tex` while this branch was open. Chapter 9 is the
+second instance and a worse one: it prints `\code{--workers}` five times per
+edition, and that flag is the *subject* of the chapter's own measurement, so
+a reader copying the thing the experiment is about got an unknown-argument
+error from uvicorn.
+
+Measured here rather than inherited, with `\sbox` against this preamble,
+because in a typewriter font the consequence is sharper than "it looks like a
+dash":
+
+| | `\code{--workers}` | `\code{-workers}` |
+|---|---|---|
+| ligature on | 41.60974 pt | 41.60974 pt |
+| ligature off | 46.81096 pt | 41.60974 pt |
+
+One character cell is 5.20122 pt, so with the ligature on the two spans are
+**the same width to the micro-point**: `--workers` did not merely set an en
+dash, it set as `-workers`, a flag uvicorn does not have. The fix is one
+preamble line and it is main's; what this adds is that the defect is
+indistinguishable from a correct single-dash flag rather than merely odd
+looking, which is why no review caught it.
+
+#### Two build traps, and one deprecation
+
+- **`binhex.tex` is in `texlive-plain-generic`.** Without it the build dies
+  with ``LaTeX Error: File `binhex.tex' not found`` on a machine that has
+  every other package this preamble asks for. It is what `newtxmath` reaches
+  for.
+- **A failed build leaves an aux tree that fails the next one.** After the
+  missing package was installed the build failed again with the same error,
+  from state rather than from source; `make clean` -- which removes the
+  per-`\include` `.aux` files under `chapters/` that `latexmk -C` leaves --
+  cleared it. Same class as the stale-`.toc` trap already recorded above: an
+  error that survives the fix for it is state.
+- **`@asynccontextmanager` with a `-> AsyncIterator[...]` annotation is
+  deprecated** at the pinned pyright and reported under strict. Use
+  `AsyncGenerator`.
+
+#### Also
+
+- Five exercises, as the brief asked. The starter of each fails its own test
+  and `make starters` proves it; the third test of 9.1 is the one that
+  catches a dependency that returns instead of yielding.
+- Three figures per edition. The first drafts rendered 732 to 1115 pt wide,
+  which is node text at 4.0 to 6.2 pt against the 8.1 to 9.8 pt of the
+  diagrams already in the book; three nodes with short lines took them to 572
+  to 701 pt and 6.4 to 7.9 pt. `pdfinfo` is not installed in this sandbox, so
+  the widths were read out of each PDF's own `/MediaBox`.
+- The overlap rule held without effort: streaming, SSE and the per-thread
+  lock are the LangChain volume's chapter 13 and are named as handed on, not
+  summarised.
+- Parity came back clean on its first run, on a chapter of this size, which
+  is what writing the English first and mirroring it macro by macro buys.
+
+**A pyright `executionEnvironment` rooted at a subdirectory takes the
+project root OFF the search path for everything under it.** Chapter 10's
+pass added one rooted at `measure` so that a measurement script could import
+the chapter's own listings by bare name, which is right and is what its
+comment says. The consequence its comment does not say is that
+`measure/e05_workers.py` then stopped resolving `measure.e05_app` --- an
+absolute import it makes on purpose, because the same module is handed to
+uvicorn as the import string `"measure.e05_app:app"` and one module should
+have one spelling. Two strict errors on a file neither pass had touched.
+
+The fix is `extraPaths = ["ch10", "."]`, where `"."` is `code/` itself, and
+the reason is written beside it. The general shape is worth more than the
+fix: **an `executionEnvironment` is an override, not an addition**, so
+adding one for a directory is also a decision about what that directory can
+no longer see --- and nothing in the repository compares the two, because it
+is one `[[tool.pyright...]]` table in a file no gate reads as configuration.
+
+**And the exercise keys were numbered by writing order, which is now a
+recurring defect rather than this chapter's own.** `\theexercise` counts
+`\begin{exercise}` in document order, and the key is a file name chosen by
+hand, so the box that printed *Exercise 9.1* was telling the reader to open
+`e09_02_problem_details.py` while *Exercise 9.5* pointed at
+`e09_01_scoped_dependency.py`. The Chapter 3 and Chapter 6 notes above record
+the same thing in their own chapters, each found by reading the finished PDF;
+no count is stated here, because that is the class of claim this file forbids
+and because passes are still landing.
+
+The rule that follows is the useful part: **write the exercises in the order
+the argument needs them, and number the keys afterwards.** Renaming is five
+triples plus the `load()` string inside each test, and the mapping is a
+permutation rather than a shift, so it has to be one simultaneous
+substitution and not five sequential ones -- `e09_02` otherwise chains
+through `e09_01` into `e09_05` and collides on disk.
+
+`check_structure.py --exercises` checks a key's CHAPTER prefix and says
+nothing about its ordinal, which is why no pass's gates have caught it. The
+Chapter 6 note argues the check should exist and leaves it to an
+infrastructure issue; this pass did not close it either, for the same reason
+-- it is a shared tool and other chapters are in flight.
+
+---
+
 ### Chapter 10 pass, September 2026 --- SQLAlchemy, polars and E6
 
 **The brief was half right about lazy loading, and the half it got wrong is
@@ -2834,7 +3049,7 @@ Tag from a local clone.
 
 ## What is left
 
-Eleven chapters of fourteen are written: 1, 2, 3, 5, 6, 7, 8, 10, 11, 12 and
+Twelve chapters of fourteen are written: 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12 and
 13. The outstanding work is tracked as GitHub issues under the `chapter`,
 `appendix`, `experiment` and `infrastructure` labels — **work from the labels,
 not from a list here**, because a list in this file is the class of claim
@@ -2855,10 +3070,11 @@ nothing can check. In rough order:
    exercise-harness paragraph before writing an exercise, and the note on
    dumping the English token stream with `parity.py`'s own tokeniser before
    writing the Polish.
-2. **Chapter 9** (v0.2), with the experiments it carries. Chapters 11 and
-   12 are written; Chapter 11 carries trace-assert stage 01, and Chapter
-   12's E7 is the one experiment blocked rather than merely unrun —
-   `PYBOOK_E7=1` runs it on any machine that can reach a registry.
+2. **Nothing in v0.2 is outstanding.** Chapters 8 to 12 are written, with
+   trace-assert stage 01 in Chapter 11, and E4, E5, E6 and the deps-weight
+   measurement with them. Chapter 12's E7 is the one experiment blocked
+   rather than merely unrun — `PYBOOK_E7=1` runs it on any machine that can
+   reach a registry.
 3. **Chapter 14 and Appendices A to D** (v1.0). Chapter 13 is written and
    carries trace-assert stage 02, so Chapter 14 inherits a `Recorder` and
    the decision about what a model call records. Appendix B is written from
@@ -2870,9 +3086,11 @@ nothing can check. In rough order:
    the ledger, filled in by the pass that runs each one; naming them here
    would be a second copy to go stale, and no total is stated in either
    place. E4 and E8 are the worked examples of committing bounds and counts
-   rather than timings, and E2 is the worked example of the other shape — a
-   `--run` mode writing committed raw trials — for a quantity that has no
-   exact form. All three are what make a stopwatch survive `make verify`.
+   rather than timings, and E1, E2 and E5 are the other shape — a `--record`
+   or `--run` mode writing committed raw trials, formatted in a second
+   deterministic pass — for a quantity that has no exact form. All five are
+   what make a stopwatch survive `make verify`, and `code/measure/data/`
+   holds one JSON file per experiment of the second kind.
 5. **The first Pages deployment**, which needs one human click.
 
 **Do not fill a measurement table with plausible numbers.** An empty table
