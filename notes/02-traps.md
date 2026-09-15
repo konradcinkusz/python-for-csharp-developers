@@ -22,6 +22,18 @@ and never reused; a retired entry keeps its number and says why. An owner
 reading `Ch. N §N.M, delivered` names the section that elicits the trap in
 the written chapter; an owner reading a bare `Ch. N` is still a promise.
 
+> **Number 60 is currently used three times and must be swept before
+> Appendix B is written.** Chapters 8, 9 and 13 each claimed it from a
+> branch that could not see the others, which is the parallel-append class
+> the Chapter 8 pass recorded for this exact file: git merges different
+> *rows* of one table without a conflict, so no session's copy is wrong
+> until somebody merges. It reaches nobody today — Appendix B is a stub —
+> and it is raised as its own task rather than settled from inside a
+> chapter pass, because two of the three are cited by their own pass notes
+> in `CLAUDE.md` and deciding which keeps the number is not a merge's call.
+> `grep -oE '^\| [0-9]+ \|' notes/02-traps.md | grep -oE '[0-9]+' |
+> sort -n | uniq -d` is the check; it should print nothing.
+
 ## Part I — Runtime and toolchain
 
 | # | The habit, in the reader's voice | What Python does | Owner |
@@ -84,10 +96,10 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 
 | # | The habit, in the reader's voice | What Python does | Owner |
 |---|---|---|---|
-| 42 | `Depends` is the DI container, so a dependency is a singleton | Per-request by default; a `yield` dependency is a disposable scope; application-lifetime state goes in the lifespan | Ch. 9 |
-| 43 | A validation failure is a 400 with `ProblemDetails` | It is a 422 with pydantic's error list, and the shape is pydantic's, not the framework's | Ch. 9 |
-| 44 | Settings come from `IOptions<T>` and `appsettings.json` | `pydantic-settings` reads the environment, a `.env` file and secrets directories into a validated model; there is no JSON provider chain | Ch. 9 |
-| 45 | More uvicorn workers is more throughput | Workers are processes; each has its own loop, its own pool and its own memory. E5 measures the curve | Ch. 9 |
+| 42 | `Depends` is the DI container, so a dependency is a singleton | Per-request by default; a `yield` dependency is a disposable scope; application-lifetime state goes in the lifespan | Ch. 9 — **delivered**, §9.1 |
+| 43 | A validation failure is a 400 with `ProblemDetails` | It is a 422 with pydantic's error list, and the shape is pydantic's, not the framework's | Ch. 9 — **delivered**, §9.2 |
+| 44 | Settings come from `IOptions<T>` and `appsettings.json` | `pydantic-settings` reads the environment, a `.env` file and secrets directories into a validated model; there is no JSON provider chain | Ch. 9 — **delivered**, §9.5 |
+| 45 | More uvicorn workers is more throughput | Workers are processes; each has its own loop, its own pool and its own memory. E5 measured it: for an awaited upstream, four workers moved throughput by nothing and multiplied the memory by about the worker count. The figures are the chapter's, from `code/measure/e05_workers.py` | Ch. 9 — **delivered**, §9.7 |
 | 46 | A `Session` is a `DbContext`, so I `commit()` and the objects stay usable | `expire_on_commit=True` by default: every attribute is reloaded on next access, which is a query inside a loop you did not write | Ch. 10 §2, **delivered** |
 | 47 | Relationships are loaded when I read them, as in EF | Lazy by default in both under a *sync* session; the N+1 is identical, and `selectinload` is `Include`. E6 counts it. Under the async session the same read raises `MissingGreenlet` rather than loading, so the bug is loud there and silent here | Ch. 10 §3 and §4, **delivered** |
 | 48 | Alembic autogenerate is the migration | It is a diff of the models against the database, and it misses renames, type changes and constraints; read every generated migration. A rename comes out as `add_column` plus `remove_column`, which drops the data | Ch. 10 §5, **delivered** |
@@ -99,6 +111,18 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 | 54 | Correlation id in a static field, like `AsyncLocal` | `contextvars` is `AsyncLocal`; a module-level variable is shared by every request on the loop | Ch. 12 §12.3, delivered — two concurrent handlers, and the module-level column reports the same name twice |
 | 55 | `FROM python:3.14` and `pip install` in the Dockerfile | Multi-stage with `uv sync --frozen --no-dev`, a non-root user, and the two environment variables | Ch. 12 §12.5, delivered — the three shapes side by side. E7 would measure them and has not run: see `notes/01-curriculum.md` §4 |
 
+### Found while writing Chapter 9
+
+Numbered from the end rather than inserted, because a number is never
+reused and 46 onwards already belong to Chapter 10. All three were measured
+against the installed package at the pinned version, not remembered.
+
+| # | The habit, in the reader's voice | What Python does | Owner |
+|---|---|---|---|
+| 60 | Middleware runs in the order I registered it, so the first one is the outer one | The last one registered is the outermost: starlette's `add_middleware` does `user_middleware.insert(0, ...)`, so every registration goes on the front of the stack. Nothing warns, and the two orders differ only when something depends on the sequence | Ch. 9 — **delivered**, §9.4 |
+| 61 | `Field(alias=...)` is `JsonPropertyName`: it renames the field on the wire | It renames it on the way IN as well, so the model can no longer be constructed by field name and a type checker says so before the test does. `serialization_alias` is the output-only one. A model whose input and output differ gets two OpenAPI schemas, `-Input` and `-Output`, where Swashbuckle emits one | Ch. 9 — **delivered**, §9.3 |
+| 62 | `--workers 4` spreads my traffic over four processes | Workers share one listening socket and the worker that is in `accept()` first keeps the connection for its whole life, so balancing happens per CONNECTION rather than per request. Measured in E5: of the keep-alive connections opened at once, most landed on a single worker and one worker got none. The figures are the chapter's | Ch. 9 — **delivered**, §9.7 |
+
 ## Part V — Python for AI work
 
 | # | The habit, in the reader's voice | What Python does | Owner |
@@ -108,7 +132,7 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 | 58 | A notebook is where Python happens | A notebook is a REPL with a memory of every cell you ran in any order; nothing in this book is one, and Chapter 13 says when one is right | Ch. 13, **delivered** §13.7 |
 | 60 | The SDK uses the `httpx` I pinned | Both SDKs depend on the `httpx2` distribution, not `httpx`: `isinstance(c._client, httpx.Client)` is False, and of the two SDKs one refuses a mismatched client and the other accepts it | Ch. 13, **delivered** §13.5 |
 | 59 | A trace assertion needs a model to evaluate | The first layer of agent-eval-bench is deterministic; it runs with no model, which is why it can run in CI | Ch. 14, **delivered** in section 14.1, elicited before it is named |
-| 61 | A test report is a test report; the same failure prints the same thing everywhere | pytest reports differently on a build server on purpose: `running_on_ci()` is true when `CI` or `BUILD_NUMBER` is set, and a sequence diff is then printed in full and long output is not truncated. A transcript, a golden file or a screenshot of a failure is a claim about one of the two | Ch. 11 — **delivered**, §11.1 |
+| 63 | A test report is a test report; the same failure prints the same thing everywhere | pytest reports differently on a build server on purpose: `running_on_ci()` is true when `CI` or `BUILD_NUMBER` is set, and a sequence diff is then printed in full and long output is not truncated. A transcript, a golden file or a screenshot of a failure is a claim about one of the two | Ch. 11 — **delivered**, §11.1 |
 
 ## Retired
 
