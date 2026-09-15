@@ -1,0 +1,7 @@
+flowchart LR
+    S["Jeden filtr i jedna<br/>projekcja nad<br/>jednym zrodlem"] --> L["Skladanie listy:<br/>juz sie wykonalo,<br/>mozna chodzic po nim<br/>dowolnie wiele razy"]
+    S --> G["Wyrazenie generatora:<br/>nic sie jeszcze nie<br/>wykonalo, a po pierwszym<br/>przejsciu jest puste"]
+    S --> E["IEnumerable z LINQ:<br/>nic sie jeszcze nie<br/>wykonalo, a caly potok<br/>biegnie przy kazdym przejsciu"]
+    L --> R["To, co juz sie wykonalo,<br/>mozna oddac komus<br/>innemu bez obaw"]
+    G --> R
+    E --> R

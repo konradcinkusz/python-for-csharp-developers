@@ -1,0 +1,10 @@
+Before a single call, the module has already recorded:
+    decorating parse
+parse('abc') returns 3
+flaky() returns ok
+and calling them added:
+    calling parse
+    attempt 1 failed: refused (call 1)
+    attempt 2 failed: refused (call 2)
+parse.__name__ is still parse
+timed calls measured: 1, all non-negative: True
