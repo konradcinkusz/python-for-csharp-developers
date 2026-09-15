@@ -111,9 +111,16 @@ extraPaths = ["ch11"]
 # measurement scripts reach into; add one when a chapter's measurement
 # does -- ch13 is here because E8 times the corpus that ch13's
 # what_survives.py prints, rather than carrying a second copy of it.
+# "." is code/ itself, and it is what lets a measurement script import
+# another measurement module by the same package path it hands to a
+# subprocess: e05_workers launches uvicorn with the import string
+# "measure.e05_app:app", which resolves against code/, and then imports
+# `measure.e05_app` itself so that one module has one spelling. Without
+# this, rooting the environment at measure/ takes code/ off the search
+# path and that absolute import stops resolving.
 [[tool.pyright.executionEnvironments]]
 root = "measure"
-extraPaths = ["ch10", "ch13"]
+extraPaths = ["ch10", "ch13", "."]
 
 [[tool.pyright.executionEnvironments]]
 root = "."

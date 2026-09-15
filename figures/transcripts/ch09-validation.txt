@@ -1,0 +1,18 @@
+default 422 application/json
+  string_too_short   body.title      String should have at least 1 character
+  less_than_equal    body.severity   Input should be less than or equal to 5
+mapped  400 application/problem+json
+{
+  "type": "about:blank",
+  "title": "One or more validation errors occurred.",
+  "status": 400,
+  "instance": "/incidents",
+  "errors": {
+    "title": [
+      "String should have at least 1 character"
+    ],
+    "severity": [
+      "Input should be less than or equal to 5"
+    ]
+  }
+}

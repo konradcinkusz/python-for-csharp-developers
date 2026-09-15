@@ -1,0 +1,5 @@
+one request, two asks : connection-1 and connection-1
+order                 : lifespan:open -> open -> handler -> close
+next request          : connection-2
+use_cache=False       : connection-3 and connection-4
+lifespan state        : the one connection pool
