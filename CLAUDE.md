@@ -19,18 +19,13 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **10 of 14 written: Chapter 1 *CPython and the GIL*, Chapter 2 *Environments and packaging*, Chapter 3 *Typing*, Chapter 5 *Functions and control flow*, Chapter 6 *Errors*, Chapter 7 *Imports and dependency injection*, Chapter 8 *asyncio*, Chapter 10 *Data*, Chapter 12 *Observability and operations* and Chapter 13 *The AI engineer's kit* — both editions** | 4, 9, 11, 14 |
+| Chapters | **11 of 14 written: Chapter 1 *CPython and the GIL*, Chapter 2 *Environments and packaging*, Chapter 3 *Typing*, Chapter 5 *Functions and control flow*, Chapter 6 *Errors*, Chapter 7 *Imports and dependency injection*, Chapter 8 *asyncio*, Chapter 10 *Data*, Chapter 11 *Testing*, Chapter 12 *Observability and operations* and Chapter 13 *The AI engineer's kit* — both editions** | 4, 9, 14 |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: the `trace-assert` skeleton and its stage 02, Chapters 1, 2, 3, 5, 6, 7, 8, 10, 12 and 13's listings and exercises, and the measurement, ledger and transcript scripts, and CI runs all of it | every other chapter's listings and exercises; every experiment the manifest's Status column still marks *not run* |
+| Code | `code/` is a locked uv project: `trace-assert` at stages 01 and 02, Chapters 1, 2, 3, 5, 6, 7, 8, 10, 11, 12 and 13's listings and exercises, Chapter 12's three Dockerfiles, E1, E2, E3, E4, E6 and E8, and the measurement, ledger and transcript scripts, and CI runs all of it | every other chapter's listings and exercises; every experiment the manifest's Status column still marks *not run* |
 
-**The scaffold plus ten chapters.** The scaffold existed so that the shape of
-the book could be argued with before any chapter was written, and so that the
-first one was written into a build that already had every gate. Those ten
-were written in parallel, by separate passes that could not see each other,
-each against the issue that came up first rather than against the reading
-order — which is possible because a chapter names what it borrows and borrows
-little. The gates earned their keep on every one of them, and none had to be
-loosened to let a written chapter past; see the pass notes below.
+**The scaffold plus eleven chapters.** The scaffold existed so that the shape
+of the book could be argued with before any chapter was written, and so that
+the first one was written into a build that already had every gate. All eleven
 were written in parallel, by separate passes that could not see each other,
 each against the issue that came up first rather than against the reading
 order — which is possible because a chapter names what it borrows and borrows
@@ -49,14 +44,24 @@ now rather than claiming a first — a contradiction is not evidence once it
 is sitting in one file, and the cost is recorded here instead, where it
 cannot come apart from itself.
 
+**The notes below are in CHAPTER order and the openers name MERGE order**,
+which is deliberate and is what several passes independently arrived at: the
+file is navigated by chapter, and a merge position is a fact about how a
+note came to exist rather than about where to find it. The Chapter 2 note
+says the same thing from the other side.
+
+Chapter 11 is the one that tested the machinery rather than being tested by
+it: a testing chapter has to print a **failing** run, and nothing in the
+harness tolerated a listing that exits non-zero.
+
 **Two editions, one paper size, both clean.** A4 at 12pt, single-sided, the
 format the book is read in — there is no print format and there will not be
 one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 173 | 0 | 0 | 0 | 0 |
-| `main-pl` | 175 | 0 | 0 | 0 | 0 |
+| `main-en` | 187 | 0 | 0 | 0 | 0 |
+| `main-pl` | 189 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -107,30 +112,34 @@ for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **4 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **3 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 192 listing references, every file and region present · 41 exercises,
-  each with a starter, a solution and a test · 82 transcript references,
-  every file present · 225 code files, none over 79 columns · 20 pins
+- 228 listing references, every file and region present · 46 exercises,
+  each with a starter, a solution and a test · 88 transcript references,
+  every file present · 256 code files, none over 79 columns · 21 pins
   agree between `preamble.tex` and `code/pyproject.toml`
-- **0 `verifybox` blocks.** Keep it that way: a box is a promise to the
-  reader that something was not run
-- 62 Mermaid sources, thirty-one per language, all rendering, all placed
+- **1 `verifybox` block** — Chapter 12's three Dockerfiles, which could not
+  be built because no container registry is reachable from the machine that
+  compiled that chapter. It is the first one the book has carried and it must
+  not become two by habit: a box is a promise to the reader that something
+  was not run. **That figure is per edition, which is what Appendix E
+  prints; `make debt`'s `shots` target greps both editions and says 2.**
+  Quote whichever you mean, and say which
+- 68 Mermaid sources, thirty-four per language, all rendering, all placed
 - 119 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 226 labels in each edition,
+- Parity: 23 file pairs, 0 failures, 0 warnings · 254 labels in each edition,
   0 mismatches
-- Prose words against a budget of 3,000, and `csbox` translation boxes,
-  English first: Chapter 1 at 2,399 / 2,098 with 2 boxes, Chapter 2 at
-  2,721 / 2,330 with 5, Chapter 3 at 2,915 / 2,516 with 2, Chapter 5 at
-  2,535 / 2,258 with 2, Chapter 6 at 2,638 / 2,311 with 3, Chapter 7 at
-  2,581 / 2,242 with 3, Chapter 8 at 2,269 / 1,990 with 2, Chapter 10 at
-  2,386 / 2,069 with 3, Chapter 12 at 2,765 / 2,388 with 2, Chapter 13 at
-  2,543 / 2,223 with 2. These are what
-  `--words` and `--csbox` print and they move with any prose edit, so
-  re-read them from the tool rather than from here. **`reflist.py` reads
-  the `.aux` tree**, so its label count is a fact about the last build
-  rather than about the source: rebuild before quoting it, or it reports
-  the tree you had before your merge.
+- Prose words against a budget of 3,000, and `csbox` translation boxes, English
+  first: Chapter 1 at 2,399 / 2,098 with 2 boxes, Chapter 2 at 2,721 / 2,330
+  with 5, Chapter 3 at 2,915 / 2,516 with 2, Chapter 5 at 2,535 / 2,258 with 2,
+  Chapter 6 at 2,638 / 2,311 with 3, Chapter 7 at 2,581 / 2,242 with 3, Chapter
+  8 at 2,269 / 1,990 with 2, Chapter 10 at 2,386 / 2,069 with 3, Chapter 11 at
+  2,572 / 2,260 with 2, Chapter 12 at 2,765 / 2,388 with 2, Chapter 13 at 2,543
+  / 2,223 with 2. These are what `--words` and `--csbox` print and they move
+  with any prose edit, so re-read them from the tool rather than from here.
+  **`reflist.py` reads the `.aux` tree**, so its label count is a fact about
+  the last build rather than about the source: rebuild before quoting it, or it
+  reports the tree you had before your merge.
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
   runs each one; neither that file nor this one states a total, because a
@@ -393,8 +402,12 @@ and publishes it and compares the three ports.
 **The assertion list is that project's own and must be copied from its
 specification when Chapter 14 is written, never reconstructed from
 memory.** The count printed in the book is whatever the specification says.
-The repository was not consulted while scaffolding, so nothing here names
-an assertion type.
+Two files are the authority and chapter 11's port names both:
+`evals/schema/scenario.schema.json` defines the layer-1 assertion types and
+`tests/AbsenceConcierge.Evals/Assertions/AssertionEvaluator.cs` evaluates
+them. Stage 01 ports two of them and `trace_assert/__init__.py` names none
+of the rest, deliberately — a list written from memory is the one thing
+the guiding project cannot afford.
 
 ---
 
@@ -1667,6 +1680,19 @@ operation in a file several branches append to**, because free is a
 property of the branch you are standing on. Whoever renumbers it should
 take the later one, since the earlier is already cited.
 
+**Resolved at the ninth merge of this branch, and it had become three, not
+two.** Chapter 11's pass had independently appended its own “next free number”
+60 as well, so by this merge the catalogue carried Ch. 8's, Ch. 13's and Ch.
+11's entries all numbered 60 -- the collision this file predicted, arriving a
+second time before the first instance was even fixed. Per the rule already
+recorded here, the earliest and most-cited (Ch. 8's, cited by number in this
+file's own Chapter 8 pass note) keeps 60; Ch. 13's moves to **62** and Ch. 11's
+to **63**, both free and both past Chapter 5's own 61. Neither renumbered trap
+was cited by number anywhere in the typeset chapters, only in this file's own
+prose, which is now consistent with the table. **The generalisable half stands
+unchanged and is now attested twice**: a file several branches append to needs
+its free numbers assigned at merge time, never at write time.
+
 ### Chapter 6 pass, September 2026
 
 Written into the scaffold in parallel with the other chapters in flight, in
@@ -2253,6 +2279,220 @@ the previous section, which is a thing on the page. And the surrounding
 paragraph's rebuild surfaced the `\mermaidfig` anchor defect above, which
 had been in the scaffold from the beginning and which no gate fails on.
 
+### Chapter 11 pass, September 2026 --- the chapter that tests the harness
+
+**Written out of order, and it is the one chapter for which that is more
+than a scheduling accident.** Every other chapter can be written against a
+harness that runs its listings and expects them to succeed. A testing
+chapter cannot: the thing it has to put in front of the reader is a
+**failing** run, and `code/tests/test_listings.py` runs every `chNN/*.py`
+as a script and fails the build on a non-zero exit. So this is the chapter
+that finds out whether the machinery the repository was scaffolded around
+survives a chapter, and four of the findings below are about the machinery
+rather than about pytest.
+
+Eighth to merge, and written in parallel with every chapter above it by a
+pass that could not see them. The sets of findings are independent, which is
+itself worth recording: it is evidence for the claim above that a chapter
+here names what it borrows and borrows little.
+
+**Except once, and the exception is the guiding project.** Chapter 13's pass
+wrote stage 02 — the `model_call`/`model_result` pair — into
+`trace_assert/__init__.py`, because that is where the scaffold's whole trace
+model lived; this pass had split that model into `model.py` so that stage 01
+could put `assertions.py` and `plugin.py` beside it. Git could not merge two
+edits to a file one side had emptied, and the resolution is that the model
+split stands and Chapter 13's pair moves into `model.py` beside the tool
+pair. **It cost nothing on either page**, and the reason is the façade: no
+chapter prints a listing from `__init__.py`, and every importer in Chapter
+13's code and exercises says `from trace_assert import ...`, so the layout
+changed underneath them and not one line of either chapter moved. That is
+the argument for a package façade, arriving as a merge rather than as a
+principle — **two passes can restructure one package at once if nothing
+outside it names a module.**
+
+#### A failing run reaches the page as a transcript, from a file nothing collects
+
+The three demonstrations that must fail --- the rewritten `assert`, the wrong
+patch target, the coverage report over a test that checks almost nothing ---
+live in `code/ch11/trap_assert.py`, `trap_patch.py` and `trap_coverage.py`.
+**The name is the mechanism**: pytest collects `test_*.py`, so the suite
+never picks them up, and `pytest ch11/trap_patch.py` runs one anyway when it
+is named. `code/measure/transcripts.py` grew a `Command` kind beside its
+`Listing` kind to run them, with `expect=1` --- because *a transcript of a
+failure that stopped failing is a transcript of nothing*, and without that
+field a fixed trap would have silently started printing a passing report.
+
+The passing half of each lesson is a real listing that CI runs
+(`ch11/test_patching.py` asserts the trap rather than merely suffering it),
+so every trap in the chapter is demonstrated twice: once as a report the
+reader recognises, once as an assertion that cannot rot.
+
+#### Three causes of transcript drift, and a fourth guard
+
+`make verify` compares a committed transcript against a fresh run, so
+anything in pytest's output that differs between this machine and CI fails
+the build for no defect. All three were found by running twice and diffing,
+not by reasoning about it:
+
+- **Memory addresses.** A traceback that displays a `module.attr` callable
+  or a fixture argument prints `<function ... at 0x7f...>`. Avoided by
+  importing the bare name and by using `unittest.mock.patch` as a context
+  manager rather than the `monkeypatch` fixture --- neither of which is a
+  worse way to write the test, which is why it was the fix rather than a
+  post-processing step.
+- **Terminal width.** pytest and coverage size their rules to the terminal
+  and fall back to 80 without a tty --- one column over the book's budget,
+  and a property of whatever ran the build. `COLUMNS=79` is pinned in the
+  transcript writer's environment and in `code/exercises/ch11/_pytest_runner.py`.
+- **A nested `where` line at 99 columns.** pytest prints `where Line(...) =
+  Line(...)` under a failing comparison, and it does not wrap. Fixed by
+  binding the value to a local first, which is also how the assertion reads
+  best.
+
+And a **fourth guard** was added to `transcripts.py` for the first: a memory
+address is ASCII, printable, and short, so the three existing guards could
+not see it. It is caught by name --- `0x7f`, `0x55` --- which is crude and is
+the only thing that would have failed on the shape that actually occurred.
+
+**A fourth cause, and only CI could find it, because CI is the cause.**
+The three above were found by running twice on one machine; this one cannot
+be. `_pytest.compat.running_on_ci()` is true when `CI` or `BUILD_NUMBER` is
+set and non-empty, and the reporting reads it in more than one place —
+`assertion/_compare_sequence.py` prints `Use -v to get more diff` when it is
+false and the whole `difflib` diff when it is true,
+`assertion/truncate.py` truncates long output only when it is false, and
+`terminal.py` trims the short summary line only when it is false. **The
+first draft of this note said “two places” and there are three**, which is
+this book's own rule about a tally of occurrences, paid for inside the note
+recording a different one: name the behaviour, and let `grep running_on_ci`
+say how many. So the same failing test reports differently on a laptop
+and on a runner, deliberately --- and `make verify` failed on CI with a
+transcript that was correct on both machines and identical on neither.
+
+The transcript is a claim about what the **reader** sees and the reader is
+not on CI, so both variables are cleared in `measure/transcripts.py`'s `ENV`
+and in `exercises/ch11/_pytest_runner.py`'s, rather than the page being made
+to match the runner. Proved in both directions before it was believed: with
+the old environment `CI=true` produces the full diff, and with the new one
+`CI=true` and `BUILD_NUMBER=42` each reproduce the committed transcript byte
+for byte. The chapter says it too, in §11.1, because a reader who runs the
+book's own listing on a build server would otherwise find the page wrong.
+
+**The generalisable half: a reproducibility guard cannot be written against
+one machine.** Everything a tool does differently *because* it is on CI is
+invisible to a diff of two local runs, and it is precisely the class that
+breaks the gate.
+
+**And the fix has a horizon.** Both those call sites are private
+(`_pytest.compat`, `_pytest.assertion`), so this is a fact about
+pytest 9.1.1 rather than a supported interface. If a future pytest reports
+differently again, re-read those two files rather than guessing which knob
+moved.
+
+#### `make starters` caught a genuine design flaw, not a mechanical one
+
+Exercise 11.3's first draft had a test that passed on the untouched starter,
+and the strict-xfail gate reported `XPASS(strict)`. The test was
+`test_the_real_rate_is_back_afterwards` --- it asserted that patching is
+undone when the block exits, which is true of `unittest.mock` and has
+nothing to do with what the reader was asked to write.
+
+**A test in an exercise that does not depend on the reader's answer is not a
+check**, and the gate exists to say so. The sentence is now in that file's
+docstring, because the next person writing an exercise will reach for
+exactly that kind of reassuring extra assertion.
+
+#### pytest 9 does not expose what an introspecting check would want
+
+Exercises 11.1 and 11.2 ask the reader to restructure a test file, so their
+checks have to look at *how* it was written. The obvious route ---
+`getattr(f, "_pytestfixturefunction")` --- does not work at
+pytest 9.1.1: `@pytest.fixture` returns a `FixtureFunctionDefinition`, and
+that class is not exported from `pytest`. This is the *verify before
+writing* rule paying for itself: the attribute is what a model remembers,
+it is what older answers on the internet use, and it is gone.
+
+Both checks go through the public command line instead ---
+`_pytest_runner.run()` shells out to `python -m pytest` and reads the exit
+code, and `source()` returns the file's own text for a regex. **`-o
+addopts=` is load-bearing** in that runner: without it the project's own
+`-q` stacks with the runner's into `-qq`, which drops the `4 passed`
+summary line exercise 11.2's check reads.
+
+#### The flat namespace cost two settings that must stay in step
+
+`code/ch11/` is a flat package of listing files that import each other
+(`invoice` imports `rates`), and the exercises import them too. That needs
+`pythonpath = [".", "ch11"]` in `[tool.pytest.ini_options]` **and**
+`extraPaths = ["ch11"]` under `[tool.pyright]`, because the two tools
+resolve imports independently and neither reads the other's list. Both
+carry a comment saying so. `code/src/trace_assert/py.typed` was needed for
+the same reason from the other direction: without it pyright reports *Stub
+file not found for `trace_assert`* the moment the package is imported from
+outside its own tree.
+
+#### One overfull box, and the recorded reword made it worse
+
+A 47.5 pt box in the **Polish** edition only, from `\code{code/ch11/trap\_patch.py}`
+mid-paragraph --- the inherited latency rule, an unbreakable run that is
+comfortable in one edition and not the other. The recorded remedy is to move
+it to the start of a sentence so it starts a line reliably; applied, it went
+to **56.8 pt**, which `checklog.py`'s own message warns about in as many
+words (*rewording moves it elsewhere*).
+
+Read the raw log rather than guessing a second time: the offending line was
+the paragraph's entire first line, so starting the sentence with the path
+had put the unbreakable run exactly where the break had to fall. **The fix
+is to shorten the run, not to move it**: `\code{trap\_patch.py}` is half the
+characters and names the same file, since the directory is on the listing's
+own path line two inches below. Applied in both editions, so C4 and C14
+moved identically.
+
+#### trace-assert stage 01 is a port and says whose design it is
+
+CLAUDE.md's rule for the guiding project is that the assertion list is
+agent-eval-bench's own and must be copied from its specification, never
+reconstructed. The scaffold noted that the repository had not been
+consulted; it has now. The two authorities are
+`evals/schema/scenario.schema.json`, which defines the layer-1 assertion
+types, and
+`tests/AbsenceConcierge.Evals/Assertions/AssertionEvaluator.cs`, which
+evaluates them. Read on 14 September 2026 the schema defines **twelve**;
+that figure is dated and attributed here rather than restated as a
+standing fact, because it is the specification's to state and nothing in
+this repository gates it.
+
+Stage 01 ports **two**, and the schema is why they are a pair rather than a
+sample: it documents `tool_not_called` as *half of the two-assertion rule for
+a denied path*, because an agent that refuses in prose and calls the tool
+anyway passes the refusal check on its own. Both raise `AssertionError`
+rather than returning a verdict --- in pytest the assertion is the report ---
+and both set `__tracebackhide__`, so a failure points at the reader's test
+rather than at the library.
+
+#### Also
+
+- **`coverage` 7.16.1 was added to the dev group**, which is a new
+  dependency and therefore a decision rather than a side effect. Section
+  11.6 needs a coverage report as a transcript; the alternative,
+  `pytest-cov`, is a plugin around the same tool and would put a second
+  name in the table for one command. Pinned in `preamble.tex`, in
+  `code/pyproject.toml` and in `check_versions.py`'s `PINS`, which is the
+  three places the gates read.
+- **`.pytest_cache/` and `.coverage` are gitignored**, and the comment says
+  why the pair is asymmetric: the report is a committed transcript, the
+  binary data file it is computed from is not.
+- **Traps 50, 51 and 52 are marked delivered in `notes/02-traps.md`**, and
+  writing the chapter corrected one of them. Trap 51 had the patch-target
+  rule as *patch where it is used*; the rule is one clause wider, because
+  which name a call resolves is decided by the **import**, so `import x`
+  followed by `x.y()` really is patched at `x.y`. Both halves are asserted
+  in `code/ch11/test_patching.py` rather than stated. Trap 52 was half
+  wrong in the reader's favour: under `-O` an `assert` in the
+  *application* really does vanish, so the habit it warns about is right
+  about application code and wrong about tests.
+
 ---
 
 ### The Chapter 12 pass, September 2026
@@ -2468,12 +2708,14 @@ spelling and are not the same package, so
 that is obviously an httpx client. Nothing in anybody's documentation says
 so; one `importlib.metadata.requires` call does.
 
-**And the two SDKs disagree about whether the wrong one is an error.**
-Measured against a local server, not inferred: `anthropic` refuses an
-`httpx.Client` with a `TypeError` naming both packages, and `openai`
-accepts it and **works** on a plain request. The first draft of this note
-said openai breaks; it does not, on the path that was tested, and the
-chapter says only what was tested. It is a new trap, 60 in `notes/02`.
+**And the two SDKs disagree about whether the wrong one is an error.** Measured
+against a local server, not inferred: `anthropic` refuses an `httpx.Client`
+with a `TypeError` naming both packages, and `openai` accepts it and **works**
+on a plain request. The first draft of this note said openai breaks; it does
+not, on the path that was tested, and the chapter says only what was tested. It
+is a new trap, **62** in `notes/02` -- renumbered from 60 at the ninth merge,
+when Chapter 11's independently appended trap turned out to carry the same free
+number.
 
 **A measurement that imports the listing it measures needs the checker told
 so.** E8 imports its corpus from `code/ch13/what_survives.py` rather than
@@ -2592,11 +2834,11 @@ Tag from a local clone.
 
 ## What is left
 
-Ten chapters of fourteen are written: 1, 2, 3, 5, 6, 7, 8, 10, 12 and 13. The
-outstanding work is tracked as GitHub issues under the `chapter`, `appendix`,
-`experiment` and `infrastructure` labels — **work from the labels, not from
-a list here**, because a list in this file is the class of claim nothing can
-check. In rough order:
+Eleven chapters of fourteen are written: 1, 2, 3, 5, 6, 7, 8, 10, 11, 12 and
+13. The outstanding work is tracked as GitHub issues under the `chapter`,
+`appendix`, `experiment` and `infrastructure` labels — **work from the labels,
+not from a list here**, because a list in this file is the class of claim
+nothing can check. In rough order:
 
 1. **Chapter 4**, which with the written Chapters 1, 2, 3, 5, 6 and 7
    completes v0.1. The suggested order was 1, 2, 3 first, because every later
@@ -2613,10 +2855,10 @@ check. In rough order:
    exercise-harness paragraph before writing an exercise, and the note on
    dumping the English token stream with `parity.py`'s own tokeniser before
    writing the Polish.
-2. **Chapters 9 and 11** (v0.2), with the trace-assert stage 01 in
-   Chapter 11 and the experiments those chapters carry. Chapter 12 is
-   written; its E7 is the one experiment blocked rather than merely unrun,
-   and `PYBOOK_E7=1` runs it on any machine that can reach a registry.
+2. **Chapter 9** (v0.2), with the experiments it carries. Chapters 11 and
+   12 are written; Chapter 11 carries trace-assert stage 01, and Chapter
+   12's E7 is the one experiment blocked rather than merely unrun —
+   `PYBOOK_E7=1` runs it on any machine that can reach a registry.
 3. **Chapter 14 and Appendices A to D** (v1.0). Chapter 13 is written and
    carries trace-assert stage 02, so Chapter 14 inherits a `Recorder` and
    the decision about what a model call records. Appendix B is written from
