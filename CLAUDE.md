@@ -19,14 +19,14 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **12 of 14 written: Chapter 1 *CPython and the GIL*, Chapter 2 *Environments and packaging*, Chapter 3 *Typing*, Chapter 6 *Errors*, Chapter 7 *Imports and dependency injection*, Chapter 8 *asyncio*, Chapter 9 *Services*, Chapter 10 *Data*, Chapter 11 *Testing*, Chapter 12 *Observability and operations*, Chapter 13 *The AI engineer's kit* and Chapter 14 *trace-assert, complete* — both editions** | 4, 5 |
+| Chapters | **13 of 14 written: Chapter 1 *CPython and the GIL*, Chapter 2 *Environments and packaging*, Chapter 3 *Typing*, Chapter 5 *Functions and control flow*, Chapter 6 *Errors*, Chapter 7 *Imports and dependency injection*, Chapter 8 *asyncio*, Chapter 9 *Services*, Chapter 10 *Data*, Chapter 11 *Testing*, Chapter 12 *Observability and operations*, Chapter 13 *The AI engineer's kit* and Chapter 14 *trace-assert, complete* — both editions** | 4 |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: `trace-assert` **complete** (the specification's trace model, all twelve assertions, the `trace` fixture and the `Recorder` both stages write into), those twelve chapters' listings and exercises, Chapter 12's three Dockerfiles, experiments E1, E2, E3, E4, E5, E6 and E8, and the measurement, ledger and transcript scripts, and CI runs all of it | every other chapter's listings and exercises; every experiment the manifest's Status column still marks *not run* |
+| Code | `code/` is a locked uv project: `trace-assert` **complete** (the specification's trace model, all twelve assertions, the `trace` fixture and the `Recorder` both stages write into), those thirteen chapters' listings and exercises, Chapter 12's three Dockerfiles, experiments E1, E2, E3, E4, E5, E6 and E8, and the measurement, ledger and transcript scripts, and CI runs all of it | every other chapter's listings and exercises; every experiment the manifest's Status column still marks *not run* |
 
-**The scaffold plus twelve chapters.** The scaffold existed so that the shape
+**The scaffold plus thirteen chapters.** The scaffold existed so that the shape
 of the book could be argued with before any chapter was written, and so that
-the first one was written into a build that already had every gate. All twelve
-were written in parallel, by separate passes that could not see each other,
+the first one was written into a build that already had every gate. All
+thirteen were written in parallel, by separate passes that could not see each other,
 each against the issue that came up first rather than against the reading
 order — which is possible because a chapter names what it borrows and borrows
 little. The gates earned their keep on every one of them, and none had to be
@@ -65,8 +65,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 196 | 0 | 0 | 1 · 10.0 pt | 0 |
-| `main-pl` | 199 | 0 | 0 | 0 | 0 |
+| `main-en` | 211 | 0 | 0 | 1 · 10.0 pt | 0 |
+| `main-pl` | 214 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -103,11 +103,11 @@ for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **2 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **1 of 14 chapters is a stub, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 232 listing references, every file and region present · 49 exercises, each
-  with a starter, a solution and a test · 90 transcript references, every
-  file present · 271 code files, none over 79 columns · 21 pins agree between
+- 266 listing references, every file and region present · 54 exercises, each
+  with a starter, a solution and a test · 102 transcript references, every
+  file present · 296 code files, none over 79 columns · 21 pins agree between
   `preamble.tex` and `code/pyproject.toml`
 - **1 `verifybox` block** — Chapter 12's three Dockerfiles, which could not
   be built because no container registry is reachable from the machine that
@@ -116,15 +116,16 @@ does not:
   was not run. **That figure is per edition, which is what Appendix E
   prints; `make debt`'s `shots` target greps both editions and says 2.**
   Quote whichever you mean, and say which
-- 72 Mermaid sources, thirty-six per language, all rendering, all placed
-- 144 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 265 labels in each edition,
+- 78 Mermaid sources, thirty-nine per language, all rendering, all placed
+- 151 computed value keys, every one produced and every one used
+- Parity: 23 file pairs, 0 failures, 0 warnings · 295 labels in each edition,
   0 mismatches
 - Prose words against a budget of 3,000, and `csbox` translation boxes,
   English first: Chapter 1 at 2,399 / 2,098 with 2 boxes, Chapter 2 at
   2,721 / 2,330 with 5, Chapter 3 at 2,915 / 2,516 with 2, Chapter 6 at
   2,638 / 2,311 with 3, Chapter 7 at 2,581 / 2,242 with 3, Chapter 8 at
-  2,269 / 1,990 with 2, Chapter 9 at 2,507 / 2,176 with 2, Chapter 10 at
+  2,269 / 1,990 with 2, Chapter 5 at 2,535 / 2,258 with 2, Chapter 9 at
+  2,507 / 2,176 with 2, Chapter 10 at
   2,386 / 2,069 with 3, Chapter 11 at 2,572 / 2,260 with 2, Chapter 12 at
   2,765 / 2,388 with 2, Chapter 13 at 2,543 / 2,225 with 2, Chapter 14 at
   2,303 / 1,962 with 2. These are what
@@ -136,7 +137,11 @@ does not:
 - **8 experiments specified, all free. The Status column in
   `notes/01-curriculum.md` §4 is the ledger**, filled in by the pass that
   runs each one; neither that file nor this one states a total, because a
-  count of how many have run is the class of claim that decays silently
+  count of how many have run is the class of claim that decays silently.
+  **A chapter may also carry a measurement that is not one of the eight**
+  — Chapter 5's `code/measure/ch05_concat.py` is the first — and such a
+  measurement does not belong in that table and must not be counted into
+  it
 
 ---
 
@@ -637,6 +642,48 @@ are listed by name and their reasoning is in the companion books.
   ``Font shape `T1/zi4/m/it' undefined`` on every build, substituted with
   upright, and `Font shape` was in `checklog.py`'s ignore list. The comment
   style is colour only, and the warning is hard now.
+- **`\code{}` inside `\emph{}` asks inconsolata for an italic it has not
+  got.** The recorded form of this trap is `commentstyle=\itshape` inside
+  the listing style, and the preamble has not done that since the review
+  pass. Chapter 5 found the second way in: a tool's message quoted in
+  running prose as `\emph{... \code{-> Iterator[Foo]} ...}` puts `\texttt`
+  inside an italic context, `T1/zi4/m/it` is substituted silently, and
+  `checklog.py` is hard on it, so the build fails on a line of prose rather
+  than on the style. `\enquote{}` round a quoted message rather than
+  `\emph{}`; it is what the Polish edition owes anyway.
+- **A long `\api{}` in running prose overflows, and rewording it is the
+  wrong instinct.** `\api{contextlib.ExitStack}` beside
+  `\api{contextlib.suppress}` in one paragraph gave 13.2 pt; splitting the
+  sentence so each name started one made it **42.6 pt**, because a 20-column
+  unbreakable run at the head of a short clause leaves TeX nothing at all.
+  The inherited remedy is the one that works: move the names into a
+  displayed `itemize`, which also shortens them, and the box goes to zero.
+- **A local build needs `texlive-plain-generic` as well as `tex-gyre`.**
+  Without it `newtxmath` dies on `Missing input file 'binhex.tex'`, which
+  names neither the font package nor the reason. CI uses a full TeX Live
+  image and never sees it; this is a sandbox-setup fact, recorded because
+  it cost a build.
+- **`make en pl` does not render diagrams, and latexmk will not notice one
+  appearing.** Only `make all` depends on `diagrams`, so a tree whose
+  figures were added by somebody else — a merge, a fresh clone — compiles
+  with `\mermaidfig`'s fallback in their place: the Mermaid source
+  typeset through `listings`, which is a different height from the render.
+  The page count is then a fact about a book two figures short. Running
+  `make diagrams` afterwards does **not** fix it: latexmk answers *All
+  targets are up-to-date* and does not recompile, because a file that was
+  absent on the previous run is not in its dependency list, so the
+  rebuild reports the same page count and the recorded
+  unchanged-page-count tell fires. `make clean` first.
+
+  **And the obvious detector is the wrong one.** The fallback's heading is
+  a language macro, so grepping the log for it matches nothing and returns
+  a reassuring zero. What is decisive is the opposite: a build in which
+  every figure rendered reads **no `.mmd` file at all**, so count
+  `figures/mermaid/<lang>/*.mmd` in the log and require zero — with
+  newlines stripped first, because pdfTeX hard-wraps the log at 79
+  columns and a path can be split across two lines. Both halves of this
+  were met in one pass and the reassuring instrument was believed first.
+
 - **`babel` with a missing language is fatal; `fancyhdr` overwrites
   `\chaptermark` at `\pagestyle{fancy}`; `amssymb` beside `newtxmath` is a
   fatal clash invisible on a bare machine; `\IfFileExists` branches need
@@ -1419,6 +1466,254 @@ trimming the Polish `boundary` nodes took two attempts because **the node I
 trimmed first was not the widest one** — mermaid sizes a chain by the sum of
 its nodes' longest lines, so the render has to be measured again rather than
 reasoned about.
+
+### The Chapter 5 pass, September 2026
+
+Written against issue #11, in parallel with Chapter 3 and out of the
+suggested order. Everything below was settled against the installed
+interpreter, pyright's own bundled typeshed or a measurement, never from
+memory. The brief was right about its argument; what it and the trap
+catalogue were wrong or incomplete about is listed below rather than
+counted, because a tally in this file is the class of claim nothing can
+check.
+
+**The trap catalogue was wrong, and the measurement is what said so.**
+`notes/02-traps.md` entry 23 read *`s += piece` in a loop is quadratic;
+`"".join(pieces)` is linear*. On CPython the first half is **false for the
+case people actually write**. The interpreter carries a specialisation for
+exactly that shape and names itself when asked: disassemble a warmed-up
+loop with `dis.get_instructions(fn, adaptive=True)` and the opcode is
+`BINARY_OP_INPLACE_ADD_UNICODE`. With no other reference to the left-hand
+string it is resized in place and the loop is linear --- measured at a
+doubling ratio of about 2. Hold one more reference to it, by appending it
+to a list, and the same loop doubles by about 4. So the trap is not *`+=`
+is slow*; it is **`+=` is fast until an unrelated line elsewhere makes it
+slow, with nothing at the call site changed**, which is a better trap than
+the one the catalogue had. Entry 23 now says so and is marked corrected
+rather than merely delivered.
+
+**A timing measurement is not reproducible, so what is committed is a
+bound** --- the rule `notes/01-curriculum.md` §4 already sets for a
+machine-dependent residual, and this is the first pass to need it. The
+value file carries the two bounds and the four sizes, all of them
+decisions, so `make verify` is stable; the ratios themselves never reach
+the page.
+
+**And the first version of that measurement failed, which is the finding
+worth keeping.** It timed runs of about a sixth of a millisecond and took
+the minimum over five trials. Run beside a LaTeX build it reported the
+*linear* loop doubling by a factor of 3.92 and failed its own assertion ---
+correctly, and for a reason that had nothing to do with strings. Two
+changes fixed it, and both generalise to any timing this book adds later:
+size each variant so one run takes tens of milliseconds rather than tenths,
+and **interleave the small and the large run inside one trial, take the
+ratio per trial and the median over trials**, so a contention episode lands
+on both halves of one ratio instead of on one side of a minimum. Verified
+by re-running it under eight busy loops on four cores: the per-trial spread
+went as wide as x22 and all three medians still cleared their bounds, three
+runs out of three. The linear and quadratic variants are timed at different
+sizes on purpose, and saying why is itself the point --- the quadratic loop
+at the linear one's size runs for minutes.
+
+**The brief said a generator expression "IS deferred" and stopped
+one clause short.** It is deferred *and single-pass*, where a LINQ
+`IEnumerable` is deferred *and re-runnable*: the second walk over a
+generator expression is empty, with no error and no warning. That is the
+half that bites a .NET engineer, because a deferred pipeline is not a
+drop-in for an `IEnumerable` they were going to hand to somebody else. The
+brief in `tools/chapters.json` is left as written --- it is not wrong ---
+and §5.5 carries the sharper statement.
+
+**The `match` capture trap is milder than the folklore, and Python says
+so.** `case ACTIVE:` really does bind rather than compare, but the compiler
+**refuses** it when another case follows: `SyntaxError: name capture
+'ACTIVE' makes remaining patterns unreachable`. It compiles in silence only
+as the last case, which is where it survives review, and that is what the
+chapter says rather than the unqualified version.
+
+**Two things about the pinned toolchain that no tutorial has caught up
+with.** `@contextmanager` with `-> Iterator[T]` is **deprecated**: the
+typeshed pyright 1.1.414 bundles marks that overload
+`@deprecated` with the message *annotating the return type as
+`-> Iterator[Foo]` with `@contextmanager` is deprecated. Use
+`-> Generator[Foo]` instead.* Every listing here writes `Generator`. And
+`functools.Placeholder`, new in 3.14, **runs and is not modelled by the
+stubs** --- typeshed declares `Placeholder` and `partial`'s overloads
+accept nothing of its type --- so `ch05/parameters.py` carries two
+suppressions and says that is what using a run-time feature ahead of its
+stubs looks like.
+
+**ruff catches one of the chapter's five traps.** `B023`, *function
+definition does not bind loop variable*, refuses the late-binding listing,
+which has to silence the rule to print the bug at all. Worth knowing
+because it is the only one of the five the toolchain finds: the other four
+are all code that lints, type-checks and runs.
+
+**The brief's third decorator would have broken the drift gate, and the
+way round it is worth copying.** It asks for "a decorator that is
+middleware, timing and retrying a call". A timing decorator that *prints* a
+duration puts a machine-dependent number inside a committed transcript, and
+`make verify` would then fail on every run. `ch05/decorators.py` has the
+timing decorator, records the elapsed times, and prints **how many were
+measured** rather than what they were. A listing whose output is quoted may
+compute anything; it may only print what is reproducible.
+
+**Two figures were drawn below the aspect-ratio crossover.** Both
+comparisons started as two-rank fan-outs and came out at ratios of 0.94 and
+1.17, where the height cap binds and the node text sets at 10.1 and
+11.8 pt --- the hazard the math book records. The recorded fix applied
+unchanged: **add a rank**. A joining node took them to 1.48 and 1.78, width
+binding, node text 8.5 to 9.6 pt, which is the band the rest of the book
+sits in. Measured from each PDF's own MediaBox, because `pdfinfo` is not
+installed in this sandbox and the box is four numbers in the file.
+
+**An exercise's key ordinal must match its position in the chapter, and
+nothing checks it.** `\theexercise` counts in document order, so an
+exercise keyed `e05_03_...` sitting second prints as *Exercise 5.2* and
+disagrees with the filename the box prints directly underneath it. Two keys
+were renamed for this. `check_structure.py --exercises` checks the chapter
+prefix and not the ordinal; adding that was left out of this pass because
+one instance is not yet a class.
+
+**It is a class now, and the merges said so rather than any argument.**
+Chapters 6 and 8 each hit the identical defect independently, each found it
+by reading the finished PDF rather than by any gate, and each renamed its
+files for the same reason; both notes are below. The chapters that escaped
+it escaped because somebody happened to write the files in the order the
+sections wanted, which is not a practice and cannot be relied on — which
+is what a gate is for.
+
+**No count of which chapters is stated here, deliberately, and the
+omission was paid for.** This paragraph carried one, it went stale on the
+first merge, the correction went stale on the second, and the correction to
+*that* named the wrong chapter as the sole exception because it was written
+from the feel of the file rather than from the files. Three corrections to
+one tally in one afternoon, in the note that argues for the gate — which
+is this file's own rule about a count of occurrences, demonstrated on
+itself. Name the rule, open the chapters if you need the roll call, and
+**write the check**: it is specified in Chapter 6's note, it is a few lines
+beside `check_exercises`, and it retires this paragraph along with all
+three findings.
+
+**Measured at the seventh merge: every exercise in the book, in every
+written chapter, has an ordinal matching its key.** So whoever writes the
+check starts from a clean tree and any failure it reports afterwards is
+new. The count is deliberately not stated — it was written here as *32* at
+the sixth merge and was wrong by five an hour later, when Chapters 1 and 2
+landed, which is this file's own rule about a tally demonstrated inside the
+note that records a measurement.
+Note that there are two instruments here and only one belongs in
+`check_structure.py`: reading `main-en.exr` answers the question from a
+BUILD artefact, which is how it was measured here, and the check specified
+above reads the SOURCE — which is the one to write, because the gates that
+read the source run before a build and cost seconds.
+**And the comparative audit the Chapter 3 pass called “the cheapest audit in
+this repository” found two more here, both superlatives.** “The most
+expensive habit a .NET engineer brings to Python” is a ranking over every
+habit such a reader has, which nobody has enumerated let alone measured;
+it is now scoped to the mappings in this chapter, where it is checkable by
+reading. “Agent middleware is the most visible use of this mechanism in
+the Python AI stack” is an unmeasured claim about an ecosystem — FastAPI's
+route decorators are at least as visible — and the note's actual job is
+the overlap pointer, which needs no superlative at all.
+
+**A superlative is the form this class takes once the obvious comparatives
+are gone.** `grep -nE 'faster|slower|cheaper'` catches the Chapter 3 kind
+and misses both of these; `most |least |best |worst ` is the other half of
+the pattern and costs one more grep. Running it over `chapters/pl` as well
+turned up the same shape in Chapter 3's own prose — *najdroższe
+założenie, jakie inżynier C\# przynosi*, at `ch03-typing.tex:202` — which
+is another pass's file and is recorded here rather than touched.
+
+**And the eighth merge found the sharpest of the merge lessons, which is
+about what a conflict marker does NOT mark.** Two numbers in the ledger —
+the stub count and `main-en`'s page count — sat outside every conflict
+hunk and so came through the merge untouched and stale, because git marks
+only what BOTH sides edited and the other branch happened not to edit those
+two lines. A number the other side did not touch is exactly as wrong as one
+it did, and it arrives without a marker to tell you. **So resolving the
+hunks is not resolving the file**: after every merge, placeholder every
+measured figure in the ledger and the page table, whether or not git marked
+it, and fill them all from `make debt` and the build. That is what the
+placeholder discipline is for, and it is cheaper than deciding, line by
+line, which numbers this particular merge could have invalidated.
+
+
+**And the same rule was being broken on the chapter's own first page, by
+me, while I was enforcing it here.** The opening paragraph read *every one
+of them produces Python that runs, and three of them produce Python that
+runs and is quietly wrong* — a count of occurrences, in the one place a
+reader meets first, written in the same pass that spent three commits
+taking a tally out of this file. Counted against the chapter's six trap
+boxes it is not merely fragile but **ambiguous**: late binding, the
+single-pass generator expression and the pattern capture are clearly
+*runs and is quietly wrong*; the `+=` one is quietly *slow* rather than
+wrong; and the decorator and `yield` boxes are mental-model corrections
+that may or may not produce a defect. Three clearly, up to six arguably,
+so a careful reader doing what the sentence invites gets a different
+number from the page. It now says *the worst of them*, which grades the
+traps instead of counting them and cannot go stale when one is added.
+
+**Nothing could have caught it**, and that is the part worth keeping. The
+tally is spelled as a word, so C12's numeric-literal check sees no digit;
+it carries no macro, so C14's histogram sees nothing; both editions said
+it identically (*trzy z nich*), so every ordered parity check was green.
+It was found by re-reading my own first page after the chapter had passed
+every gate and CI twice. **A count in prose is invisible to this
+repository's entire toolchain**, which is why the rule is a rule rather
+than a lint.
+
+**And the sixth merge found two things in the trap catalogue that no
+conflict marker could.** `notes/02-traps.md` auto-merged cleanly every
+time, which is the Chapter 8 pass's recorded hazard — several sessions
+appending to one file conflict only on the same LINES, and rows are never
+the same lines.
+
+The first is mine. Chapter 5's five entries carried their delivery in the
+BODY cell, as ***Delivered: Ch. 5 SS5.2***, with the owner column left a bare
+`Ch. 5` — and that file's own header says a bare `Ch. N` **is still a
+promise**. So the catalogue said Chapter 5 was unwritten, in the document
+Appendix B is generated from, while the Status table two files away said it
+was written. Every other written chapter (3, 6, 8, 10, 13) puts it in the
+owner column, so Chapter 5 was the only deviant and the information was
+already there — in the wrong cell. Normalised to `Ch. 5 §5.N, delivered`,
+with each section number checked against the chapter's own `\section` list
+rather than against the body note it came from.
+
+**A sixth trap box had no entry at all.** The chapter's `match` capture box
+is one of the pass's better findings and Chapter 5's block, 20 to 24, was
+full — so it is entry **61**, appended out of block on the precedent Chapter
+8 set for entry 60, because that file's numbers are never reused. Both
+halves of it were re-verified against the pinned interpreter rather than
+copied out of this file: the compiler refuses the capture when another case
+follows, with `SyntaxError: name capture 'ACTIVE' makes remaining patterns
+unreachable`, and as the LAST case it compiles with no warning at all and
+matches every subject.
+
+**The second is not mine and is deliberately not fixed here: there are two
+entries numbered 60.** Chapter 8's and Chapter 13's passes each appended
+“the next free number” without being able to see the other, and git merged
+both. It predates this merge — `git show origin/main:notes/02-traps.md`
+counts two before anything of mine is applied — and an entry is cited by
+number, so a collision breaks the one thing the numbering exists for. It is
+worse than the format split the Chapter 8 pass fixed, and it is the same
+cause one step on: **appending “the next free number” is not a safe
+operation in a file several branches append to**, because free is a
+property of the branch you are standing on. Whoever renumbers it should
+take the later one, since the earlier is already cited.
+
+**Resolved at the ninth merge of this branch, and it had become three, not
+two.** Chapter 11's pass had independently appended its own “next free number”
+60 as well, so by this merge the catalogue carried Ch. 8's, Ch. 13's and Ch.
+11's entries all numbered 60 -- the collision this file predicted, arriving a
+second time before the first instance was even fixed. Per the rule already
+recorded here, the earliest and most-cited (Ch. 8's, cited by number in this
+file's own Chapter 8 pass note) keeps 60; Ch. 13's moves to **62** and Ch. 11's
+to **63**, both free and both past Chapter 5's own 61. Neither renumbered trap
+was cited by number anywhere in the typeset chapters, only in this file's own
+prose, which is now consistent with the table. **The generalisable half stands
+unchanged and is now attested twice**: a file several branches append to needs
+its free numbers assigned at merge time, never at write time.
 
 ### Chapter 6 pass, September 2026
 
@@ -2649,12 +2944,14 @@ spelling and are not the same package, so
 that is obviously an httpx client. Nothing in anybody's documentation says
 so; one `importlib.metadata.requires` call does.
 
-**And the two SDKs disagree about whether the wrong one is an error.**
-Measured against a local server, not inferred: `anthropic` refuses an
-`httpx.Client` with a `TypeError` naming both packages, and `openai`
-accepts it and **works** on a plain request. The first draft of this note
-said openai breaks; it does not, on the path that was tested, and the
-chapter says only what was tested. It is a new trap, 60 in `notes/02`.
+**And the two SDKs disagree about whether the wrong one is an error.** Measured
+against a local server, not inferred: `anthropic` refuses an `httpx.Client`
+with a `TypeError` naming both packages, and `openai` accepts it and **works**
+on a plain request. The first draft of this note said openai breaks; it does
+not, on the path that was tested, and the chapter says only what was tested. It
+is a new trap, **62** in `notes/02` -- renumbered from 60 at the ninth merge,
+when Chapter 11's independently appended trap turned out to carry the same free
+number.
 
 **A measurement that imports the listing it measures needs the checker told
 so.** E8 imports its corpus from `code/ch13/what_survives.py` rather than
@@ -3147,6 +3444,17 @@ already recorded, and the file's own header now says so and gives the
 `uniq -d` that checks it. It reaches nobody today because Appendix B is a
 stub, which is the only reason leaving it is defensible.
 
+**And Chapter 5 (#50) landed while that merge was being measured, which is
+the shape this branch has met eleven times.** Bookkeeping again, except for
+one thing worth having: **the Chapter 5 pass had independently renumbered
+Chapter 13's trap row off 60, and landed it on Chapter 9's 62.** So two
+branches tried to sweep the same collision, from two stale views of the
+maximum, and each created a new one. That is not carelessness in either
+pass — it is what allocating from a running maximum does when several
+branches are open — and the traps file's header now says the sweep has to
+allocate a block per owning chapter rather than a next-free number, which
+is the only form of the fix that a twelfth parallel pass cannot break.
+
 ---
 
 ## After each pass
@@ -3192,20 +3500,26 @@ Tag from a local clone.
 
 ## What is left
 
-Twelve chapters of fourteen are written: 1, 2, 3, 6, 7, 8, 9, 10, 11, 12, 13
-and 14, and with Chapters 11, 13 and 14 the guiding project is complete. The
+Thirteen chapters of fourteen are written: 1, 2, 3, 5, 6, 7, 8, 9, 10, 11,
+12, 13 and 14, and with Chapters 11, 13 and 14 the guiding project is
+complete. The
 outstanding work is tracked as GitHub issues under the `chapter`, `appendix`,
 `experiment` and `infrastructure` labels — **work from the labels, not from
 a list here**, because a list in this file is the class of claim nothing can
 check. In rough order:
 
-1. **Chapters 4 and 5**, which with the written Chapters 1, 2, 3, 6 and 7
-   complete v0.1. The suggested order was 1, 2, 3 first, because every later
+1. **Chapter 4**, which with the written Chapters 1, 2, 3, 5, 6 and 7
+   completes v0.1. The suggested order was 1, 2, 3 first, because every later
    chapter's listings assume the reader trusts the environment — and every
    chapter written out of that order so far has not suffered for it, because
    each names what it borrows and borrows almost nothing. Treat the ordering
-   as a preference rather than a constraint. Two things that cost Chapter 6 a
-   round are under *Resolved questions* and are worth reading first — the
+   as a preference rather than a constraint. **Chapter 5's two forward
+   references are both discharged**: Chapter 3's was kept, and Chapter 2
+   arrived at the seventh merge, at which point its claim — that ruff is
+   “the toolchain from Chapter 2” — was checked against the written chapter
+   rather than against the brief it was drafted from, and holds. Two things
+   that cost Chapter 6 a round are under *Resolved questions* and are worth
+   reading first — the
    exercise-harness paragraph before writing an exercise, and the note on
    dumping the English token stream with `parity.py`'s own tokeniser before
    writing the Polish.
