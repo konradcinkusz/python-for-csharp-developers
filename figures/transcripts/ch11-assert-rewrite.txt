@@ -1,0 +1,21 @@
+================================== FAILURES ===================================
+____________________ test_a_scalar_gets_its_working_shown _____________________
+
+    def test_a_scalar_gets_its_working_shown() -> None:
+        line = Line("SKU-1", qty=3, unit_pence=250)
+>       assert line_total(line) == 700
+E       AssertionError: assert 750 == 700
+E        +  where 750 = line_total(Line(sku='SKU-1', qty=3, unit_pence=250))
+
+ch11/trap_assert.py:22: AssertionError
+________________________ test_a_collection_gets_a_diff ________________________
+
+    def test_a_collection_gets_a_diff() -> None:
+        lines = [Line("SKU-1", 2, 500), Line("SKU-2", 1, 1000)]
+>       assert skus(lines) == ["SKU-1", "SKU-3"]
+E       AssertionError: assert ['SKU-1', 'SKU-2'] == ['SKU-1', 'SKU-3']
+E         
+E         At index 1 diff: 'SKU-2' != 'SKU-3'
+E         Use -v to get more diff
+
+ch11/trap_assert.py:27: AssertionError
