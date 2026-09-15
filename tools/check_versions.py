@@ -37,6 +37,7 @@ PINS: dict[str, str] = {
     "pytestver": "pytest",
     "pytestasyncver": "pytest-asyncio",
     "hypothesisver": "hypothesis",
+    "coveragever": "coverage",
     "httpxver": "httpx",
     "structlogver": "structlog",
     "otelver": "opentelemetry-sdk",

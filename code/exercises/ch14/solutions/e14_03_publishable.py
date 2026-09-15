@@ -14,6 +14,9 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 
+[project.entry-points.pytest11]
+trace_assert = "trace_assert.plugin"
+
 [project.urls]
 Source = "https://github.com/konradcinkusz/trace-assert"
 """

@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-__all__ = ["Event", "Span", "ToolCall", "Trace", "Turn"]
+__all__ = ["Event", "Span", "ToolCall", "Trace", "Turn", "as_text"]
 
 
 def _no_arguments() -> dict[str, str]:
@@ -37,6 +37,24 @@ def _no_arguments() -> dict[str, str]:
 
 def _no_tags() -> dict[str, object]:
     return {}
+
+
+def as_text(value: object) -> str:
+    """One stringifier for the whole package.
+
+    A recorded argument arrives typed and an expectation is usually
+    written as text, so the comparison has to be made on one side of
+    the pair. It lives here rather than in `assertions` because BOTH
+    halves need it -- the recorder writing a call's arguments and the
+    assertions reading them -- and two copies of a rule about equality
+    is how a recorder and its own assertions come to disagree.
+
+    `True` is `"true"` and not `"True"`, because that is what the
+    other two ports write.
+    """
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return str(value)
 
 
 # --8<-- [start:model]

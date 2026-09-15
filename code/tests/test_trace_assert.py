@@ -16,6 +16,7 @@ import pytest
 from trace_assert import (
     ASSERTIONS,
     Event,
+    Recorder,
     Span,
     ToolCall,
     Trace,
@@ -265,3 +266,73 @@ def test_a_boolean_tag_normalises_the_way_the_other_ports_write_it() -> None:
                                   {"attachment_required": True}),))
     span_attribute(flagged, "attachment_required", "true")
     span_attribute(flagged, "attachment_required", True)
+
+
+# --------------------------------------------------------------------
+# The Recorder: mutable while the run happens, immutable once asserted on.
+# Ported with stage 01, whose two assertions read what it writes.
+# --------------------------------------------------------------------
+
+
+def test_the_trace_fixture_is_a_fresh_recorder(trace: Recorder) -> None:
+    # Function-scoped, and every count assertion assumes it: a recorder
+    # shared between two tests is two runs' evidence in one place, and the
+    # counts would then include the neighbour's calls.
+    assert trace.trace.tool_calls == ()
+    assert trace.trace.events == ()
+
+
+def test_a_snapshot_does_not_change_underneath_an_assertion(
+    trace: Recorder,
+) -> None:
+    trace.tool_call("search")
+    snapshot = trace.trace
+    trace.tool_call("write_leave")
+    # The snapshot taken before the second call still shows one: an
+    # assertion holding a Trace holds evidence, not a live view.
+    tool_called(snapshot, "search", times=1)
+    tool_not_called(snapshot, "write_leave")
+    tool_called(trace.trace, "write_leave", times=1)
+
+
+def test_the_recorder_numbers_calls_and_events_on_one_ruler(
+    trace: Recorder,
+) -> None:
+    # The whole reason both halves live in one object: `order` compares a
+    # tool call against an event, and two rulers cannot be interleaved.
+    trace.tool_call("list_leave_types")
+    trace.model_call("claude", output_type="Decision")
+    trace.tool_call("request_time_off")
+    order(
+        trace.trace,
+        Span.of_event("model_call"),
+        Span.of_tool("request_time_off"),
+    )
+    with pytest.raises(AssertionError, match="first"):
+        order(
+            trace.trace,
+            Span.of_tool("request_time_off"),
+            Span.of_event("model_call"),
+        )
+
+
+def test_what_the_recorder_writes_is_what_the_assertions_read(
+    trace: Recorder,
+) -> None:
+    # A recorded argument arrives typed and an expectation is written as
+    # text, so both sides go through one stringifier. Two copies of that
+    # rule is how a recorder and its own assertions come to disagree.
+    trace.tool_call("pay_refund", pence=500, outcome="ok")
+    tool_called_with(trace.trace, "pay_refund", {"pence": "500"})
+    with pytest.raises(AssertionError, match="no matching call"):
+        tool_called_with(trace.trace, "pay_refund", {"pence": "600"})
+
+
+def test_a_failed_call_is_not_a_call_that_never_happened(
+    trace: Recorder,
+) -> None:
+    # A span exists whether the call succeeded or not, so the failure
+    # message names the outcome of every call it found.
+    trace.tool_call("write_leave", outcome="failure")
+    with pytest.raises(AssertionError, match="outcome\\(s\\): failure"):
+        tool_not_called(trace.trace, "write_leave")

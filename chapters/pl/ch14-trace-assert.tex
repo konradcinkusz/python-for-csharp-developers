@@ -159,7 +159,7 @@ się nie wydarzyło, czyli na tym jedynym, o którym powinien krzyczeć
 najgłośniej.
 \end{trapbox}
 
-\pyregion{code/src/trace_assert/assertions.py}{attempts}{Cztery linie, z których pierwsze trzy to ta dyscyplina}{lst:ch14-attempts}
+\pyregion{code/src/trace_assert/assertions.py}{attempts}{Większość tego to zabezpieczenie przed zaliczeniem przebiegu, w którym nic się nie wydarzyło}{lst:ch14-attempts}
 
 \noindent
 Ta sama reguła rozstrzyga trzy dalsze przypadki.
@@ -285,16 +285,16 @@ sobie instaluje.
 \noindent
 Wheel to plik zip z członem metadanych w formacie nagłówków wiadomości
 pocztowej, dlatego jest parsowany, a nie dzielony na dwukropkach: format
-dopuszcza powtarzające się pola, a słownik zachowa tylko ostatnie
-\code{Requires-Dist} z dwunastu. Uruchomiony na projekcie tej książki
-raportuje:
+dopuszcza powtarzające się pola, a słownik zachowa tylko ostatnią z
+powtórzonych linii \code{Requires-Dist}. Uruchomiony na projekcie tej
+książki raportuje:
 
 \transcript{ch14-publish}
 
 \noindent
 I to jest uczciwy wniosek tej sekcji. Katalog \code{code/} tej książki
 buduje dystrybucję nazwaną po książce, przypiętą do jednej wersji minor
-Pythona, na której książka jest budowana, i deklarującą dwanaście
+Pythona, na której książka jest budowana, i deklarującą szereg
 zależności uruchomieniowych.
 \code{trace\_assert} nie importuje żadnej z nich. To dobry projekt na
 czternaście rozdziałów listingów i nie jest to pakiet, który ktokolwiek
@@ -318,12 +318,15 @@ rozdział może ci pokazać.
 
 \begin{exercise}{e14_03_publishable}{Zrób z tego pakiet do publikacji}
 Napisz tabelę \code{[project]}, której potrzebuje opublikowany
-\code{trace-assert}. Test ją parsuje i pyta o sześć rzeczy; przeczytaj
-test, bo to on jest specyfikacją. Dwie z tych sześciu to te, które ta
+\code{trace-assert}. Test ją parsuje i pyta o siedem rzeczy; przeczytaj
+test, bo to on jest specyfikacją. Dwie z tych siedmiu to te, które ta
 sekcja zmierzyła: pakiet nie może deklarować żadnych zależności
 uruchomieniowych, bo każdy import w nim pochodzi z biblioteki standardowej,
 i musi dopuszczać więcej niż tę jedną wersję minor Pythona, na której
-akurat budowana jest książka.
+akurat budowana jest książka. Trzecia to ta, którą obiecał
+Rozdział~\ref{ch:testing}: fixture \code{trace} trafiał tam przez linijkę
+\code{conftest.py}, a pakiet nie może wymagać tej linijki od swoich
+użytkowników.
 \end{exercise}
 
 \section{Co masz}

@@ -239,6 +239,17 @@ verifiable rather than stated.
 > to build. **Rows 01 and 02 above are deliberately not rewritten from
 > inside the Chapter 14 pass**: rewriting another chapter's contract from
 > outside it is how a brief stops being a contract.
+>
+> **Chapter 11 then shipped against the placeholder too, and the paragraph
+> above named the condition that would have reversed its answer.** So the
+> question was asked again rather than re-applied, and this time it was
+> settled by what each model can carry: ten of the twelve assertions cannot
+> be written against a flat event log at all, and Chapter 11's own prose
+> says the port follows the original — which the flat model is not. The
+> specification's model stands and Chapter 11's stage 01 is ported onto it.
+> **The instruction two paragraphs up is what made that cheap**, and it is
+> the reason it was written here rather than in a pass note: a pass note is
+> read as history, and this file is read before a chapter is written.
 
 ### The assertion list, copied
 

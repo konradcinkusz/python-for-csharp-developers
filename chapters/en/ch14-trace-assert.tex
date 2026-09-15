@@ -155,7 +155,7 @@ restraint then passes on the run in which nothing happened, which is the
 one run it should be loudest about.
 \end{trapbox}
 
-\pyregion{code/src/trace_assert/assertions.py}{attempts}{Four lines, and the first three are the discipline}{lst:ch14-attempts}
+\pyregion{code/src/trace_assert/assertions.py}{attempts}{Most of it is the guard against passing on a run where nothing happened}{lst:ch14-attempts}
 
 \noindent
 The same rule decides \code{order} when either side never occurred,
@@ -281,17 +281,17 @@ code \dash{} is what somebody installs.
 \noindent
 A wheel is a zip file with a metadata member in the format of an email
 header block, which is why it is parsed rather than split on colons: the
-format has repeated fields, and a dictionary keeps only the last
-\code{Requires-Dist} of twelve. Run against this book's own project, it
-reports:
+format has repeated fields, and a dictionary keeps only the last of
+the repeated \code{Requires-Dist} lines. Run against this book's own
+project, it reports:
 
 \transcript{ch14-publish}
 
 \noindent
 Which is the honest finding of this section. The book's \code{code/}
 directory builds a distribution named after the book, pinned to the one
-Python minor the book is built on, declaring twelve runtime dependencies
-that \code{trace\_assert} imports none of. It is a fine project for holding
+Python minor the book is built on, declaring a row of runtime
+dependencies that \code{trace\_assert} imports none of. It is a fine project for holding
 fourteen chapters of listings and it is not a package anybody should
 install. What you publish is a project, and a project is its metadata.
 
@@ -312,11 +312,14 @@ issue rather than a step this chapter can show you completing.
 
 \begin{exercise}{e14_03_publishable}{Make it publishable}
 Write the \code{[project]} table a published \code{trace-assert} needs. The
-test parses it and asks six things of it; read the test, because it is the
-specification. Two of the six are the ones this section measured: the
+test parses it and asks seven things of it; read the test, because it is the
+specification. Two of the seven are the ones this section measured: the
 package must declare no runtime dependencies, because every import in it is
 from the standard library, and it must admit more than the one Python minor
-the book happens to be built on.
+the book happens to be built on. A third is the one
+Chapter~\ref{ch:testing} promised: the \code{trace} fixture arrived there
+through a line of \code{conftest.py}, and a package cannot ask its users
+for that line.
 \end{exercise}
 
 \section{What you have}

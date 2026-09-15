@@ -7,6 +7,13 @@ answer about an agent's run with no model, no budget and no judgement.
 With arguments that came from somewhere? Without calling anything it was
 forbidden?*
 
+It is built one stage per chapter. Chapter 11 takes the trace model, the
+`trace` fixture and the first two assertions; chapter 13 records a real
+model call into the same trace; chapter 14 has the rest of the assertion
+set and the packaging. Everything a reader imports is re-exported here, so
+the package's surface is one import line and its layout is free to change
+underneath it.
+
 The trace model and the twelve assertions are that project's own, copied
 from its specification at commit 12b1bbd and not reconstructed: the point
 of the exercise is that three languages implement one design, and a
@@ -15,11 +22,12 @@ languages that do not have it.
 
 Every name below is a claim about the finished package. Usage:
 
-    from trace_assert import Trace, ToolCall, tool_called, tool_not_called
+    from trace_assert import Recorder, tool_called, tool_not_called
 
-    def test_the_gate_held(trace: Trace) -> None:
-        tool_called(trace, "list_leave_types")
-        tool_not_called(trace, "request_time_off")
+    def test_the_gate_held(trace: Recorder) -> None:
+        run(trace)
+        tool_called(trace.trace, "list_leave_types")
+        tool_not_called(trace.trace, "request_time_off")
 """
 
 from __future__ import annotations

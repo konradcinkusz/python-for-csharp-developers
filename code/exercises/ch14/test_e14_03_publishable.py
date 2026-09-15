@@ -1,12 +1,15 @@
 """What PyPI, and a user, need from the table.
 
-Six checks. Five are what an upload or an install turns on; the sixth --
-that the package declares no runtime dependencies -- is what this package
-in particular is entitled to say, because every import in it is stdlib.
+Seven checks. Five are what an upload or an install turns on. The sixth
+-- that the package declares no runtime dependencies -- is what this
+package in particular is entitled to say, because every import in it is
+stdlib. The seventh is what makes it usable once installed: the fixture
+arrives with the package or the reader is back to editing a conftest.
 """
 
 import re
 import tomllib
+from typing import cast
 
 from exercises._loader import load
 
@@ -55,3 +58,15 @@ def test_it_declares_no_runtime_dependencies() -> None:
     # Every import in src/trace_assert/ is stdlib. A package that declares
     # what it does not import installs it into everybody's environment.
     assert not table().get("dependencies")
+
+
+def test_it_registers_the_fixture_as_a_pytest_plugin() -> None:
+    # The `trace` fixture reaches a test through one line of conftest.py in
+    # chapter 11. A published package does not get to ask for that line:
+    # installing it has to be enough, and a pytest11 entry point is how.
+    #
+    # One cast, at the boundary: `isinstance(x, dict)` narrows to
+    # dict[Unknown, Unknown] under strict pyright, so asserting the shape
+    # makes the types worse rather than better. Chapter 3 says why.
+    points = cast("dict[str, dict[str, str]]", table().get("entry-points", {}))
+    assert "trace_assert.plugin" in points.get("pytest11", {}).values()

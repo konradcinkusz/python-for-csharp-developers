@@ -28,6 +28,12 @@ than twelve times:
      on a JSON schema to refuse a malformed assertion before the harness
      sees it, there is no schema in the loop here, so the function refuses
      it itself.
+
+Every function below opens with `__tracebackhide__ = True`, which is
+pytest's rather than this design's: it keeps that frame out of the failure
+report, so a reader sees the line in THEIR test and the message rather than
+the line inside this file that raised. It is per-frame, so setting it in
+`_fail` alone would still show the assertion that called it.
 """
 
 from __future__ import annotations
@@ -35,7 +41,7 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping
 
-from .trace import Span, Trace
+from .trace import Span, Trace, as_text
 
 __all__ = [
     "ASSERTIONS",
@@ -61,6 +67,7 @@ __all__ = [
 INTERNAL_ID = re.compile(r"\b(?:emp|lt|lv|req)-[0-9]{3,4}\b")
 
 
+# --8<-- [start:presence]
 def _fail(claim: str, detail: str) -> None:
     """Every failure names the claim, and then what was found instead.
 
@@ -70,6 +77,7 @@ def _fail(claim: str, detail: str) -> None:
     bug report. Two lines rather than one, because a message that wraps in
     a terminal is one nobody reads to the end.
     """
+    __tracebackhide__ = True
     raise AssertionError(f"{claim}\n  {detail}")
 
 
@@ -85,7 +93,6 @@ def _count_bound(times: int | None, at_least: int | None) -> None:
         )
 
 
-# --8<-- [start:presence]
 def tool_called(
     trace: Trace,
     tool: str,
@@ -98,6 +105,7 @@ def tool_called(
     Counts LOGICAL calls, so a resilience handler's transport retries do
     not move it; an orchestrator loop that calls the tool again does.
     """
+    __tracebackhide__ = True
     _count_bound(times, at_least)
     calls = len(trace.calls_to(tool))
     if times is not None and calls != times:
@@ -116,6 +124,7 @@ def tool_not_called(trace: Trace, tool: str) -> None:
     the absence of the call. An agent that refuses politely and calls the
     tool anyway passes the first assertion on its own.
     """
+    __tracebackhide__ = True
     calls = trace.calls_to(tool)
     if calls:
         outcomes = ", ".join(c.outcome for c in calls)
@@ -138,6 +147,7 @@ def tool_called_with(
     `subset` asks that the named arguments are present and equal; `exact`
     additionally that the call carried no others.
     """
+    __tracebackhide__ = True
     if match not in ("subset", "exact"):
         raise ValueError(f"match must be 'subset' or 'exact', not {match!r}")
     calls = trace.calls_to(tool)
@@ -167,6 +177,7 @@ def order(trace: Trace, first: Span, then: Span) -> None:
     long as a second, well-behaved write follows it, and the gate is
     precisely about the first one.
     """
+    __tracebackhide__ = True
     opens = trace.positions_of(first)
     laters = trace.positions_of(then)
     claim = f"order {first.describe()} -> {then.describe()}"
@@ -188,6 +199,7 @@ def event_emitted(
     at_least: int | None = None,
 ) -> None:
     """The contract event was emitted."""
+    __tracebackhide__ = True
     _count_bound(times, at_least)
     n = len(trace.events_named(event))
     if times is not None and n != times:
@@ -201,6 +213,7 @@ def event_emitted(
 
 def event_not_emitted(trace: Trace, event: str) -> None:
     """The contract event was never emitted."""
+    __tracebackhide__ = True
     n = len(trace.events_named(event))
     if n:
         _fail(f"event_not_emitted {event}", f"emitted {n} time(s)")
@@ -211,6 +224,7 @@ def outcome(trace: Trace, value: str, *, turn: int | str = "last") -> None:
 
     The agent's decision is a trace attribute, never a phrase in its reply.
     """
+    __tracebackhide__ = True
     turns = trace.turns
     claim = f"outcome {value} on turn {turn}"
     if not turns:
@@ -233,6 +247,7 @@ def termination(trace: Trace, reason: str) -> None:
     halfway through a conversation has failed whatever the final turn did,
     because its last message had no decision behind it.
     """
+    __tracebackhide__ = True
     wrong = [t for t in trace.turns if t.termination_reason != reason]
     if wrong:
         found = ", ".join(f"{t.index}:{t.termination_reason}" for t in wrong)
@@ -250,6 +265,7 @@ def argument_grounded(
     identifier that appeared in a result AFTER the write is not what the
     write was grounded in, so the position comparison is the assertion.
     """
+    __tracebackhide__ = True
     calls = trace.calls_to(tool)
     claim = f"argument_grounded {tool}.{arg} from {source_tool}"
     if not calls:
@@ -282,6 +298,7 @@ def output_excludes_internal_ids(
     reading of the refusal requirement while being exactly the leak this
     exists to prevent.
     """
+    __tracebackhide__ = True
     leaks: list[str] = []
     for turn in trace.turns:
         leaks += [
@@ -305,6 +322,7 @@ def call_attempts(trace: Trace, tool: str, max_attempts: int) -> None:
     happened proves nothing, so it fails. A bound that can only pass is
     not an assertion.
     """
+    __tracebackhide__ = True
     calls = trace.calls_to(tool)
     claim = f"call_attempts {tool} max_attempts={max_attempts}"
     if not calls:
@@ -313,15 +331,6 @@ def call_attempts(trace: Trace, tool: str, max_attempts: int) -> None:
     if worst > max_attempts:
         _fail(claim, f"worst call made {worst} attempt(s)")
 # --8<-- [end:attempts]
-
-
-def _normalise(value: object) -> str:
-    """A span tag is typed and an expectation often arrives as text, so the
-    comparison is made on one side. `True` is `"true"`, not `"True"`,
-    because that is what the other two ports write."""
-    if isinstance(value, bool):
-        return "true" if value else "false"
-    return str(value)
 
 
 def span_attribute(
@@ -333,6 +342,7 @@ def span_attribute(
     the eleven above are missing a concept, which is a finding about the
     vocabulary rather than about the agent.
     """
+    __tracebackhide__ = True
     found: list[object | None] = []
     if span is None:
         found += [e.tags.get(attribute) for e in trace.events]
@@ -344,11 +354,11 @@ def span_attribute(
         found += [c.tags.get(attribute) for c in trace.calls_to(span.tool)]
     else:
         raise ValueError("a span reference names neither a tool nor an event")
-    present = [_normalise(v) for v in found if v is not None]
+    present = [as_text(v) for v in found if v is not None]
     claim = f"span_attribute {attribute} == {equals!r}"
     if not present:
         _fail(claim, f"no span or event carried {attribute!r}")
-    if _normalise(equals) not in present:
+    if as_text(equals) not in present:
         _fail(claim, "found " + ", ".join(repr(v) for v in present))
 
 
