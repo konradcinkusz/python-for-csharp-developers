@@ -97,9 +97,13 @@ def main() -> int:
     print(f"needs_human   {answer.needs_human!r}")
     print()
     for event in recorder.trace.events:
-        print(f"{event.kind:13} {event.name}")
-        for key, value in event.payload.items():
-            print(f"{'':13}   {key:14} {value!r}")
+        # The event's NAME is the kind -- `model_call`, `model_result` --
+        # and the model is a tag, which is the way round the assertions
+        # read it. See `Recorder` for why.
+        print(f"{event.name:13} {event.tags.get('model', '')}")
+        for key, value in event.tags.items():
+            if key != "model":
+                print(f"{'':13}   {key:14} {value!r}")
     return 0
 
 

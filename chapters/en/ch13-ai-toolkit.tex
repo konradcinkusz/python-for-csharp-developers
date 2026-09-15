@@ -311,12 +311,12 @@ chapter about model SDKs testable at all.
 \begin{projectbox}
 \textbf{Stage 02 \dash{} recording a model call.} The trace model from
 Chapter~\ref{ch:testing} left one thing open: what a model call puts in an
-event's payload. This chapter settles it. A call is \emph{two} events and
-not one, because a call that never came back is the case most worth being
-able to find, and a single event written after the reply cannot represent
-it. The payload carries the token counts and whether the reply parsed; it
-does not carry the prompt or the completion, because a trace is kept,
-shipped and read by people who were not in the room.
+event's \code{tags}. This chapter settles it. A call is \emph{two} events
+and not one, because a call that never came back is the case most worth
+being able to find, and a single event written after the reply cannot
+represent it. The \code{tags} carry the token counts and whether the reply
+parsed; they do not carry the prompt or the completion, because a trace is
+kept, shipped and read by people who were not in the room.
 \end{projectbox}
 
 \section{Exercises}

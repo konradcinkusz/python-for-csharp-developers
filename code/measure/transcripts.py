@@ -175,6 +175,9 @@ TRANSCRIPTS: dict[str, Listing | Command] = {
     "ch13-sdk-shape": Listing("ch13/sdk_shape.py"),
     "ch13-structured": Listing("ch13/structured.py"),
     "ch13-survives": Listing("ch13/what_survives.py"),
+    "ch14-broken": Listing("ch14/broken_run.py"),
+    "ch14-publish": Listing("ch14/publish.py"),
+    "ch14-suite": Listing("ch14/eval_suite.py"),
 }
 
 # Run before the transcript above it, because `coverage report` reads a data

@@ -1,0 +1,8 @@
+flowchart TB
+    M["One trace model, ported twice:<br/>tool calls, contract events and<br/>turns sharing one position index"]
+    D[".NET, agent-eval-bench<br/>the twelve assertions<br/>and the rubric judge"]
+    T["TypeScript, judge-worker<br/>the rubric judge only,<br/>over a zod schema"]
+    P["Python, trace-assert<br/>the twelve assertions only,<br/>over frozen dataclasses"]
+    M --> D
+    M --> T
+    M --> P

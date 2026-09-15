@@ -22,6 +22,23 @@ and never reused; a retired entry keeps its number and says why. An owner
 reading `Ch. N §N.M, delivered` names the section that elicits the trap in
 the written chapter; an owner reading a bare `Ch. N` is still a promise.
 
+> **The numbering in the high fifties and sixties has collided and must be
+> swept in one pass, from a branch that is the only one open.** Chapters 5,
+> 8, 9, 11, 13 and 14 each allocated from this range while none of them
+> could see the others, which is the parallel-append class the Chapter 8
+> pass recorded for this exact file: git merges different *rows* of one
+> table without a conflict, so no session's copy is wrong until somebody
+> merges. **A branch cannot fix it by renumbering**, and two have tried:
+> each picks the next free number from a maximum that is already stale, and
+> lands on a row another branch allocated an hour earlier. It reaches
+> nobody today — Appendix B is a stub — and the check is
+> `grep -oE '^\| [0-9]+ \|' notes/02-traps.md | grep -oE '[0-9]+' |
+> sort -n | uniq -d`, which should print nothing and currently does not.
+> **Whoever sweeps it should allocate a block per owning chapter rather
+> than from a running maximum**, which is what makes the next collision
+> impossible rather than merely unlikely, and should correct the pass notes
+> in `CLAUDE.md` that cite a number they move.
+
 ## Part I — Runtime and toolchain
 
 | # | The habit, in the reader's voice | What Python does | Owner |
@@ -120,7 +137,7 @@ against the installed package at the pinned version, not remembered.
 | 57 | `model_validate_json` is `JsonSerializer.Deserialize` | Lax mode coerces where `System.Text.Json` refuses; strict mode is what a C# engineer expects, and E8 prices both | Ch. 13, **delivered** §13.3, priced §13.4 |
 | 58 | A notebook is where Python happens | A notebook is a REPL with a memory of every cell you ran in any order; nothing in this book is one, and Chapter 13 says when one is right | Ch. 13, **delivered** §13.7 |
 | 62 | The SDK uses the `httpx` I pinned | Both SDKs depend on the `httpx2` distribution, not `httpx`: `isinstance(c._client, httpx.Client)` is False, and of the two SDKs one refuses a mismatched client and the other accepts it | Ch. 13, **delivered** §13.5 |
-| 59 | A trace assertion needs a model to evaluate | The first layer of agent-eval-bench is deterministic; it runs with no model, which is why it can run in CI | Ch. 14 |
+| 59 | A trace assertion needs a model to evaluate | The first layer of agent-eval-bench is deterministic; it runs with no model, which is why it can run in CI | Ch. 14, **delivered** in section 14.1, elicited before it is named |
 | 63 | A test report is a test report; the same failure prints the same thing everywhere | pytest reports differently on a build server on purpose: `running_on_ci()` is true when `CI` or `BUILD_NUMBER` is set, and a sequence diff is then printed in full and long output is not truncated. A transcript, a golden file or a screenshot of a failure is a claim about one of the two | Ch. 11 — **delivered**, §11.1 |
 
 ## Retired

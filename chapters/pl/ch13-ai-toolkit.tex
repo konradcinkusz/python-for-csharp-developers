@@ -317,13 +317,13 @@ o SDK modeli daje się w ogóle testować.
 \begin{projectbox}
 \textbf{Etap 02 \dash{} zapis wywołania modelu.} Model śladu z
 rozdziału~\ref{ch:testing} zostawił jedną rzecz otwartą: co wywołanie modelu
-wkłada do ładunku zdarzenia. Ten rozdział to rozstrzyga. Wywołanie to
-\emph{dwa} zdarzenia, a nie jedno, bo wywołanie, które nigdy nie wróciło,
+wkłada do pola \code{tags} zdarzenia. Ten rozdział to rozstrzyga. Wywołanie
+to \emph{dwa} zdarzenia, a nie jedno, bo wywołanie, które nigdy nie wróciło,
 jest przypadkiem, który najbardziej chcesz umieć znaleźć, a pojedyncze
-zdarzenie zapisane po odpowiedzi nie potrafi go przedstawić. Ładunek niesie
-liczby tokenów i to, czy odpowiedź się sparsowała; nie niesie promptu ani
-odpowiedzi modelu, bo ślad jest przechowywany, przesyłany i czytany przez
-ludzi, których nie było w pokoju.
+zdarzenie zapisane po odpowiedzi nie potrafi go przedstawić. Pole
+\code{tags} niesie liczby tokenów i to, czy odpowiedź się sparsowała; nie
+niesie promptu ani odpowiedzi modelu, bo ślad jest przechowywany, przesyłany
+i czytany przez ludzi, których nie było w pokoju.
 \end{projectbox}
 
 \section{Ćwiczenia}

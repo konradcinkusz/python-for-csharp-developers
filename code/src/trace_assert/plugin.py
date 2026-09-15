@@ -10,13 +10,19 @@ Chapter 14 turns that line into a `pytest11` entry point in the package's
 own metadata, at which point installing trace-assert is enough and no
 conftest is needed. The line is the staging, not a workaround: the entry
 point is packaging, and packaging is chapter 14's.
+
+The book's own code/ project keeps the conftest line, and chapter 14
+measures why: that project is named after the BOOK and is not a
+publishable trace-assert, so declaring the entry point there would
+register the plugin for anyone who installed fourteen chapters of
+listings.
 """
 
 from __future__ import annotations
 
 import pytest
 
-from .model import Recorder
+from .recorder import Recorder
 
 __all__ = ["trace"]
 

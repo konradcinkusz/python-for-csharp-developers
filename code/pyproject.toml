@@ -120,7 +120,15 @@ extraPaths = ["ch11"]
 # path and that absolute import stops resolving.
 [[tool.pyright.executionEnvironments]]
 root = "measure"
-extraPaths = ["ch10", "ch13", "."]
+# "src" as well as the chapter directories: an executionEnvironment
+# REPLACES the default resolution for files under its root, so naming only
+# a chapter here took `src` off pyright's path for every measurement
+# script. measure/suite_cost.py imports the guiding project by inserting
+# `src` on sys.path, and this is the same statement made to the checker --
+# without it pyright reports `"ASSERTIONS" is unknown import symbol` for a
+# name that resolves perfectly at runtime, which is a config gap wearing a
+# type error's clothes. Found by merging two chapters' passes together.
+extraPaths = ["ch10", "ch13", ".", "src"]
 
 [[tool.pyright.executionEnvironments]]
 root = "."
