@@ -1,0 +1,366 @@
+<!doctype html>
+<!--
+  TEMPLATE. Rendered by tools/gen_site.py into _site/index.html, by
+  `make site` locally and by .github/workflows/pages.yml on every push to
+  main. Do not edit the published page; edit this file.
+
+  Every doubled-brace placeholder below is filled from the tree: the counts from
+  figures/values/ledgers.tex, which code/measure/ledgers.py writes and
+  `make verify` drift-gates, and the contents from tools/chapters.json,
+  which the book's own chapter sequence is generated from. A chapter
+  finished moves this page on the next build with nobody editing it.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python for .NET Engineers</title>
+<meta name="description" content="A C#-to-Python translation dictionary and a field manual for shipping Python to production. Free, in English and Polish, with every listing run in CI against pinned versions.">
+<meta name="author" content="Konrad Cinkusz">
+<link rel="canonical" href="https://konradcinkusz.github.io/python-for-csharp-developers/">
+<meta property="og:type" content="book">
+<meta property="og:title" content="Python for .NET Engineers">
+<meta property="og:description" content="Reading, writing and shipping Python when C# is your first language. Free, in English and Polish.">
+<meta property="og:url" content="https://konradcinkusz.github.io/python-for-csharp-developers/">
+<meta name="twitter:card" content="summary">
+<style>
+  :root {
+    --blue: #1F4E79;
+    --teal: #0E7C7B;
+    --amber: #B26A00;
+    --red: #9B2C2C;
+    --green: #2F6F3E;
+    --grey: #5A5A5A;
+    --light: #F4F6F8;
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --border: #D8DEE4;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14171a;
+      --fg: #e8eaed;
+      --light: #1e2328;
+      --grey: #9aa3ab;
+      --blue: #7BAEDC;
+      --teal: #4FC3C2;
+      --amber: #E0A24A;
+      --red: #E08A8A;
+      --green: #77C98C;
+      --border: #2b3238;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .wrap { max-width: 48rem; margin: 0 auto; padding: 3rem 1rem 4rem; }
+
+  h1 {
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    line-height: 1.15;
+    color: var(--blue);
+    margin: 0 0 .4rem;
+    letter-spacing: -.01em;
+  }
+
+  .sub { color: var(--grey); font-size: 1.12rem; margin: 0 0 .35rem; }
+  .sub-pl { color: var(--grey); font-size: .95rem; font-style: italic; margin: 0 0 1.5rem; }
+
+  h2 {
+    font-size: 1.2rem;
+    color: var(--blue);
+    margin: 2.75rem 0 .75rem;
+    padding-bottom: .3rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  a { color: var(--teal); }
+  p { margin: 0 0 1rem; }
+
+  .pills { margin: 0 0 1.75rem; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: .4rem; }
+
+  .pills li {
+    background: var(--light);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: .18rem .75rem;
+    font-size: .82rem;
+    color: var(--grey);
+  }
+
+  .banner {
+    background: var(--light);
+    border-left: 3px solid var(--amber);
+    padding: .9rem 1.1rem;
+    margin: 1.5rem 0 2rem;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .banner strong { color: var(--amber); }
+
+  .downloads { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1.25rem 0 1rem; }
+
+  .downloads a {
+    display: block;
+    flex: 1 1 15rem;
+    padding: .7rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    text-decoration: none;
+    background: var(--light);
+    color: var(--fg);
+  }
+
+  .downloads a:hover { border-color: var(--teal); }
+  .downloads a strong { color: var(--blue); display: block; font-size: 1.02rem; }
+  .downloads a span { color: var(--grey); font-size: .85rem; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .94rem; }
+
+  th, td {
+    text-align: left;
+    padding: .6rem .6rem .6rem 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  th { color: var(--blue); font-weight: 600; width: 11rem; }
+
+  th .rel {
+    display: block;
+    font-weight: 400;
+    font-size: .78rem;
+    color: var(--grey);
+    margin-top: .1rem;
+  }
+
+  ul.chapters, ul.appendices { list-style: none; margin: 0; padding: 0; }
+
+  ul.chapters li, ul.appendices li {
+    margin: 0 0 .3rem;
+    padding-left: 2rem;
+    position: relative;
+    line-height: 1.45;
+  }
+
+  ul.chapters li:last-child, ul.appendices li:last-child { margin-bottom: 0; }
+
+  .num {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1.5rem;
+    text-align: right;
+    color: var(--grey);
+    font-variant-numeric: tabular-nums;
+    font-size: .88rem;
+  }
+
+  .mark {
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-left: .45rem;
+    white-space: nowrap;
+  }
+
+  li.done .mark { color: var(--green); }
+  li.todo .mark { color: var(--grey); }
+  li.todo { color: var(--grey); }
+
+  ul.appendices { margin: 1rem 0; }
+
+  ul.plain { padding-left: 1.15rem; margin: 1rem 0; }
+  ul.plain li { margin: .35rem 0; }
+
+  code {
+    background: var(--light);
+    padding: .1rem .35rem;
+    border-radius: 3px;
+    font-size: .88em;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  .scroll { overflow-x: auto; }
+
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+    color: var(--grey);
+    font-size: .88rem;
+  }
+
+  @media (max-width: 34rem) {
+    .wrap { padding-top: 2rem; }
+    table, tbody, tr, th, td { display: block; width: auto; }
+    th { border-bottom: none; padding-bottom: .2rem; }
+    td { padding-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Python for .NET Engineers</h1>
+<p class="sub">Reading, writing and shipping Python when C# is your first language.</p>
+<p class="sub-pl">Python dla inżynierów .NET — czytanie, pisanie i wdrażanie Pythona, gdy C# jest twoim pierwszym językiem.</p>
+
+<ul class="pills">
+  <li>{{chapters.written}} of {{chapters.total}} chapters written</li>
+  <li>{{exercises}} exercises</li>
+  <li>{{listings}} runnable listing files</li>
+  <li>{{diagrams}} diagrams per edition</li>
+  <li>English and Polish</li>
+  <li>Free</li>
+</ul>
+
+<h2>Read it</h2>
+<p>
+  Both editions are built from one source and republished on every push, so
+  the PDFs below are the current state of the repository rather than a
+  snapshot somebody remembered to upload. They are built for a screen: A4,
+  single-sided, with every listing and exercise sized to sit in a PDF viewer
+  on the left of an editor on the right.
+</p>
+<div class="downloads">
+  <a href="Python-for-dotNET-Engineers.pdf"><strong>English edition</strong><span>Python for .NET Engineers — PDF</span></a>
+  <a href="Python-dla-inzynierow-dotNET.pdf"><strong>Wydanie polskie</strong><span>Python dla inżynierów .NET — PDF</span></a>
+</div>
+
+<div class="banner">
+  <strong>In progress.</strong> {{chapters.written}} of the {{chapters.total}}
+  chapters are written in both languages, along with
+  {{appendices.written}} of {{appendices.total}} appendices; what is left is
+  marked <em>planned</em> in the contents below and prints as a brief where
+  the chapter will go. This paragraph's numbers are computed from the tree on
+  every build, not typed, so the page cannot claim a chapter that is not
+  there — or go on calling itself a scaffold after the book has been written.
+</div>
+
+<h2>Why</h2>
+<p>
+  A C# engineer who starts writing Python does not lack a language course.
+  They have a mental model that is mostly right and wrong in a few specific
+  places, and the places are where the incidents come from: a coroutine that
+  is cold where a <code>Task</code> is hot, a type hint the runtime never
+  checks, an <code>__eq__</code> that quietly makes an object unhashable, an
+  environment that is a directory rather than a machine setting.
+</p>
+<p>
+  So this is not a Python-from-zero course, not a library catalogue and not
+  another AI book. It is a <strong>translation dictionary from C# to
+  Python</strong> plus a <strong>field manual for shipping Python to
+  production</strong>. Each chapter maps one thing the reader already knows
+  onto its Python counterpart, elicits the habit that breaks, and ends with
+  exercises whose tests run in CI on the pinned versions.
+</p>
+
+<h2>What is checked, and what that is worth</h2>
+<p>
+  A book about a toolchain goes stale the moment the toolchain moves, and a
+  listing nobody ran is a guess with syntax highlighting. So the claims on
+  the page are wired to the build:
+</p>
+<ul class="plain">
+  <li>Every listing is a file under <code>code/</code> that CI executes on
+    every push, against pinned versions, on the Python the book names.</li>
+  <li>Every exercise ships as three files — a starter that <em>must fail</em>
+    its test, a solution that must pass, and the test itself. CI runs both
+    halves, so an exercise that has stopped being an exercise fails the
+    build.</li>
+  <li>Every measured number is produced by a script, committed, and compared
+    against a fresh run; a figure that has drifted from the code that
+    computed it stops the build rather than reaching a reader.</li>
+  <li>Anything that could not be run carries a marker saying so, and the
+    markers are counted on every build — the count stands at
+    {{verifybox}} per edition today. A block nobody ran is a promise to the
+    reader that it was not run, rather than a silence.</li>
+  <li>Both editions are compared by a parity tool — structure, labels,
+    figures, exercises and numeric literals, in order — so a correction to
+    one language cannot quietly skip the other.</li>
+</ul>
+
+<h2>Contents</h2>
+<div class="scroll">
+<table>
+{{contents}}
+</table>
+</div>
+
+<h2>Appendices</h2>
+<ul class="appendices">
+{{appendices.list}}
+</ul>
+
+<h2>The guiding project</h2>
+<p>
+  <code>trace-assert</code>: a Python port of the first layer of
+  <a href="https://github.com/konradcinkusz/agent-eval-bench">agent-eval-bench</a>,
+  deterministic assertions over an execution trace, in pytest. Chapter&nbsp;11
+  introduces the trace model and the first two assertions, Chapter&nbsp;13
+  records a model call into the same trace, and Chapter&nbsp;14 carries the
+  rest of the set, the packaging, and a comparison with the same instrument's
+  .NET and TypeScript ports. It is complete, it lives under
+  <code>code/src/trace_assert/</code>, and the book's own CI has been running
+  it since before the first chapter was written.
+</p>
+
+<h2>Where it sits</h2>
+<p>
+  It is volume zero of a trilogy. The
+  <a href="https://github.com/konradcinkusz/llm-book">LangChain, LangGraph and
+  Async Python</a> book is written for the engineer arriving from .NET and
+  assumes the language and the toolchain; this book supplies them and stops
+  where that one starts. Agent frameworks stay there, and
+  <a href="https://github.com/konradcinkusz/maf-book">Microsoft Agent Framework
+  for .NET Engineers</a> covers the .NET side. Where a topic is owned by one
+  of the other two, this book points there in one sentence and does not
+  repeat a section.
+</p>
+
+<h2>Releases</h2>
+<div class="scroll">
+<table>
+  <tr><th scope="row">v0.1</th><td>Parts I and II — the runtime, the toolchain and the language.</td></tr>
+  <tr><th scope="row">v0.2</th><td>Parts III and IV — concurrency and shipping.</td></tr>
+  <tr><th scope="row">v1.0</th><td>Part V and the appendices.</td></tr>
+</table>
+</div>
+<p>
+  Every chapter is written to stand on its own, under three thousand words of
+  prose, and is published as soon as it is finished rather than held for the
+  volume it belongs to.
+</p>
+
+<h2>Links</h2>
+<ul class="plain">
+  <li><a href="https://github.com/konradcinkusz/python-for-csharp-developers">Source repository</a>
+    — MIT for the code, CC BY-NC-SA 4.0 for the text</li>
+  <li><a href="https://github.com/konradcinkusz/python-for-csharp-developers/issues">Corrections and issues</a>
+    — a listing that does not run on your machine is a bug in the book</li>
+  <li><a href="https://github.com/konradcinkusz/llm-book">LangChain, LangGraph and Async Python</a>
+    — the next volume</li>
+  <li><a href="https://github.com/konradcinkusz/maf-book">Microsoft Agent Framework for .NET Engineers</a>
+    — the .NET side of the trilogy</li>
+</ul>
+
+<footer>
+  Konrad Cinkusz · Built with LaTeX from one source into two editions; the
+  Polish edition is a translation, not a second book.
+  <br>
+  This page is generated from the repository. Last built {{generated}}.
+</footer>
+
+</div>
+</body>
+</html>
