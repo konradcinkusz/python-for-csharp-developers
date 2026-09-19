@@ -118,6 +118,9 @@
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{tabularx}
+% Appendix A's cheat sheet runs past a page in every part, and tabularx
+% cannot break. longtable can, and works with booktabs.
+\usepackage{longtable}
 \usepackage{array}
 \usepackage{enumitem}
 \usepackage{listings}
@@ -369,6 +372,38 @@
 %  records, met sixty-seven times at once -- and fixed once, because the
 %  entries go through a macro. A quotation is also what the habit IS, and
 %  \enquote{} is what the Polish edition owes anyway.
+% ---------------------------------------------------------------------------
+%  Appendix A's cheat sheet: one table per part, C# on the left, Python on
+%  the right, and the chapter that teaches the row on the end. The three
+%  header strings are arguments so that one environment serves both
+%  editions and the structural signature stays identical.
+%
+%  Columns are ragged right for the reason Appendix B's entries are: a cell
+%  is mostly \code{} spans, which are unbreakable runs, and a justified
+%  narrow column full of them is an overfull box waiting for the edition
+%  with the longer words.
+\NewDocumentEnvironment{cheatsheet}{mmm}{%
+  \small
+  \begin{longtable}{@{}%
+    >{\raggedright\arraybackslash}p{0.41\linewidth}%
+    >{\raggedright\arraybackslash}p{0.41\linewidth}%
+    >{\raggedright\arraybackslash}p{0.08\linewidth}@{}}
+  \toprule
+  \textbf{#1} & \textbf{#2} & \textbf{#3} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{#1} & \textbf{#2} & \textbf{#3} \\
+  \midrule
+  \endhead
+  \midrule
+  \endfoot
+  \bottomrule
+  \endlastfoot
+}{%
+  \end{longtable}%
+}
+
 \newcommand{\trapentry}[3]{%
   \par\medskip
   \noindent\textbf{#1.}\enspace\enquote{#2}\par

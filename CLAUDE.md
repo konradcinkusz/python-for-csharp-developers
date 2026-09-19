@@ -20,7 +20,7 @@ repository's `CLAUDE.md`, and it is not repeated here.
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
 | Chapters | **All 14 written, both editions.** Chapter 4 *Objects and data* was the last in and completes v0.1 with Chapters 1, 2, 3, 5, 6 and 7 | — |
-| Appendices | **E (Manifest), generated; B (Traps), written from `notes/02-traps.md` and gated against it.** A, C and D are briefs | A, C, D |
+| Appendices | **E (Manifest), generated; B (Traps) and A (Cheat sheet), written and each gated against what they claim.** C and D are briefs | C, D |
 | Code | `code/` is a locked uv project: `trace-assert` **complete** (the specification's trace model, all twelve assertions, the `trace` fixture and the `Recorder` both stages write into), **every chapter's listings and exercises**, Chapter 12's three Dockerfiles, experiments E1, E2, E3, E4, E5, E6 and E8, and the measurement, ledger and transcript scripts, and CI runs all of it | every experiment the manifest's Status column still marks *not run* |
 
 **The scaffold plus thirteen chapters.** The scaffold existed so that the shape
@@ -65,8 +65,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 231 | 0 | 0 | 1 · 10.0 pt | 0 |
-| `main-pl` | 234 | 0 | 0 | 0 | 0 |
+| `main-en` | 236 | 0 | 0 | 1 · 10.0 pt | 0 |
+| `main-pl` | 238 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -103,7 +103,7 @@ for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **0 of 14 chapters are stubs, in each edition; 3 of 5 appendices are**,
+- **0 of 14 chapters are stubs, in each edition; 2 of 5 appendices are**,
   and both editions agree about what is written
 - 292 listing references, every file and region present · 58 exercises, each
   with a starter, a solution and a test · 114 transcript references, every
@@ -122,6 +122,11 @@ does not:
   elicits it, and each printed in both editions — `check_structure.py
   --traps` compares Appendix B against `notes/02-traps.md` and fails on a
   duplicate number, a missing entry or an entry no chapter owns
+- **194 cheat-sheet rows across both editions**, every one naming a chapter
+  that exists and is written — `check_structure.py --cheatsheet` checks
+  the half a machine can. **Whether a row is TRUE of its chapter is a
+  reading job and the check says so**, which is the honest shape for a
+  gate over an appendix of claims
 - 151 computed value keys, every one produced and every one used
 - Parity: 23 file pairs, 0 failures, 0 warnings · 324 labels in each edition,
   0 mismatches
@@ -3805,6 +3810,63 @@ baseline that had one.
 
 ---
 
+### Appendix A, and the half a gate cannot check, September 2026
+
+**Appendix A is written in both editions and `--cheatsheet` is the ledger
+the brief said was owed before v1.0.** One table per part, C\# on the left,
+Python on the right, and the chapter that teaches the row on the end \dash{}
+194 rows across the two editions.
+
+**The chapter is named with `\ref{}` rather than a typed number**, which is
+the whole reason the gate can exist: a typed "Ch. 4" is a string nothing can
+check, and a `\ref` is a label something can. It also cannot go stale when a
+chapter moves.
+
+#### What the gate checks, and what it refuses to pretend to check
+
+`check_structure.py --cheatsheet` fails when a row points at a label no
+chapter defines, and when a row points at a chapter that is **still a
+stub** \dash{} because a row promising something no reader can go and read
+is exactly the defect the brief calls out. Both watched firing on a mutated
+copy before the green was believed, which is what the infrastructure issue
+asked for: a bad label exits 1 naming it, and faking a `\chapterstub{}` back
+into Chapter 4 exits 1 naming that.
+
+**What it does not check is whether the row is TRUE of that chapter, and
+the check prints that rather than leaving it implied.** That is a reading
+job, it cannot be automated, and a gate that quietly covered only the
+mechanical half would be the class of claim this file keeps finding: a green
+tick that means less than the reader thinks. The printed row count is what
+an author has to re-read, and it is printed for that reason.
+
+#### `longtable`, because a cheat sheet does not fit on a page
+
+`tabularx` cannot break across pages and every part's table does. The
+preamble gains `longtable` and a `cheatsheet` environment taking its three
+column headings as arguments \dash{} which is what lets one environment
+serve both editions and keeps the structural signature identical, so C4
+compares the rows rather than the scaffolding around them.
+
+The columns are **ragged right**, for the reason Appendix B's entries are:
+a cell is mostly `\code{}` spans, and a justified narrow column full of
+unbreakable runs is an overfull box waiting for the edition with the longer
+words. Both editions came back with zero new boxes again, which is twice
+now that the decision has paid rather than the fix.
+
+#### Also
+
+- The two appendices were written in the order B then A deliberately, and
+  it was the right way round: B's `--traps` is the model `--cheatsheet` is
+  built on, and writing B first surfaced the numbering sweep that A did not
+  need.
+- One parity failure on the first run, and it was markup rather than
+  content: the Polish had `\code{switch}` where the English had the bare
+  word. The Polish was right \dash{} it is a keyword \dash{} so the English
+  moved to match, which is the second time in two passes that the
+  translation caught the original.
+
+---
+
 ## After each pass
 
 1. `python3 tools/parity.py`, `python3 tools/check_structure.py --all`,
@@ -3854,13 +3916,13 @@ issues under the `chapter`, `appendix`, `experiment` and `infrastructure`
 labels --- **work from the labels, not from a list here**, because a list
 in this file is the class of claim nothing can check. In rough order:
 
-1. **Appendices A, C and D** (v1.0), now the only stubs in the book.
-   **B is written**, from `notes/02-traps.md`, with `--traps` gating the
-   two against each other; the numbering collision it needed swept first
-   is swept. C's version column prints from the preamble's macros and is
-   never typed. A owes the ledger that checks its chapter references.
-   D's open decision is settled \dash{} CI compiles its C\# side, and
-   `code/csharp/` is the scaffold.
+1. **Appendices C and D** (v1.0), now the only stubs in the book.
+   **A and B are written**, each with a gate gating it against what it
+   claims (`--cheatsheet` and `--traps`). C's version column prints from
+   the preamble's macros and is never typed, and `\dotnetver` is now
+   among them. D's open decision is settled \dash{} CI compiles its C\#
+   side, and `code/csharp/` is the scaffold, a library plus a test
+   project, which takes either shape its twenty problems end up in.
 2. **The experiments that have not run.** `notes/01-curriculum.md` §4 is
    the ledger, filled in by the pass that runs each one; naming them here
    would be a second copy to go stale, and **no total is stated in either
