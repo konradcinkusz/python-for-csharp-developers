@@ -197,9 +197,16 @@ def check_exercises(soft: bool) -> int:
 
 
 def check_lines(soft: bool) -> int:
+    # .cs as well as .py: Appendix D prints its C# solutions through \csfile,
+    # so they are listings and the page does not care which language they are
+    # in. bin/ and obj/ hold generated sources nobody wrote and nothing
+    # prints, so they are skipped the way .venv is.
     problems, n = [], 0
-    for p in sorted((ROOT / "code").rglob("*.py")):
-        if ".venv" in p.parts:
+    skip = {".venv", "bin", "obj"}
+    files = sorted((ROOT / "code").rglob("*.py")) + \
+        sorted((ROOT / "code").rglob("*.cs"))
+    for p in sorted(files):
+        if skip & set(p.parts):
             continue
         n += 1
         for i, line in enumerate(p.read_text(encoding="utf8").splitlines(), start=1):
@@ -222,7 +229,7 @@ def check_pins(soft: bool) -> int:
             problems.append(f"{dist}: preamble.tex says {tex_pins[dist]}, "
                             f"code/pyproject.toml says {ver}")
     for dist, ver in sorted(tex_pins.items()):
-        if dist not in toml_pins and dist not in ("uv",):
+        if dist not in toml_pins and dist not in ("uv", "dotnet"):
             problems.append(f"preamble.tex pins {dist} {ver} and code/pyproject.toml "
                             f"does not install it")
     pyv = (ROOT / "code" / ".python-version").read_text(encoding="utf8").strip()
@@ -241,9 +248,30 @@ def check_pins(soft: bool) -> int:
             if w != tex_pins.get("uv"):
                 problems.append(f"{wf.relative_to(ROOT)} installs uv {w}; preamble.tex "
                                 f"pins {tex_pins.get('uv', '?')}")
+    # .NET is a tool too, and it is pinned in ONE place on purpose:
+    # code/csharp/global.json. The workflow reads that file rather than
+    # carrying the version again, which is the defect uv's pin had. So the
+    # only comparison owed is preamble.tex against global.json -- plus a
+    # check that no workflow has quietly reintroduced a second copy.
+    gj = ROOT / "code" / "csharp" / "global.json"
+    dotnet_ci = 0
+    if gj.exists():
+        declared = json.loads(gj.read_text(encoding="utf8"))["sdk"]["version"]
+        if declared != tex_pins.get("dotnet"):
+            problems.append(f"code/csharp/global.json pins .NET {declared}; "
+                            f"preamble.tex says {tex_pins.get('dotnet', '?')}")
+        for wf in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
+            text = wf.read_text(encoding="utf8")
+            dotnet_ci += len(re.findall(r"^\s*global-json-file:", text, flags=re.M))
+            for v in re.findall(r'^\s*dotnet-version:\s*"?([^"\s]+)"?', text, flags=re.M):
+                problems.append(f"{wf.relative_to(ROOT)} names .NET {v} directly; "
+                                f"point setup-dotnet at code/csharp/global.json "
+                                f"instead, so the pin stays in one place")
     return result("pins", problems, soft,
                   f"{len(toml_pins)} pins agree between preamble.tex and pyproject.toml; "
-                  f"uv {tex_pins.get('uv', '?')} in preamble.tex and {uv_ci} workflow step(s)")
+                  f"uv {tex_pins.get('uv', '?')} in preamble.tex and {uv_ci} workflow step(s); "
+                  f".NET {tex_pins.get('dotnet', '?')} in preamble.tex, global.json and "
+                  f"{dotnet_ci} workflow step(s)")
 
 
 def prose_words(src: str) -> int:

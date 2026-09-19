@@ -360,13 +360,14 @@ jedno jest operatorem.
 
 \begin{trapbox}
 \textbf{\code{0.1 + 0.2 != 0.3} nie jest wadą Pythona.} To jest IEEE 754 i
-jest równie prawdziwe w C\#. Różni się wypisywanie: Python pokazuje
-najkrótszy napis, który wraca do tej samej liczby, więc rozbieżność jest
-na ekranie, podczas gdy C\# domyślnie formatuje \code{double} do
-piętnastu cyfr znaczących i ją ukrywa. Żaden z języków nie jest
-dokładniejszy od drugiego. Używaj \api{math.isclose} do wyliczanych liczb
-zmiennoprzecinkowych, a \api{decimal.Decimal} do pieniędzy, co jest tą
-samą radą co \code{decimal} w C\#.
+jest równie prawdziwe w C\#. Wypisywanie kiedyś się różniło i już się nie
+różni: .NET Framework formatował \code{double} do piętnastu cyfr
+znaczących i ukrywał błąd, a od .NET Core 3.0 domyślną postacią jest
+najkrótszy napis wracający do tej samej liczby \dash{} czyli to, co Python
+wypisywał zawsze. Oba pokazują teraz \code{0.30000000000000004}. Żaden z
+języków nie jest dokładniejszy od drugiego. Używaj \api{math.isclose} do
+wyliczanych liczb zmiennoprzecinkowych, a \api{decimal.Decimal} do
+pieniędzy, co jest tą samą radą co \code{decimal} w C\#.
 \end{trapbox}
 
 \section{Co to ci dało}

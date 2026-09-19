@@ -344,12 +344,14 @@ the operator.
 
 \begin{trapbox}
 \textbf{\code{0.1 + 0.2 != 0.3} is not a Python defect.} It is IEEE 754,
-and it is equally true in C\#. What differs is the printing: Python shows
-the shortest string that round-trips, so the discrepancy is on screen,
-while C\# formats a \code{double} to fifteen significant digits by
-default and hides it. Neither language is more accurate than the other. Use
-\api{math.isclose} for computed floats, and \api{decimal.Decimal} for
-money, which is the same advice as C\#'s \code{decimal}.
+and it is equally true in C\#. The printing used to differ and no longer
+does: .NET Framework formatted a \code{double} to fifteen significant
+digits and hid the error, and since .NET Core 3.0 the default has been the
+shortest round-tripping string \dash{} which is what Python has always
+printed. Both now show \code{0.30000000000000004}. Neither language is more
+accurate than the other. Use \api{math.isclose} for computed floats, and
+\api{decimal.Decimal} for money, which is the same advice as C\#'s
+\code{decimal}.
 \end{trapbox}
 
 \section{What this bought you}

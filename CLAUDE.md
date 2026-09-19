@@ -107,8 +107,9 @@ does not:
   and both editions agree about what is written
 - 292 listing references, every file and region present · 58 exercises, each
   with a starter, a solution and a test · 114 transcript references, every
-  file present · 316 code files, none over 79 columns · 21 pins agree between
-  `preamble.tex` and `code/pyproject.toml`
+  file present · 318 code files (`.py` and `.cs`), none over 79 columns ·
+  21 pins agree between `preamble.tex` and `code/pyproject.toml`, and .NET
+  10.0.100 agrees between `preamble.tex`, `global.json` and 2 workflow steps
 - **1 `verifybox` block** — Chapter 12's three Dockerfiles, which could not
   be built because no container registry is reachable from the machine that
   compiled that chapter. It is the first one the book has carried and it must
@@ -126,7 +127,7 @@ does not:
   2,638 / 2,311 with 3, Chapter 7 at 2,581 / 2,242 with 3, Chapter 8 at
   2,269 / 1,990 with 2, Chapter 5 at 2,535 / 2,258 with 2, Chapter 9 at
   2,507 / 2,176 with 2, Chapter 10 at
-  2,386 / 2,069 with 3, Chapter 4 at 2,435 / 2,235 with 2, Chapter 11 at
+  2,386 / 2,069 with 3, Chapter 4 at 2,449 / 2,254 with 2, Chapter 11 at
   2,572 / 2,260 with 2, Chapter 12 at
   2,765 / 2,388 with 2, Chapter 13 at 2,543 / 2,225 with 2, Chapter 14 at
   2,303 / 1,962 with 2. These are what
@@ -788,6 +789,8 @@ pass has since settled:
 - **Whether CI compiles the C# side of Appendix D.** Every Python solution
   has a test CI runs. The C# solutions are listings too, and compiling them
   needs a .NET SDK in the workflow. Decide before Appendix D is written.
+  **Settled: CI compiles it**, and the premise that this sandbox has no
+  .NET turned out to be false. See *The C# decision* below.
 - **Where the free-threaded interpreter runs for E1.** `uv python install
   3.14t` gives `python3.14t`; whether the `code` job installs two
   interpreters or E1 runs in a job of its own is undecided.
@@ -3588,6 +3591,102 @@ works when it is applied deliberately rather than remembered.
   value key: every claim in it is semantic and is checked by a listing
   that runs or a test that passes. It is the only written chapter of which
   that is true, and it is why `151 value keys` did not move.
+
+---
+
+### The C# decision, September 2026 --- settled, and the premise was false
+
+**Whether CI compiles the C\# side of Appendix D was one of the scaffold's
+two open decisions.** It is settled: **CI compiles it**, in a `csharp` job
+that `build` now `needs`, and `release.yml` runs the same step for the
+reason it already runs pyright and the starters. The other two options were
+rejected, and the reasons are worth keeping because each is a rule this
+file already states, applied:
+
+- **Twenty `verifybox` blocks** would have been the alternative to
+  compiling. This file says of the single box the book carries that it
+  "must not become two by habit: a box is a promise to the reader that
+  something was not run." Twenty is not a habit, it is a change of policy,
+  and it would land in the appendix carrying the most code.
+- **Compiling locally and pinning the SDK** is the class of claim this
+  repository refuses: a pin nothing compares and a compile nobody can
+  reproduce. It is the same shape as the CI comment that called parity a
+  hard gate above a job graph in which parity gated nothing.
+
+**But the decision had been left open on a premise, and the premise was
+false.** Two pass notes above say this sandbox has no .NET \dash{} the
+Chapter 3 pass ("There is no .NET SDK in this sandbox, so nothing in the
+chapter compiles C\#") and the Chapter 8 pass ("This repository has no .NET
+to ask"). Neither was checked against the package manager. Measured:
+`apt-get install dotnet-sdk-10.0` installs SDK 10.0.112 from
+**`archive.ubuntu.com`**, which the network note at the top of this file
+already lists as reachable; `api.nuget.org` answers 200; `dotnet new xunit`
+restores and `dotnet test` passes. Microsoft's own feeds
+(`dotnetcli.azureedge.net`, `builds.dotnet.microsoft.com`) are blocked, which
+is presumably what both passes ran into and generalised from.
+
+So the C\# half is verifiable **here as well as in CI**, and that is the
+fact that had been missing. **A blocked download is not an unavailable
+tool**, and the distinction is worth one `apt-cache search` before it is
+written down as a constraint.
+
+#### It found a defect on its first run, which is the argument in miniature
+
+`code/csharp/Solutions.Tests/Ch04ClaimsTests.cs` asserts the C\# claims the
+chapters make, because this file already records that **a .NET claim in this
+book is the one a reader is most likely to know better than the author**,
+and two had already been found wrong by hand. The first run found a third,
+in prose merged the same day:
+
+> Chapter 4 said C\# "formats a `double` to fifteen significant digits by
+> default and hides it".
+
+That was true of .NET Framework and of .NET Core before 3.0. On .NET 10,
+`(0.1 + 0.2).ToString()` is `0.30000000000000004` \dash{} **the same string
+Python prints**. The difference the chapter claimed had stopped existing;
+the old behaviour survives only as an explicit `G15` format, which does give
+`0.3`. Chapter 4 §4.7 and `notes/02-traps.md` entry 18 are both corrected,
+and the claim is asserted rather than remembered.
+
+Four other Chapter 4 claims were checked in the same run and **all held**,
+including two that make the chapter's argument sharper than it knew:
+CS0659 really is raised and really is only a warning, and a type that
+overrides `Equals` without `GetHashCode` goes into a `Dictionary`
+perfectly happily and then **cannot find an equal key** \dash{} which is
+this file's "the dictionary degrades and nothing breaks", now a passing
+assertion.
+
+#### What the job is, and the three gates that came with it
+
+- **`code/csharp/`**, a `Solutions` library and an xunit `Solutions.Tests`,
+  run by `make csharp` and by CI. **Warnings are errors**, because a claim
+  that compiles with a warning is a claim half made; `CS0659` is the one
+  deliberate suppression and the file says why. Watched producing a known
+  answer before it was believed: an unused field fails the build as CS0169.
+- **The SDK version lives in exactly one place**, `code/csharp/global.json`.
+  Both workflows read it with `global-json-file` rather than carrying the
+  string again, and `check_structure.py --pins` compares it with
+  `\dotnetver` **and fails any workflow that names a .NET version
+  directly**. That is uv's pin defect fixed before it could happen rather
+  than after: uv's version sat in the preamble and three workflow steps by
+  hand until somebody compared them.
+- **`--lines` now holds `.cs` to 79 columns as well as `.py`.** Appendix D
+  prints its C\# through `\csfile`, so those files are listings and the page
+  does not care which language they are in. The check found seven of my own
+  lines over budget the moment it was written, which is the usual way to
+  find out a gate was missing.
+
+**An XML comment may not contain two consecutive hyphens**, and
+`Directory.Build.props` died on one. It is the Chapter 2 ligature trap in a
+different costume \dash{} the same two characters, a different file format
+refusing them \dash{} and the file now carries a note saying so.
+
+#### What is still open
+
+Appendix D itself, which is issue-tracked, and the question of whether its
+twenty problems get one project each or one file each. Nothing here decides
+that; the scaffold is a library and a test project, which is the shape that
+takes either.
 
 ---
 
