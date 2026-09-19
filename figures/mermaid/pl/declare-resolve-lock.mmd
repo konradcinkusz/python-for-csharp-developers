@@ -1,0 +1,6 @@
+flowchart LR
+    A["pyproject.toml: to,<br/>co napisal czlowiek.<br/>Zaleznosci wprost,<br/>zakresy lub przypiecia"]
+    B["uv.lock: to, co<br/>rozwiazalo uv. Kazdy<br/>pakiet, po jednej<br/>wersji, i skrot"]
+    C["uv sync --locked<br/>buduje z tego .venv<br/>i raczej zawiedzie,<br/>niz od niego odejdzie"]
+    A -->|"uv lock"| B
+    B -->|"uv sync"| C

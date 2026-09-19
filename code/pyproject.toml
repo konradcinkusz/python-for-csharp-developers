@@ -9,10 +9,12 @@
 #
 #  Run from this directory:
 #      uv sync --locked          # the environment, exactly as CI has it
-#      uv run pytest             # every listing and every exercise solution
+#      PYBOOK_SOLUTIONS=1 uv run pytest   # every listing, every exercise SOLUTION
+#      PYBOOK_STARTERS=fail uv run pytest exercises   # every starter must fail
 #      uv run ruff check .       # lint, 79 columns, because the page is
 #      uv run pyright            # the checker the book pins first
 # ============================================================
+# --8<-- [start:project]
 [project]
 name = "python-for-dotnet-engineers"
 version = "0.1.0.dev0"
@@ -27,6 +29,7 @@ dependencies = [
     "uvicorn==0.53.0",
     "sqlalchemy==2.0.52",
     "alembic==1.20.0",
+    "aiosqlite==0.22.1",
     "httpx==0.28.1",
     "structlog==26.1.0",
     "opentelemetry-sdk==1.44.0",
@@ -34,17 +37,21 @@ dependencies = [
     "anthropic==1.5.0",
     "openai==3.13.0",
 ]
+# --8<-- [end:project]
 
+# --8<-- [start:groups]
 [dependency-groups]
 dev = [
     "pytest==9.1.1",
     "pytest-asyncio==1.4.0",
     "hypothesis==6.168.0",
+    "coverage==7.16.1",
     "ruff==0.16.7",
     "pyright==1.1.414",
     "mypy==2.3.1",
     "pip-audit==2.10.1",
 ]
+# --8<-- [end:groups]
 
 [build-system]
 requires = ["uv_build>=0.8,<0.13"]
@@ -58,9 +65,20 @@ module-root = "src"
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "exercises"]
-pythonpath = ["."]
+# "." makes `exercises` and `trace_assert` importable. A chapter directory
+# is listed as well when that chapter's EXERCISES import its example modules
+# -- ch11's do, because the exercise about fixtures is about the basket the
+# chapter already built, and duplicating it into exercises/ would be two
+# copies of the thing the exercise is about removing a copy of. Add an entry
+# when a chapter needs one, and note that these directories share one flat
+# namespace: two chapters cannot both put `pricing.py` on this list.
+pythonpath = [".", "ch11"]
 asyncio_mode = "auto"
 addopts = "-q"
+# An unregistered marker is nearly always a typo, and a typo'd marker is a
+# test that quietly never runs under the filter meant to select it. pytest
+# warns about one; this list is what makes the warning mean something.
+markers = ["slow: deselect with -m 'not slow'"]
 
 [tool.ruff]
 # 79, not 88: that is what fits a listing on the page at \footnotesize without
@@ -74,7 +92,46 @@ select = ["E", "F", "W", "I", "UP", "B", "N", "SIM"]
 [tool.pyright]
 pythonVersion = "3.14"
 typeCheckingMode = "strict"
-include = ["src", "ch00", "measure", "tests", "exercises"]
+include = ["src", "ch*", "measure", "tests", "exercises"]
+# Mirrors [tool.pytest.ini_options] pythonpath: pyright does not read
+# that key, so a chapter directory an exercise imports from has to be
+# listed in BOTH or the type-check fails on an import the tests
+# resolve perfectly well. Keep the two lists in step.
+extraPaths = ["ch11"]
+# "ch*" rather than the exact chapter list, deliberately: pyright's
+# glob matches ch00 through ch14 as they arrive. A hard-coded "ch00"
+# left every future chapter's listings out of strict type-checking
+# while the CI step stayed green -- proved on a scratch ch01/probe.py.
+
+# A measurement script imports the chapter's own listings rather than a
+# copy of them, and a listing is a SCRIPT: it imports its siblings by bare
+# name, which is what the reader typing `uv run python ch10/nplusone.py`
+# gets. pyright searches the file's own directory, so that resolves inside
+# ch10/ and not from measure/. This names the chapter directories the
+# measurement scripts reach into; add one when a chapter's measurement
+# does -- ch13 is here because E8 times the corpus that ch13's
+# what_survives.py prints, rather than carrying a second copy of it.
+# "." is code/ itself, and it is what lets a measurement script import
+# another measurement module by the same package path it hands to a
+# subprocess: e05_workers launches uvicorn with the import string
+# "measure.e05_app:app", which resolves against code/, and then imports
+# `measure.e05_app` itself so that one module has one spelling. Without
+# this, rooting the environment at measure/ takes code/ off the search
+# path and that absolute import stops resolving.
+[[tool.pyright.executionEnvironments]]
+root = "measure"
+# "src" as well as the chapter directories: an executionEnvironment
+# REPLACES the default resolution for files under its root, so naming only
+# a chapter here took `src` off pyright's path for every measurement
+# script. measure/suite_cost.py imports the guiding project by inserting
+# `src` on sys.path, and this is the same statement made to the checker --
+# without it pyright reports `"ASSERTIONS" is unknown import symbol` for a
+# name that resolves perfectly at runtime, which is a config gap wearing a
+# type error's clothes. Found by merging two chapters' passes together.
+extraPaths = ["ch10", "ch13", ".", "src"]
+
+[[tool.pyright.executionEnvironments]]
+root = "."
 
 [tool.mypy]
 python_version = "3.14"

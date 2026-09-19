@@ -1,0 +1,5 @@
+flowchart LR
+    A["SIGTERM arrives:<br/>readiness fails, liveness<br/>stays true"]
+    B["Balancer stops routing;<br/>uvicorn closes the listening<br/>socket and drains"]
+    C["In-flight requests finish,<br/>then the lifespan's shutdown<br/>half runs, then exit"]
+    A --> B --> C

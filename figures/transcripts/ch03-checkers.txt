@@ -1,0 +1,10 @@
+ch03/where_it_lies.py: 4 functions, every one declaring -> int,
+every one returning a str.
+
+pyright 1.1.414: 0 error(s)
+
+mypy --strict 2.3.1: 2 error(s)
+  line 24  no-any-return
+    Returning Any from function declared to return "int"
+  line 30  no-any-return
+    Returning Any from function declared to return "int"

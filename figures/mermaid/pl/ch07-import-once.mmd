@@ -1,0 +1,5 @@
+flowchart LR
+    A["import x"] --> B{"jest w sys.modules?"}
+    B -->|"pudlo"| C["wykonaj x.py raz,<br/>zapisz obiekt w cache"]
+    B -->|"trafienie"| D["zwiaz nazwe,<br/>nie wykonuj niczego"]
+    C --> D

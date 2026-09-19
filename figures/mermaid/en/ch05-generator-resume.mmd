@@ -1,0 +1,7 @@
+flowchart LR
+    Y["The generator is<br/>suspended at a yield"] --> N["next(g) resumes it,<br/>and the yield<br/>evaluates to None"]
+    Y --> S["g.send(v) resumes it,<br/>and the yield<br/>evaluates to v"]
+    Y --> C["g.close() resumes it<br/>by raising GeneratorExit<br/>at the yield"]
+    N --> F["Whichever of the three<br/>ends it, a finally in<br/>the generator still runs"]
+    S --> F
+    C --> F

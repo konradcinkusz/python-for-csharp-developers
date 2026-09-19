@@ -1,0 +1,3 @@
+      lambda: i  ->  [2, 2, 2]
+  lambda i=i: i  ->  [0, 1, 2]
+  partial(f, i)  ->  [0, 1, 2]

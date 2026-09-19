@@ -1,0 +1,5 @@
+flowchart LR
+    A["<b>Socket, then middleware</b><br/>uvicorn reads one request<br/>and hands it to the stack.<br/>The LAST middleware<br/>registered runs FIRST."]
+    B["<b>Routing, then Depends</b><br/>path and method pick one<br/>function; every Depends in<br/>its signature is resolved<br/>and cached for this request.<br/>A bad body stops here: 422."]
+    C["<b>Handler, then the model</b><br/>your code runs and returns<br/>an object; response_model<br/>decides what is serialised<br/>and under which names."]
+    A --> B --> C

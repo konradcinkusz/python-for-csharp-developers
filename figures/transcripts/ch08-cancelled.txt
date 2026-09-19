@@ -1,0 +1,6 @@
+CancelledError inherits: CancelledError -> BaseException -> object
+
+except Exception       CancelledError reached the caller: cancelled
+except BaseException   caught by except BaseException
+except CancelledError  caught by except CancelledError, not re-raised
+no await at all        ran to completion, summing to 1999999000000

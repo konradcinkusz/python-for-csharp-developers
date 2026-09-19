@@ -1,36 +1,396 @@
 %% ch10 --- Dane: SQLAlchemy 2.0 dla tych, którzy znają EF Core, i polars dla odruchu LINQ
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie bloku \chapterstub{} i zastąpienie go
-%% rozdziałem -- po czym ten plik nie jest już generowany.
+%% Napisany. Opis, który ten rozdział zastąpił, jest w tools/chapters.json;
+%% tam, gdzie kod mu zaprzeczył, mówi o tym CLAUDE.md w *Resolved questions*.
+%%
+%% Terminologia: "jednostka pracy" dla unit of work, "leniwe ladowanie" dla
+%% lazy loading. Dla eager loading polscy inzynierowie mowia zwykle "eager
+%% loading" -- polski odpowiednik pada raz, a dalej uzywana jest nazwa
+%% mechanizmu, czyli selectinload.
 
 \chapter{Dane: SQLAlchemy 2.0 dla tych, którzy znają EF Core, i polars dla odruchu LINQ}
 \label{ch:data}
+\index{SQLAlchemy}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\noindent
+\code{Session} w SQLAlchemy jest jednostką pracy w tym samym sensie, w jakim
+jest nią \code{DbContext}: śledzi obiekty, które do niej włożysz, ustala, co
+się zmieniło, i zapisuje całość w jednej transakcji. Prawie wszystko, co
+wiesz, przenosi się wprost. Nie przenosi się krótka lista, każda jej pozycja
+daje kod, który działa i jest błędny, a te, które kosztują najwięcej, są tu
+zmierzone, a nie stwierdzone \dash{} i po to jest reszta tego rozdziału.
 
-Argument: a SQLAlchemy 2.0 \code{Session} is a unit of work exactly as a
-\code{DbContext} is, and the places it differs are the places EF habits
-break. Declarative models with \code{Mapped} and \code{mapped\_column}
-against entity classes and fluent configuration; \code{select()} against
-LINQ to Entities; the identity map, flush against commit,
-\code{expire\_on\_commit}; relationships and the N+1 problem (lazy by
-default in both, \code{selectinload} against \code{Include}); async sessions
-against async EF; transactions and \code{begin()}; Alembic against EF
-migrations, where autogenerate is a diff and not a truth; connection
-pooling; SQLite for tests against the real engine. polars for the LINQ-over-
-a-table reflex: lazy frames against \code{IQueryable}, expressions against
-lambdas, and when pandas instead, which for this reader is rarely. Payoff: a
-data layer with no repository pattern, and why that pattern is usually a
-mistake here, plus a migration workflow. Measurement: experiment E6, the N+1
-reproduced and counted from the engine's own echo, before and after
-\code{selectinload}, on SQLite, free. Five exercises.
+Model w każdym listingu to dwie tabele \dash{} usługa i incydenty jej
+dotyczące, \val{e06.services} wierszy pierwszej i \val{e06.incidents} drugiej
+\dash{} i mieszka w jednym pliku, który pozostałe listingi importują, więc nic
+poniżej nie dotyczy innego schematu niż reszta. Bazą
+jest SQLite w pamięci, zasiewana przy każdym uruchomieniu: cały rozdział
+można uruchomić bez kosztów i bez serwera.
 
-\medskip
-\textbf{Budżet słów:} 3000.\\
-\textbf{Wydanie:} v0.2.\\
-\textbf{Pomiar:} E6.
-}
+\section{\code{Session} to \code{DbContext}}
+\label{sec:ch10-session}
+\index{Session@\texttt{Session}}
+
+Mapowanie deklaratywne to klasa encji z konfiguracją płynną przeniesioną na
+sam atrybut. \code{Mapped[str]} to typ kolumny \emph{i} jej NOT NULL;
+\code{Mapped[str | None]} to wersja dopuszczająca null.
+\code{mapped\_column()} jest miejscem na klucz, wartość domyślną,
+ograniczenie unikalności albo indeks, a \code{OnModelCreating} nie ma tu
+nigdzie.
+
+\pyregion{code/ch10/model.py}{model}{Model, który dzielą obie tabele i każdy późniejszy listing}{lst:ch10-model}
+
+\begin{csbox}
+\code{DbSet<Service> Services} nie ma odpowiednika i nie potrzebuje go:
+zapytanie nazywa klasę encji, a nie właściwość kontekstu. Jedna podklasa
+\code{DeclarativeBase} to jeden \code{DbContext} \dash{} to ona jest
+właścicielem metadanych, na które działa \code{Database.EnsureCreated()} i
+każda migracja. \code{back\_populates} to dwie połówki właściwości
+nawigacyjnej powiadomione o sobie nawzajem, co EF wywnioskuje z typów, a
+SQLAlchemy każe napisać.
+\end{csbox}
+
+Zapytanie najpierw się składa, a dopiero potem wykonuje, dokładnie jak LINQ
+to Entities: \code{select()} buduje obiekt, \code{.where()},
+\code{.join()} i \code{.order\_by()} zwracają nowe, a nic nie trafia do bazy,
+dopóki instrukcja nie zostanie podana sesji.
+
+\pyregion{code/ch10/session.py}{query}{\code{select()} składa; \code{scalars()} wykonuje}{lst:ch10-query}
+
+Różnica wobec LINQ jest taka, że API jest jedno, a nie dwa. Nie ma tu
+bliźniaka \code{IEnumerable} o tym samym kształcie, więc pułapka LINQ
+\dash{} źle otypowana zmienna po cichu przenosząca całe zapytanie do
+procesu \dash{} nie ma się na czym wydarzyć. Klauzula, której nie da się
+zamienić na SQL, wywraca się tam, gdzie ją napisałeś, zamiast udać się gdzieś
+wolniej; czym się wywraca, to inna sprawa \dash{} często zwykłym
+\code{TypeError}, a nie czymś o tłumaczeniu.
+
+Warto nazwać dwie chwile wewnątrz sesji, bo do obu przyklejają się nawyki z
+EF. Mapa tożsamości oznacza, że dwa odczyty jednego wiersza dają jeden
+obiekt, a drugi nie kosztuje nic \dash{} to ta sama gwarancja, którą daje
+śledzenie zmian, a listing ten drugi odczyt liczy, zamiast o nim zapewniać.
+
+\pyregion{code/ch10/session.py}{identity}{Dwa odczyty, jeden obiekt, żadnej drugiej instrukcji}{lst:ch10-identity}
+
+A \code{flush()} to nie \code{commit()}: flush wykonuje INSERT i oddaje
+klucz wybrany przez bazę, wciąż wewnątrz otwartej transakcji, którą nadal
+można wycofać.
+
+\pyregion{code/ch10/session.py}{flush}{\code{flush()} zapisuje; \code{commit()} kończy transakcję}{lst:ch10-flush}
+
+\mermaidfig{orm-unit-of-work}{Trzy chwile w jednostce pracy i koszt każdej z nich}{trzy chwile sesji}
+
+\section{Zapytanie, którego nie napisałeś}
+\label{sec:ch10-expire}
+\index{expire\_on\_commit@\texttt{expire\_on\_commit}}
+
+Oto funkcja, którą w C\# pisałeś sto razy. Wczytuje wszystkie usługi, zmienia
+nazwę każdej z nich, zatwierdza i zwraca nowe nazwy. Zmiana nazwy to zwykłe
+przypisanie do atrybutu; odczyt na końcu to zwykły dostęp do atrybutu. Zanim
+przejdziesz dalej: ile instrukcji to wyśle?
+
+\pyregion{code/ch10/expiry.py}{expired}{Zmiana nazwy, commit, a potem odczyt nazw z powrotem}{lst:ch10-expiry}
+
+\transcript{ch10-expiry}
+
+\noindent
+\val{e06.expire.selects} zapytania SELECT na \val{e06.services} obiektów,
+które już miałeś, z linii, w której nie ma żadnego zapytania \dash{} wobec
+\val{e06.expire.kept} przy wyłączonej fladze. Ta liczba nie jest przypadkiem
+i nie jest stała: to jedno zapytanie na obiekt.
+
+\begin{trapbox}
+\textbf{\enquote{\code{Session} to \code{DbContext}, więc po
+\code{commit()} moje obiekty nadal nadają się do użycia.}} Nadają się i są
+puste. \code{expire\_on\_commit} domyślnie wynosi \code{True}, więc commit
+oznacza każdy atrybut każdego śledzonego obiektu jako nieaktualny, a
+następny dostęp wczytuje go ponownie \dash{} jedna instrukcja na obiekt,
+wysłana przez linię, która wygląda jak odczyt pola. EF Core tego nie robi,
+więc nawyk nie ma czym cię ostrzec.
+
+Poprawka to jeden argument, a druga poprawka jest lepsza: wczytaj to, czego
+potrzebujesz, do zwykłych wartości \emph{przed} zatwierdzeniem i przestań
+trzymać obiekty.
+\end{trapbox}
+
+\section{Problem N+1, policzony}
+\label{sec:ch10-nplusone}
+\index{N+1@N\texttt{+}1 problem}
+
+Relacja jest domyślnie leniwa, dokładnie jak właściwość nawigacyjna, więc
+pętla, którą pisze każdy, ma w obu językach ten sam kształt. Zanim ją
+policzymy, oto przyrząd, bo pomiar jest wart tyle, ile jego przyrząd.
+
+\pyregion{code/ch10/counting.py}{counter}{Przyrząd: każda instrukcja policzona dwa razy, z dwóch stron}{lst:ch10-counting}
+
+\noindent
+Echo silnika wypisuje każdą wykonaną instrukcję, a zdarzenie, z którego to
+echo powstaje, można podpiąć. Policzenie obu i odmowa podania liczby, co do
+której obie strony się nie zgadzają, to trzy dodatkowe linie \dash{} i cała
+różnica między pomiarem a twierdzeniem. Zwróć uwagę, że poziom logowania
+jest podnoszony i przywracany, a nie zakładany: przyrząd liczący echo
+wycelowany w silnik, którego logger stoi na WARNING, nie liczy nic, z niczym
+się nie zgadza i podaje pewne siebie zero.
+
+Teraz pętla. Sumuje stracone minuty każdej usługi, a usług jest
+\val{e06.services}.
+
+\pyregion{code/ch10/nplusone.py}{lazy}{Oczywista pętla}{lst:ch10-lazy}
+
+\pyregion{code/ch10/nplusone.py}{eager}{\code{selectinload} to \code{Include}; \code{joinedload} to \code{Include} ze złączeniem}{lst:ch10-eager}
+
+\transcript{ch10-nplusone}
+
+\noindent
+Pętla kosztuje więc \val{e06.lazy.selects}, ładowanie zachłanne kosztuje
+\val{e06.selectin.selects}, a złączenie \val{e06.joined.selects}. Trzy
+liczby z jednej bazy nie dowodzą niczego o większej, więc eksperyment
+przemiata liczbę rodziców i sprawdza kształt, a nie same wyniki:
+
+\begin{center}
+\small
+\begin{tabularx}{0.8\linewidth}{@{}Xrr@{}}
+\toprule
+\textbf{Usługi} & \textbf{Leniwie} & \textbf{\code{selectinload}} \\
+\midrule
+\val{e06.services} & \val{e06.lazy.selects} & \val{e06.selectin.selects} \\
+\val{e06.mid.parents} & \val{e06.mid.lazy} & \val{e06.selectin.selects} \\
+\val{e06.wide.parents} & \val{e06.wide.lazy} & \val{e06.selectin.selects} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent
+Lewa kolumna rośnie razem z tabelą, a prawa nie \dash{} i to jedyna wersja
+tego twierdzenia, która przetrwa produkcyjną bazę danych.
+
+\mermaidfig{orm-n-plus-one}{Ile kosztuje pętla i ile kosztuje powiedzenie tego z góry}{problem N+1 i jego poprawka}
+
+\begin{trapbox}
+\textbf{\enquote{Relacje wczytują się wtedy, kiedy je czytam, tak jak w
+EF.}} Wczytują \dash{} i to jest problem, a nie pocieszenie. Problem N+1
+jest w obu identyczny, \code{selectinload} to \code{Include}, a jedyna
+prawdziwa różnica polega na tym, że SQLAlchemy pozwala też zamienić cichą
+wersję na głośną.
+\end{trapbox}
+
+\code{raiseload} to ta część, która nie ma wygodnego odpowiednika w EF.
+Zamiast leniwie wczytywać, odmawia \dash{} więc problem N+1 staje się
+niezdanym testem, a nie wolnym endpointem.
+
+\pyregion{code/ch10/nplusone.py}{raiseload}{Zamień cichą wersję na głośną}{lst:ch10-raiseload}
+
+\begin{note}
+\code{joinedload} kosztuje jedną instrukcję zamiast dwóch i nie jest przez
+to lepszą odpowiedzią. Powtarza każdy wiersz rodzica raz na dziecko, dlatego
+jego wynik wymaga \code{.unique()}; przy rodzicu z szerokimi kolumnami i
+wieloma dziećmi to mnóstwo zdublowanych bajtów w kablu. \code{selectinload}
+to rozsądna wartość domyślna, a \code{joinedload} jest do relacji
+jednostronnej.
+\end{note}
+
+\section{Async, gdzie problem N+1 jest głośny}
+\label{sec:ch10-async}
+\index{AsyncSession@\texttt{AsyncSession}}
+
+Rozdział~\ref{ch:services} serwuje wszystko asynchronicznie. Sesją jest tam
+\code{AsyncSession}, a prawie cały ten rozdział przenosi się do niej z
+\code{await} przed wywołaniami, które dotykają bazy. Jedna rzecz się nie
+przenosi \dash{} i jest to ta, o której był poprzedni podrozdział.
+
+\pyregion{code/ch10/async_session.py}{lazy}{Ta sama pętla, asynchronicznie}{lst:ch10-async}
+
+\transcript{ch10-async}
+
+\noindent
+Pod sesją asynchroniczną leniwa relacja nie wysyła po cichu zapytania.
+\code{MissingGreenlet} jest tym, co zgłasza zamiast tego, bo wysłanie
+zapytania oznaczałoby zablokowanie pętli zdarzeń, a
+Rozdział~\ref{ch:asyncio} jest właśnie o tym, że nic nie może tego zrobić.
+Połowa poprzedniego podrozdziału przenosi się bez zmian: leniwość wciąż
+jest domyślna, a sesja asynchroniczna odmawia jej użycia.
+
+Warto zapisać to jako regułę, a nie anegdotę, bo biegnie w drugą stronę niż
+zwykła rada. \textbf{Problem N+1 jest cichy w usłudze synchronicznej i
+głośny w asynchronicznej.} Zespół przenoszący usługę sync na async nie
+nabywa tego błędu; nabywa komunikat o błędzie, który już miał.
+
+\begin{csbox}
+Ten sam argument tłumaczy, dlaczego \code{expire\_on\_commit=False} nie jest
+pod async pokrętłem do strojenia. Unieważniony atrybut wczytuje się ponownie
+przy dostępie, a to wczytanie jest powyższym błędem, a nie zapytaniem \dash{}
+więc zostawienie wartości domyślnej uzbraja minę przy każdym commicie.
+Asynchroniczny EF nie ma równoważnego zagrożenia, bo śledzenie zmian nigdy
+nie wysyła zapytania za twoimi plecami.
+\end{csbox}
+
+\section{Autogenerate to różnica, a nie prawda}
+\label{sec:ch10-alembic}
+\index{Alembic}
+
+Alembic jest narzędziem do migracji, a \code{alembic revision
+-{}-autogenerate} to dwa kroki: porównaj modele z żywą bazą, a potem zapisz
+różnicę jako skrypt migracji. Warto zobaczyć pierwszy krok osobno. Oto dwie
+wersje jednego modelu, różniące się jedną przemianowaną kolumną, a potem
+funkcja, którą samo polecenie wywołuje.
+
+\pyregion{code/ch10/autogenerate.py}{models}{Co wdrożono i co mówią modele teraz}{lst:ch10-models}
+
+\pyregion{code/ch10/autogenerate.py}{diff}{Co liczy \code{-{}-autogenerate}}{lst:ch10-autogen}
+
+\transcript{ch10-autogenerate}
+
+\begin{trapbox}
+\textbf{\enquote{Alembic autogenerate to jest ta migracja.}} To różnica, a
+różnica nie widzi przemianowania: widzi kolumnę, której nie ma, i kolumnę,
+która jest nowa, a nic w modelach nie mówi, że to ta sama kolumna. Zastosowana
+tak, jak ją wygenerowano, ta migracja kasuje dane i tworzy obok pustą
+kolumnę.
+
+\code{Add-Migration} w EF Core ma tę samą ślepą plamkę i ukrywa ją gorzej,
+bo migawka modelu daje mu przynajmniej coś do porównania. Czytaj każdą
+wygenerowaną migrację. Wygenerowany plik jest szkicem.
+\end{trapbox}
+
+Reszta przepływu mapuje się czysto, a ostatni wiersz jest tym wartym
+zapamiętania: rewizje tworzą łańcuch po identyfikatorze rodzica, a nie
+uporządkowanie po znacznikach czasu \dash{} i to właśnie sprawia, że dwie
+gałęzie dają konflikt scalania, zamiast po cichu się przepleść.
+
+\begin{csbox}
+\begin{tabularx}{\linewidth}{@{}XX@{}}
+\toprule
+\textbf{EF Core} & \textbf{Alembic} \\
+\midrule
+\code{Add-Migration} & \code{alembic revision -{}-autogenerate} \\
+\code{Update-Database} & \code{alembic upgrade head} \\
+wycofanie migracji & \code{alembic downgrade} \\
+\code{Up()} i \code{Down()} & \code{upgrade()} i \code{downgrade()} \\
+migawka i znaczniki czasu & łańcuch, każda rewizja nazywa rodzica \\
+\bottomrule
+\end{tabularx}
+\end{csbox}
+
+\section{Warstwa danych bez repozytorium}
+\label{sec:ch10-no-repository}
+
+Wzorzec, po który zespół .NET sięga w następnej kolejności, to repozytorium
+nad ORM-em \dash{} i zwykle jest to tutaj błąd z powodu, który nie dotyczy
+gustu. \code{Session} \emph{jest} jednostką pracy i repozytorium; opakowanie
+jej daje drugą, z własnym cyklem życia do popsucia, a pierwszą rzeczą, którą
+opakowanie musi wypuścić na zewnątrz, jest transakcja, bo transakcja z
+definicji obejmuje kilka repozytoriów.
+
+Zastępuje to moduł funkcji, których pierwszym parametrem jest sesja.
+
+\pyregion{code/ch10/queries.py}{queries}{Zapytania są funkcjami; sesja jest parametrem}{lst:ch10-queries}
+
+\noindent
+Transakcja należy do wywołującego \dash{} i to właśnie pozwala paczce być
+jedną jednostką pracy, a nie kilkoma.
+
+\pyregion{code/ch10/queries.py}{caller}{\code{session.begin()} to zakres transakcji}{lst:ch10-begin}
+
+\begin{trapbox}
+\textbf{\enquote{Potrzebuję repozytorium nad ORM-em.}} Zwykle podaje się za
+nim dwa argumenty: testowalność i wymienialność. Na testowalność odpowiada
+sesja: Rozdział~\ref{ch:testing} buduje te testy na SQLite w pamięci, są
+szybsze od mocka i sprawdzają przy okazji SQL. Na wymienialność odpowiada
+pytanie, kiedy ostatnio coś wymieniałeś. To, co repozytorium dostarcza
+niezawodnie, to drugie miejsce, w którym może schować się problem N+1, bo
+metoda zwracająca encję nie ma jak wiedzieć, czy jej wywołujący zaraz wejdzie
+w relację.
+\end{trapbox}
+
+\begin{note}
+SQLite w pamięci to właściwa baza testowa dla kształtu tego kodu i
+niewłaściwa dla wszystkiego, co oba silniki widzą inaczej \dash{} a widzą
+inaczej bardzo dużo: powinowactwo typów, dokładne naruszenia ograniczeń i
+to, co robi równoległy zapis. Uruchamiaj zestaw testów na SQLite dla
+szybkości, a ten sam zestaw na prawdziwym silniku przed wydaniem.
+\end{note}
+
+\section{polars i odruch LINQ}
+\label{sec:ch10-polars}
+\index{polars}
+
+Drugi nawyk wart zmapowania to LINQ nad tabelą, która nie jest w bazie
+danych. \pkg{polars} ma dwa typy tam, gdzie LINQ ma dwa interfejsy, a
+odpowiedniość jest dość bliska, żeby się przydać: \code{DataFrame} to
+\code{IEnumerable}, który już został zmaterializowany, a \code{LazyFrame} to
+\code{IQueryable}.
+
+\pyregion{code/ch10/frames.py}{lazy}{Nic tutaj nie czyta wiersza}{lst:ch10-lazyframe}
+
+\pyregion{code/ch10/frames.py}{collect}{\code{collect()} to \code{ToList()}}{lst:ch10-collect}
+
+\transcript{ch10-frames}
+
+\noindent
+\code{pl.col("severity") <= 2} to obiekt opisujący porównanie, a nie lambda
+nad wierszem. To drzewo wyrażeń pod inną nazwą i jest tam z tego samego
+powodu, co \code{Expression<Func<T, bool>>}: coś spoza języka gospodarza musi
+to przeczytać. Zysk też jest ten sam \dash{} plan, który wypisuje listing,
+znosi filtr w dół, do odczytu pliku, więc wiersze, które go nie przechodzą,
+nigdy nie są dekodowane.
+
+\mermaidfig{polars-lazy-plan}{Zbuduj plan, pozwól go przepisać, wykonaj raz}{dwa typy polars}
+
+\begin{note}
+\pkg{pandas} to ten, o którym wszyscy słyszeli, i dla tego czytelnika rzadko
+jest właściwą odpowiedzią: jego indeks to pojęcie bez odpowiednika w LINQ i
+z mnóstwem zaskakujących zachowań, a prawie każdy napisany dla niego poradnik
+jest starszy niż te jego części, które są dziś rozsądne. Sięgaj po
+\pkg{pandas} wtedy, gdy biblioteka, której musisz użyć, zwraca ramkę
+\pkg{pandas} albo jej wymaga \dash{} co w narzędziach AI się zdarza i jest
+problemem Rozdziału~\ref{ch:aitoolkit}.
+\end{note}
+
+\begin{note}
+\pkg{polars} nie przechodzi ścisłego sprawdzania typów w wersji, którą
+przypina ta książka: metody jego ramek noszą unie na tyle szerokie, że
+ścisły checker nazywa łańcuchowy wynik częściowo nieznanym. Checker ma
+rację, a powodem są stuby, więc oba powyższe listingi niosą nazwane
+wyciszenie zamiast rozluźniania trybu strict w całym projekcie. To ten
+kształt, który zaleca Rozdział~\ref{ch:typing} \dash{} wycisz tę regułę,
+którą masz na myśli, w tym miejscu, które masz na myśli.
+\end{note}
+
+\section*{Ćwiczenia}
+
+Pięć, a każde to plik startowy z testem obok. Trzy z nich sprawdzają, ile
+twoja odpowiedź \emph{kosztowała}, a nie tylko co powiedziała \dash{} bo to
+ta połowa rozdziału, którą zdany test inaczej by przegapił.
+
+\begin{exercise}{e10_01_select}{Złóż zapytanie}
+Zwróć nazwy wszystkich usług z co najmniej jednym incydentem o istotności 1,
+w kolejności alfabetycznej. Test sprawdza odpowiedź i koszt: wczytanie
+wszystkich usług i filtrowanie w pętli daje tę samą listę i sześć
+instrukcji.
+\end{exercise}
+
+\begin{exercise}{e10_02_expire}{Odczytaj własne obiekty z powrotem}
+Zamień każdą nazwę usługi na wielkie litery, zatwierdź i zwróć nazwy w
+kolejności identyfikatorów, w jednej instrukcji zamiast jednej na wiersz. Są
+dwie dobre odpowiedzi, a docstring rozwiązania mówi, która jest lepsza przy
+długo żyjącej sesji.
+\end{exercise}
+
+\begin{exercise}{e10_03_eager}{Dobra odpowiedź, zła liczba zapytań}
+Ten plik startowy już zwraca dobrą odpowiedź. Jego test nie przechodzi przez
+to, ile ta odpowiedź kosztowała. Napraw to bez zmiany tego, co zwraca.
+\end{exercise}
+
+\begin{exercise}{e10_04_unit_of_work}{Wszystkie albo żaden}
+Zapisz kilka incydentów w jednej paczce. Wpis nazywający usługę, która nie
+istnieje, musi zabrać ze sobą całą paczkę, zostawiając bazę taką, jaka była.
+Dwa dobre wiersze będą już zapisane, zanim znajdzie się ten zły, więc
+transakcja musi je z powrotem wyjąć.
+\end{exercise}
+
+\begin{exercise}{e10_05_polars}{Zwróć plan, a nie wiersze}
+Napisz leniwe zapytanie o minuty stracone na usługę, od najcięższej. Test
+sprawdza wiersze i to, czy zwrócone przez ciebie jest nadal
+\code{LazyFrame}: funkcja kończąca się na \code{.collect()} wykonała pracę,
+zanim jej wywołujący o nią poprosił.
+\end{exercise}

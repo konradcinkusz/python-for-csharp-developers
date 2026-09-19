@@ -1,0 +1,8 @@
+order event:confirmation.received -> tool:request_time_off
+  tool:request_time_off occurred 1 time(s) first
+argument_grounded request_time_off.leave_type_id from list_leave_types
+  'lt-0099' is in no earlier result (saw: nothing)
+output_excludes_internal_ids
+  turn 1: 'lv-0041'
+termination decision
+  turn(s) 1:iteration_cap

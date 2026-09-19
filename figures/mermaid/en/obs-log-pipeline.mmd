@@ -1,0 +1,8 @@
+flowchart LR
+    A["Your code:<br/>structlog.get_logger()<br/>.info(event, key=value)"]
+    B["Somebody else's code:<br/>logging.getLogger(__name__)<br/>.warning('%s', arg)"]
+    C["One shared pre-chain:<br/>merge_contextvars, add_log_level,<br/>TimeStamper"]
+    D["One renderer:<br/>JSONRenderer, to stdout,<br/>one line per record"]
+    A --> C
+    B -->|"foreign_pre_chain"| C
+    C --> D

@@ -11,7 +11,7 @@ be trusted to remember:
                 exists under the repository, and does every region marker
                 exist in its file? A listing the reader is told to open must
                 be there to open.
-  --exercises   Does every \\exercise{key} have its starter, its solution and
+  --exercises   Does every \\begin{exercise}{key} have its starter, its solution and
                 its test under code/exercises/, is the key unique, and does
                 its chapter prefix agree with the chapter it sits in?
   --transcripts Does every \\transcript{stem} name a file under
@@ -52,7 +52,10 @@ RE_COMMENT = re.compile(r"(?<!\\)%.*$", re.M)
 RE_PYFILE = re.compile(r"\\(?:pyfile|csfile)\{([^}]*)\}")
 RE_PYREGION = re.compile(r"\\pyregion\{([^}]*)\}\{([^}]*)\}")
 RE_TRANSCRIPT = re.compile(r"\\transcript\{([^}]*)\}")
-RE_EXERCISE = re.compile(r"\\exercise\{([^}]*)\}")
+RE_EXERCISE = re.compile(r"\\begin\{exercise\}\{([^}]*)\}")
+# The macro form the environment replaced. It no longer exists, and a chapter
+# that uses it would otherwise be an exercise this check cannot see.
+RE_OLD_EXERCISE = re.compile(r"\\exercise\{")
 RE_CSBOX = re.compile(r"\\begin\{csbox\}")
 RE_CHAPTER_FILE = re.compile(r"^ch(\d\d)-")
 # Only the pinned block: a macro whose name ends in "ver", whose body is a
@@ -78,7 +81,12 @@ def tex_files(tree: str, lang: str) -> list[Path]:
 
 
 def written(text: str) -> bool:
-    return not RE_STUB.search(text)
+    # Comment-stripped: the stub header this repo's generator writes NAMES
+    # the macro in prose, so a raw search for \chapterstub{ is true of every
+    # stub forever, even one whose block has been deleted and replaced with a
+    # written chapter that (as instructed) kept the header comment above it.
+    # gen_stubs.py's written() carries the same fix and the same reasoning.
+    return not RE_STUB.search(RE_COMMENT.sub("", text))
 
 
 def result(name: str, problems: list[str], soft: bool, ok_msg: str) -> int:
@@ -160,6 +168,10 @@ def check_exercises(soft: bool) -> int:
             src = RE_COMMENT.sub("", p.read_text(encoding="utf8"))
             m = RE_CHAPTER_FILE.match(p.name)
             chap = m.group(1) if m else ("00" if tree == "frontmatter" else None)
+            for e in RE_OLD_EXERCISE.finditer(src):
+                problems.append(f"{p.relative_to(ROOT)}: \\exercise{{...}} is the old macro "
+                                f"form; write \\begin{{exercise}}{{key}}{{title}} ... "
+                                f"\\end{{exercise}}")
             for e in RE_EXERCISE.finditer(src):
                 key = e.group(1)
                 rel = p.relative_to(ROOT)
@@ -185,9 +197,16 @@ def check_exercises(soft: bool) -> int:
 
 
 def check_lines(soft: bool) -> int:
+    # .cs as well as .py: Appendix D prints its C# solutions through \csfile,
+    # so they are listings and the page does not care which language they are
+    # in. bin/ and obj/ hold generated sources nobody wrote and nothing
+    # prints, so they are skipped the way .venv is.
     problems, n = [], 0
-    for p in sorted((ROOT / "code").rglob("*.py")):
-        if ".venv" in p.parts:
+    skip = {".venv", "bin", "obj"}
+    files = sorted((ROOT / "code").rglob("*.py")) + \
+        sorted((ROOT / "code").rglob("*.cs"))
+    for p in sorted(files):
+        if skip & set(p.parts):
             continue
         n += 1
         for i, line in enumerate(p.read_text(encoding="utf8").splitlines(), start=1):
@@ -210,7 +229,7 @@ def check_pins(soft: bool) -> int:
             problems.append(f"{dist}: preamble.tex says {tex_pins[dist]}, "
                             f"code/pyproject.toml says {ver}")
     for dist, ver in sorted(tex_pins.items()):
-        if dist not in toml_pins and dist not in ("uv",):
+        if dist not in toml_pins and dist not in ("uv", "dotnet"):
             problems.append(f"preamble.tex pins {dist} {ver} and code/pyproject.toml "
                             f"does not install it")
     pyv = (ROOT / "code" / ".python-version").read_text(encoding="utf8").strip()
@@ -218,8 +237,41 @@ def check_pins(soft: bool) -> int:
     if not m or m.group(1) != pyv:
         problems.append(f"Python: preamble.tex says {m.group(1) if m else '?'}, "
                         f"code/.python-version says {pyv}")
+    # uv is not in pyproject.toml -- it installs pyproject.toml -- so its pin
+    # lives in the preamble and in every workflow's setup-uv step. Three
+    # workflows carried the same string by hand and nothing compared them.
+    uv_ci = 0
+    for wf in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
+        for w in re.findall(r'^\s*version:\s*"([^"]+)"', wf.read_text(encoding="utf8"),
+                            flags=re.M):
+            uv_ci += 1
+            if w != tex_pins.get("uv"):
+                problems.append(f"{wf.relative_to(ROOT)} installs uv {w}; preamble.tex "
+                                f"pins {tex_pins.get('uv', '?')}")
+    # .NET is a tool too, and it is pinned in ONE place on purpose:
+    # code/csharp/global.json. The workflow reads that file rather than
+    # carrying the version again, which is the defect uv's pin had. So the
+    # only comparison owed is preamble.tex against global.json -- plus a
+    # check that no workflow has quietly reintroduced a second copy.
+    gj = ROOT / "code" / "csharp" / "global.json"
+    dotnet_ci = 0
+    if gj.exists():
+        declared = json.loads(gj.read_text(encoding="utf8"))["sdk"]["version"]
+        if declared != tex_pins.get("dotnet"):
+            problems.append(f"code/csharp/global.json pins .NET {declared}; "
+                            f"preamble.tex says {tex_pins.get('dotnet', '?')}")
+        for wf in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
+            text = wf.read_text(encoding="utf8")
+            dotnet_ci += len(re.findall(r"^\s*global-json-file:", text, flags=re.M))
+            for v in re.findall(r'^\s*dotnet-version:\s*"?([^"\s]+)"?', text, flags=re.M):
+                problems.append(f"{wf.relative_to(ROOT)} names .NET {v} directly; "
+                                f"point setup-dotnet at code/csharp/global.json "
+                                f"instead, so the pin stays in one place")
     return result("pins", problems, soft,
-                  f"{len(toml_pins)} pins agree between preamble.tex and pyproject.toml")
+                  f"{len(toml_pins)} pins agree between preamble.tex and pyproject.toml; "
+                  f"uv {tex_pins.get('uv', '?')} in preamble.tex and {uv_ci} workflow step(s); "
+                  f".NET {tex_pins.get('dotnet', '?')} in preamble.tex, global.json and "
+                  f"{dotnet_ci} workflow step(s)")
 
 
 def prose_words(src: str) -> int:
@@ -267,18 +319,68 @@ def check_csbox(soft: bool) -> int:
     return 0
 
 
+def check_traps(soft: bool) -> int:
+    """Appendix B against notes/02-traps.md, which is the authority.
+
+    Three things nothing else can see. The catalogue must carry no
+    duplicate number, because an entry is cited BY number and a collision
+    breaks the one thing the numbering exists for -- six parallel branches
+    produced three collisions before this check existed. Both editions'
+    Appendix B must print exactly the catalogue's entries, so a trap added
+    to the notes and not to the book, or dropped from one edition, fails
+    here rather than reaching a reader. And every entry must name a
+    chapter, because an entry no chapter elicits is a defect in the
+    catalogue rather than a fact about the book.
+
+    Numbers are language-independent, which is what lets one check cover
+    both editions; parity compares the prose around them.
+    """
+    notes = (ROOT / "notes" / "02-traps.md").read_text(encoding="utf8")
+    rows = re.findall(r"^\| (\d+) \|(.*)$", notes, flags=re.M)
+    problems = []
+
+    seen: dict[str, int] = {}
+    for num, _ in rows:
+        seen[num] = seen.get(num, 0) + 1
+    for num, n in sorted(seen.items(), key=lambda kv: int(kv[0])):
+        if n > 1:
+            problems.append(f"notes/02-traps.md: entry {num} appears {n} times; "
+                            f"a number is cited and is never reused")
+
+    for num, body in rows:
+        if not re.search(r"\bCh\. \d+", body):
+            problems.append(f"notes/02-traps.md: entry {num} names no chapter")
+
+    catalogue = {n for n, _ in rows}
+    for lang in LANGS:
+        src = (ROOT / "appendices" / lang / "appB-traps.tex")
+        if not src.exists() or not written(src.read_text(encoding="utf8")):
+            continue
+        printed = set(re.findall(r"\\trapentry\{(\d+)\}",
+                                 src.read_text(encoding="utf8")))
+        for num in sorted(catalogue - printed, key=int):
+            problems.append(f"appendices/{lang}/appB-traps.tex: entry {num} is in "
+                            f"the catalogue and not in the appendix")
+        for num in sorted(printed - catalogue, key=int):
+            problems.append(f"appendices/{lang}/appB-traps.tex: entry {num} is in "
+                            f"the appendix and not in the catalogue")
+    return result("traps", problems, soft,
+                  f"{len(catalogue)} trap entries, each numbered once and naming a "
+                  f"chapter, and every one printed in both editions")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     for name in ("stubs", "listings", "exercises", "transcripts", "lines", "pins",
-                 "words", "csbox", "all"):
+                 "words", "csbox", "traps", "all"):
         ap.add_argument(f"--{name}", action="store_true")
     ap.add_argument("--soft", action="store_true", help="report instead of failing")
     a = ap.parse_args()
     checks = {
         "stubs": check_stubs, "listings": check_listings, "exercises": check_exercises,
         "transcripts": check_transcripts, "lines": check_lines, "pins": check_pins,
-        "words": check_words, "csbox": check_csbox,
+        "words": check_words, "csbox": check_csbox, "traps": check_traps,
     }
     chosen = [k for k in checks if getattr(a, k)] or (list(checks) if a.all else [])
     if not chosen:

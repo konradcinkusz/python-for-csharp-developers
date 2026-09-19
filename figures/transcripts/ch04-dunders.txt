@@ -1,0 +1,11 @@
+a + b     is  __add__         agrees: True
+a < b     is  __lt__          agrees: True
+a == b    is  __eq__          agrees: True
+a[b]      is  __getitem__     int has it: False
+
+str(port)      db.internal:5432
+repr(port)     Port(host='db.internal', number=5432)
+a list of them [Port(host='db.internal', number=5432)]
+
+str(bare)      bare
+a list of them [<__main__.Bare object at 0x...>]

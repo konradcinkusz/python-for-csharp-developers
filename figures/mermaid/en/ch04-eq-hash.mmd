@@ -1,0 +1,3 @@
+flowchart LR
+    E["You define __eq__<br/>and stop there, as<br/>a C# warning lets you"] --> N["Python sets __hash__<br/>to None on the class.<br/>It does not warn: it acts"]
+    N --> U["The object is unhashable:<br/>no dict key, no set member,<br/>and the error is far away"]

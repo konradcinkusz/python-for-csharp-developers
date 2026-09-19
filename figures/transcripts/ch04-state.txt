@@ -1,0 +1,8 @@
+broken       a.seen ['first', 'second']  b.seen ['first', 'second']
+             same object: True
+             and on the class: ['first', 'second']
+fixed        c.seen ['first']  d.seen ['second']
+dataclass    ValueError: mutable default <class 'list'> for field seen ...
+
+[[]] * 3     [[1], [1], [1]]   distinct: 1
+comprehension [[1], [], []]   distinct: 3

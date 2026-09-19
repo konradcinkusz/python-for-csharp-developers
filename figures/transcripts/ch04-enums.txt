@@ -1,0 +1,18 @@
+Severity.LOW          Severity.LOW
+  == 1                False
+  .value == 1         True
+  is Severity.LOW     True
+
+Region.EU             <Region.EU: 'eu'>
+  is a str            True
+  == 'eu'             True
+
+READ | WRITE          Permission.READ|WRITE
+  READ in it          True
+  ADMIN in it         False
+  auto() values       [1, 2, 4]
+
+json StrEnum          {"region": "eu"}
+json Enum needs value {"severity": 2}
+json Enum without it  TypeError:
+  Object of type Severity is not JSON serializable

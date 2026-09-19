@@ -1,0 +1,5 @@
+flowchart LR
+    T["Test prosi o to, czego potrzebuje,<br/>nazywajac parametr:<br/>def test_x(big_basket)"]
+    F["pytest rozwiazuje nazwe do fixture,<br/>ktory moze poprosic o kolejny"]
+    B["Kazdy powstaje raz na zakres<br/>i jest sprzatany po yield"]
+    T --> F --> B

@@ -65,10 +65,18 @@ RE_HBOX_WHERE = re.compile(r"in paragraph at lines (\d+)--(\d+)"
                            r"|detected at line (\d+)")
 RE_PAGES = re.compile(r"Output written on \S+ \((\d+) pages")
 RE_MISSING_VAL = re.compile(r"No computed values found")
-# Warnings that are always worth surfacing. Font substitution noise is not.
+# Warnings that are always worth surfacing. Size-substitution noise is not.
+#
+# "Font shape" and "Token not allowed" USED to be ignored here, and each hid a
+# shipped defect: an italic comment style that inconsolata has no shape for
+# (substituted with upright, silently, on every build), and a section title
+# carrying \api{} whose PDF bookmark read "mtealmodel_validate" because
+# hyperref drops \color and keeps its argument. Both are in HARD_WARN now: a
+# font the style asks for and does not get, and a bookmark that is not the
+# title, are defects on the page and not noise in the log.
 RE_WARN = re.compile(r"^(?:LaTeX|Package|Class) (\w+ )?Warning: (.*)$", re.M)
-WARN_IGNORE = ("Font shape", "Some font shapes", "Size substitutions",
-               "Token not allowed", "There were undefined references")
+WARN_IGNORE = ("Some font shapes", "Size substitutions",
+               "There were undefined references")
 
 # Warnings that must FAIL a build rather than be printed and shrugged at.
 #
@@ -84,7 +92,8 @@ WARN_IGNORE = ("Font shape", "Some font shapes", "Size substitutions",
 # \@newl@bel, run to convergence at 45 and then changed to record 46, printed
 # the STALE 45, emitted "LaTeX Warning: Label(s) may have changed" and exited 0.
 #
-HARD_WARN = ("Label(s) may have changed", "Rerun to get", "Marginpar on page")
+HARD_WARN = ("Label(s) may have changed", "Rerun to get", "Marginpar on page",
+             "Token not allowed", "Font shape")
 
 HBOX_BUDGET = 15.0   # pt. Anything above this visibly runs into the margin.
 
@@ -229,12 +238,24 @@ def report(r: dict) -> bool:
         print("  NO COMPUTED VALUES: every \\val{} printed a marker. Run `make numbers`.")
     if r["hard_warnings"]:
         ok = False
-        print(f"  NON-CONVERGENCE : {len(r['hard_warnings'])}")
-        for w in r["hard_warnings"][:6]:
-            print(f"      {w}")
-        print("      The build stopped rerunning while the .aux was still")
-        print("      moving, so a cross-reference or a page number may be")
-        print("      printing a stale value. Run latexmk again.")
+        rerun = [w for w in r["hard_warnings"]
+                 if not any(s in w for s in ("Token not allowed", "Font shape"))]
+        page = [w for w in r["hard_warnings"] if w not in rerun]
+        if rerun:
+            print(f"  NON-CONVERGENCE : {len(rerun)}")
+            for w in rerun[:6]:
+                print(f"      {w}")
+            print("      The build stopped rerunning while the .aux was still")
+            print("      moving, so a cross-reference or a page number may be")
+            print("      printing a stale value. Run latexmk again.")
+        if page:
+            print(f"  PAGE DEFECT     : {len(page)}")
+            for w in page[:6]:
+                print(f"      {w}")
+            print("      A font shape the style asks for and does not get is")
+            print("      substituted silently; a token hyperref removes from a")
+            print("      bookmark leaves its argument behind as text. Fix the")
+            print("      style or the title; neither goes away on a rerun.")
     if r["warnings"]:
         print(f"  warnings        : {len(r['warnings'])}")
         for w in r["warnings"][:6]:

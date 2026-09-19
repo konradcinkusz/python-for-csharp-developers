@@ -1,36 +1,413 @@
-%% ch04 --- Obiekty i dane: metody dunder, równość, hashowanie, rekordy
+%% ch04 --- Obiekty i dane: metody dunder, rownosc, hashowanie, rekordy
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie bloku \chapterstub{} i zastąpienie go
-%% rozdziałem -- po czym ten plik nie jest już generowany.
+%% Napisany we wrzesniu 2026. Kazdy listing w code/ch04/ dziala na przypietym
+%% interpreterze i jest uruchamiany przez code/tests/test_listings.py; kazde
+%% cytowane wyjscie jest wygenerowanym transkryptem. Ten rozdzial nie jest
+%% winien zadnego pomiaru: kazde twierdzenie dotyczy semantyki i jest
+%% sprawdzane testem, a nie mierzone stoperem.
 
 \chapter{Obiekty i dane: metody dunder, równość, hashowanie, rekordy}
 \label{ch:objects}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\noindent
+C\# daje ci nazwaną funkcję języka na każdą rzecz, którą obiekt potrafi
+zrobić. Indekser jest konstrukcją języka; \code{Equals} i
+\code{GetHashCode} są metodami wirtualnymi, które nadpisujesz parami;
+\code{IComparable} jest interfejsem, który deklarujesz; \code{record} jest
+słowem kluczowym, które pisze kilka z nich za ciebie. Python ma wszystkie
+te same możliwości i żadnej z tych nazwanych funkcji. Ma zamiast tego
+jeden mechanizm: metodę z dwoma podkreśleniami na każdym końcu, którą
+składnia woła w twoim imieniu.
 
-Argument: everything a C\# engineer does with operator overloading,
-\code{Equals} and \code{GetHashCode}, \code{record}, \code{IComparable},
-\code{ToString}, \code{IDisposable}, properties and indexers is a dunder
-method, and the protocol is duck-typed. \code{\_\_eq\_\_} without
-\code{\_\_hash\_\_} makes the object unhashable, and that is the chapter's
-headline trap; \code{\_\_repr\_\_} against \code{\_\_str\_\_} against
-\code{ToString()}; \code{@property} against properties;
-\code{\_\_slots\_\_}; a \code{frozen=True} dataclass against a record, with
-\code{dataclasses.replace} against \code{with}; \code{Enum}, \code{StrEnum}
-and \code{Flag} against an enum; \code{\_\_getitem\_\_}, \code{\_\_len\_\_}
-and \code{\_\_iter\_\_} against indexers and \code{IEnumerable}. Class
-attributes against instance attributes, and the shared-mutable trap that
-follows. Payoff: read any library's class and name the C\# feature it is
-imitating. Listings: a Money type written both ways; the \code{\_\_eq\_\_}
-and \code{\_\_hash\_\_} breakage reproduced and then fixed. No measurement;
-every claim here is about semantics and is checked by a test rather than
-timed. Four exercises.
+Mechanizm wart jest jednego zdania przed szczegółami. \textbf{Protokołem
+jest metoda i nic jej nie deklaruje.} Nie ma interfejsu do
+zaimplementowania, klasy bazowej do odziedziczenia ani atrybutu do
+nałożenia: klasa, która definiuje \code{\_\_lt\_\_}, daje się sortować,
+klasa, która definiuje \code{\_\_len\_\_}, odpowiada na \code{len()}, a
+klasa, która nie definiuje żadnej z nich, po prostu nigdy nie jest pytana.
+To jest zysk z tego rozdziału \dash{} możesz otworzyć dowolną klasę
+dowolnej biblioteki, spojrzeć na metody dunder w niej i nazwać funkcję
+C\#, którą każda z nich naśladuje.
 
-\medskip
-\textbf{Budżet słów:} 3000.\\
-\textbf{Wydanie:} v0.1.
-}
+Stąd też biorą się pułapki tego rozdziału. Protokół typowany kaczo nie może
+cię ostrzec, że zaimplementowałeś go w połowie, więc kompilatora, który by
+ci to powiedział, po prostu nie ma.
+
+\section{Każdy operator jest metodą}
+\label{sec:ch04-protocol}
+
+\index{metody dunder}
+To odwzorowanie nie jest wynalazkiem tej książki i nie trzeba go brać na
+wiarę: biblioteka standardowa spisuje je wprost. Każdy operator wrostkowy
+ma funkcję w \api{operator}, a każda z tych funkcji zapisana jest jako
+metoda na lewym argumencie.
+
+\pyregion{code/ch04/dunders.py}{protocol}{Operator, metoda i sprawdzenie, że oba się zgadzają}{lst:ch04-protocol}
+
+\mermaidfig{ch04-dunder-map}{Nazwana funkcja C\# staje się zwykłą składnią, która woła metodę mogącą tam być albo nie}{jak funkcja C\# trafia do Pythona}
+
+\noindent
+Ostatnia kolumna tego listingu jest sednem. Nic nie asertuje tej
+równoważności; każdy wiersz uruchamia funkcję operatora i metodę, którą on
+nazywa, i raportuje, że oba się zgodziły.
+
+\index{\_\_repr\_\_@\texttt{\_\_repr\_\_}}
+\index{\_\_str\_\_@\texttt{\_\_str\_\_}}
+Dwie z nich wyglądają na jedną metodę C\# i nią nie są. \code{ToString()}
+jest jednym nadpisaniem, które dostaje każdy wołający; Python dzieli je, i
+to na tę stronę, która ludzi zaskakuje. \code{\_\_str\_\_} jest tym, co
+pokazuje \code{print} i \code{format}. \code{\_\_repr\_\_} jest tym, co
+pokazuje REPL, co pokazuje debugger i \dash{} ta połowa robi szkodę
+\dash{} co pokazuje \emph{lista} twoich obiektów, bo kontener formatuje
+swoje elementy przez \code{repr}, a nie przez \code{str}.
+
+\pyregion{code/ch04/dunders.py}{repr}{Jedna z nich jest tą, którą jesteś winien}{lst:ch04-repr}
+
+\transcript{ch04-dunders}
+
+\begin{trapbox}
+\textbf{\code{\_\_str\_\_} nie jest \code{ToString()}; \code{\_\_repr\_\_}
+jest bliżej.} Klasa z samym \code{\_\_str\_\_} drukuje się pięknie sama i
+drukuje się jako \code{<module.Class object at 0x...>} w chwili, gdy
+znajdzie się w liście, słowniku, krotce albo rekordzie logu \dash{} czyli
+tam, gdzie miałeś ją czytać. Napisz najpierw \code{\_\_repr\_\_}.
+\code{\_\_str\_\_} jest opcjonalny i cofa się do niego; odwrotnie to nie
+działa.
+\end{trapbox}
+
+\section{Metoda, która znika}
+\label{sec:ch04-equality}
+
+\index{równość!i hashowanie}
+To jest nagłówek tego rozdziału i jedyne odwzorowanie, w którym C\# jest
+naprawdę bardziej wyrozumiały. Nadpisz tam \code{Equals} i nie nadpisz
+\code{GetHashCode}, a kompilator podniesie CS0659 \dash{} ostrzeżenie,
+które czytałeś wiele razy i być może wiele razy zignorowałeś, bo typ nadal
+działa. Słownik degraduje się i nic się nie psuje.
+
+Python nie ostrzega. Działa.
+
+\pyregion{code/ch04/equality.py}{broken}{Równość wartościowa i nic więcej. Ta klasa nie może być kluczem słownika}{lst:ch04-broken}
+
+\noindent
+Nic w tej klasie nie wspomina o hashowaniu. To zdefiniowanie
+\code{\_\_eq\_\_} je zabrało: Python ustawia \code{\_\_hash\_\_} na
+\code{None} w każdej klasie, która definiuje \code{\_\_eq\_\_} bez
+zdefiniowania \code{\_\_hash\_\_}, z tego powodu, że obiekt, któremu
+przedefiniowałeś równość, nie może już honorować odziedziczonego hasha
+tożsamościowego.
+
+\mermaidfig{ch04-eq-hash}{Zdefiniowanie jednej metody usuwa drugą, a awaria przychodzi gdzie indziej}{co kosztuje zdefiniowanie \code{\_\_eq\_\_}}
+
+\transcript{ch04-equality}
+
+\begin{trapbox}
+\textbf{Zdefiniowanie \code{\_\_eq\_\_} czyni twoją klasę
+niehaszowalną.} Nie wolniejszą, nie subtelnie błędną:
+\code{\_\_hash\_\_} staje się \code{None} i obiekt w ogóle nie może być
+kluczem \code{dict} ani elementem \code{set}. Awarią jest
+\code{TypeError} przy pierwszym kontenerze, który go dotknie, czyli
+zwykle daleko od klasy. Lekarstwem jest napisanie obu, nad jedną krotką
+kluczową, żeby nie mogły się rozjechać.
+\end{trapbox}
+
+\pyregion{code/ch04/equality.py}{fixed}{Obie metody, nad jedną krotką kluczową, żeby nie mogły się rozejść}{lst:ch04-fixed}
+
+\begin{csbox}
+Kontrakt jest tym, który już znasz, i nie zmienił się: równe obiekty muszą
+mieć równy hash, a hash obiektu nie może się zmienić, kiedy obiekt siedzi
+w słowniku. Zmieniło się egzekwowanie. C\# ostrzega i jedzie dalej; Python
+odbiera możliwość. I jest jedna rzecz, o którą prosi Python, a C\# nie
+\dash{} zwrócenie \code{NotImplemented} zamiast \code{False}, kiedy drugi
+argument jest typu, którego nie znasz, co pozwala interpreterowi spróbować
+\code{\_\_eq\_\_} drugiego obiektu, zanim uzna oba za różne.
+\end{csbox}
+
+\noindent
+\index{is@\code{is} przeciw \code{==}}
+Sąsiednim nawykiem jest \code{is}, a folklor wokół niego wart jest
+sprostowania, bo powtarzany jest wszędzie. \code{is} pyta, czy dwie nazwy
+odnoszą się do tego samego obiektu, i nigdy nie pyta o nic więcej. Zwykłe
+ostrzeżenie mówi, że działa przypadkiem dla małych liczb całkowitych i
+psuje się rząd wielkości wyżej. Uruchom tę demonstrację wewnątrz funkcji
+na przypiętym interpreterze, a ona się nie odtworzy: \code{a = 257; b =
+257; a is b} daje \code{True}.
+
+\pyregion{code/ch04/equality.py}{identity}{Dwa mechanizmy, a tylko jeden z nich jest tym cache'em, który wszyscy nazywają}{lst:ch04-identity}
+
+\noindent
+Dzieją się dwie osobne rzeczy i żadna nie jest tą, którą nazywa folklor.
+CPython cache'uje liczby całkowite od \code{-5} do \code{256}, więc
+wartość zbudowana w czasie działania naprawdę jest tym samym obiektem co
+literał z tego zakresu. Niezależnie od tego kompilator zapisuje równe
+stałe w tablicy stałych obiektu kodu \emph{raz}, więc dwa literały
+\code{257} w ciele jednej funkcji są jednym obiektem \dash{} i dlatego
+klasyczna demonstracja działa w REPL-u, gdzie każda instrukcja jest
+własnym obiektem kodu, a zawodzi w skrypcie.
+
+\begin{trapbox}
+\textbf{\code{is} na liczbach całkowitych chowa się przed testem, który
+byś na niego napisał.} Błąd potrzebuje wartości, która przekroczyła
+granicę czasu działania, a stamtąd bierze się każda prawdziwa wartość:
+sparsowane żądanie, wiersz z bazy, ładunek JSON. Więc \code{is} wygląda
+poprawnie w każdym małym przykładzie i zawodzi na produkcji. Zostaw
+\code{is} dla \code{None} i dla wartowników, gdzie tożsamość jest tym
+pytaniem, które naprawdę masz na myśli.
+\end{trapbox}
+
+\begin{exercise}{e04_01_hashable}{Równość wartościowa, która przeżyje zbiór}
+Napisz \code{\_\_eq\_\_} i \code{\_\_hash\_\_} na klasie \code{Seat} tak,
+żeby równe miejsca porównywały się jako równe, dawały się użyć jako klucze
+\code{dict} i zwijały się do jednego wpisu w \code{set}. Rozstrzyga pięć
+testów, a tym, który łapie odpowiedź w połowie, jest ostatni:
+implementacja kończąca się na \code{\_\_eq\_\_} przechodzi pierwszy test i
+oblewa wszystko po nim.
+\end{exercise}
+
+\section{Rekord i to, co daje dataclass}
+\label{sec:ch04-dataclass}
+
+\index{dataclass}
+\code{record} w C\# jest słowem kluczowym, które pisze równość
+wartościową, hash, postać do wydruku i wyrażenie \code{with}.
+\code{@dataclass} jest tym samym pomysłem w postaci dekoratora, a
+przeczytanie wersji pisanej ręcznie obok niego jest najszybszym sposobem,
+żeby zobaczyć, którymi dokładnie metodami jest rekord.
+
+\pyregion{code/ch04/money.py}{byhand}{Każda metoda tutaj jest tą, którą napisałby dekorator}{lst:ch04-byhand}
+
+\pyregion{code/ch04/money.py}{dataclass}{Ten sam typ. Flagi są ciekawą częścią}{lst:ch04-dataclass}
+
+\transcript{ch04-money}
+
+\noindent
+\code{frozen=True} jest tą połową, która czyni go wartością, i jest też
+tym, co pozwala \code{@dataclass} w ogóle napisać \code{\_\_hash\_\_}, z
+powodu, który podał poprzedni podrozdział.
+\code{FrozenInstanceError} jest tym, co zamiast tego podnosi przypisanie. \api{dataclasses.replace} jest tym, czym jest
+\code{with}: nowym obiektem zamiast mutacji, i uruchamia
+\code{\_\_init\_\_}, więc walidacja nie jest pomijana, a pole dodane
+później jest niesione bez zmiany tej metody.
+
+\code{\_\_slots\_\_} nie ma funkcji C\#, na którą mógłby się odwzorować.
+Zastępuje słownik na instancję stałym układem, co jest najbliższą rzeczą
+temu, ile kosztuje struktura \dash{} i ma drugi efekt wart więcej niż
+pamięć: literówka w nazwie atrybutu podnosi \code{AttributeError} zamiast
+po cichu tworzyć nowe pole.
+
+\begin{csbox}
+Dwie rzeczy, które daje rekord, a \code{@dataclass} nie daje, jeśli nie
+poprosisz. Porządek to \code{order=True}, które pisze cztery metody
+porównania z pól w kolejności deklaracji, tak jak porównuje się krotka; w
+C\# implementujesz \code{IComparable} ręcznie, więc to rzadki przypadek,
+w którym Python prosi o mniej. A \code{with} rekordu jest sprawdzane w
+czasie kompilacji względem nazw pól, podczas gdy \api{dataclasses.replace}
+podnosi wyjątek w czasie działania \dash{} choć podnosi, czego
+\code{setattr} na zwykłej klasie by nie zrobiło.
+\end{csbox}
+
+\begin{exercise}{e04_02_reading}{Zamrożony rekord, uporządkowany, podmieniony}
+Zadeklaruj \code{Reading} tak, żeby był niezmienny, haszowalny, sortował
+się po pierwszym polu, a potem po drugim, bez funkcji klucza, i urósł o
+\code{warmer\_by}, które zwraca nowy odczyt. Większość odpowiedzi to
+argumenty dekoratora; reszta to kolejność, w jakiej zadeklarowane są dwa
+pola.
+\end{exercise}
+
+\section{Właściwości, indeksery i \texorpdfstring{\code{IEnumerable}}{IEnumerable}}
+\label{sec:ch04-properties}
+
+\index{property@\code{@property}}
+Właściwość w C\# to para metod za nazwą wyglądającą jak pole.
+\code{@property} jest tą samą sztuczką, z jedną różnicą w radzie, która z
+niej wynika. W C\# pole i właściwość różnią się w skompilowanym
+interfejsie, więc poszerzenie pola później jest zmianą łamiącą i mówi ci
+się, żebyś zaczynał od właściwości, której jeszcze nie potrzebujesz. W
+Pythonie atrybut i właściwość zapisuje się identycznie w każdym miejscu
+wywołania, więc zaczynasz od zwykłego atrybutu i awansujesz go, gdy
+pojawi się powód.
+
+\pyregion{code/ch04/protocols.py}{property}{\code{months} zaczęło jako zwykły atrybut; żaden wołający się nie zmienił}{lst:ch04-property}
+
+\noindent
+Indekser to \code{\_\_getitem\_\_}. \code{Count} to \code{\_\_len\_\_}.
+\code{IEnumerable<T>} to \code{\_\_iter\_\_}. Żadna z tych trzech nie jest
+nigdzie zadeklarowana, a klasa może zaimplementować dowolny podzbiór:
+składnia szuka własnej metody i używa jej, jeśli tam jest.
+
+\pyregion{code/ch04/protocols.py}{container}{Cztery protokoły, bez interfejsu, bez klasy bazowej}{lst:ch04-container}
+
+\begin{note}
+\code{\_\_contains\_\_} jest tą opcjonalną, i opcjonalną w ciekawy sposób:
+pomiń ją, a \code{in} nadal działa, chodząc po \code{\_\_iter\_\_} i
+porównując każdy element. Więc klasa może odpowiadać na \code{in}
+poprawnie i wolno, choć nikt nie napisał tej metody \dash{} a klasa, która
+obiecuje coś innego niż dokładne porównanie, na przykład przynależność
+bez rozróżniania wielkości liter, musi ją napisać, bo inaczej obietnica
+jest po cichu fałszywa.
+\end{note}
+
+\begin{exercise}{e04_03_roster}{Bądź kolekcją, nie deklarując tego}
+Daj klasie \code{Roster} metody stojące za \code{len()}, indeksowaniem,
+iteracją i \code{in}, plus tylko do odczytu wyliczane \code{first}. Dwa z
+pięciu testów są tymi, które się liczą: przynależność ma ignorować
+wielkość liter, co jest jedyną metodą niebędącą zwykłym delegowaniem, a
+\code{first} ma być właściwością, co test sprawdza, próbując do niego
+przypisać.
+\end{exercise}
+
+\section{Enum, który nie jest liczbą całkowitą}
+\label{sec:ch04-enums}
+
+\index{Enum@\code{Enum}}
+Enum w C\# jest nazwaną liczbą całkowitą i wszędzie zachowuje się jak
+jedna: porównuje się do liczby, serializuje się jako liczba, a wartość,
+której nikt nie zadeklarował, nadal daje się do niego przypisać.
+\code{Enum} w Pythonie jest klasą, której składowe są singletonami, więc
+składowa \emph{nie jest} swoją wartością.
+
+\pyregion{code/ch04/enums.py}{kinds}{Trzy rodzaje, a tylko jeden z nich jest napisem}{lst:ch04-enums}
+
+\transcript{ch04-enums}
+
+\noindent
+\code{Severity.LOW == 1} daje \code{False}, a checker, który
+rozdział~\ref{ch:packaging} wstawił do narzędziówki, mówi to, zanim
+program się uruchomi: pyright odrzuca to porównanie jako takie, którego
+typy nie mają części wspólnej. To jest nawyk z C\# złapany w chwili
+pisania, a nie na produkcji.
+
+Składowe \code{StrEnum} \emph{są} napisami, i po to właśnie się po nie
+sięga, kiedy wartość przechodzi przez sieć, bo \api{json.dumps}
+serializuje je bez proszenia. Zwykła składowa \code{Enum} podnosi tam
+\code{TypeError} i potrzebuje \code{.value} \dash{} tej linijki, o której
+wszyscy zapominają, bo w C\# enum wychodził jako liczba i nikt nie musiał
+prosić. \code{Flag} to \code{[Flags]}, a \code{auto()} rozdaje potęgi
+dwójki, które pisze się ręcznie i raz się myli.
+
+\section{Gdzie mieszka stan}
+\label{sec:ch04-state}
+
+\index{atrybuty klasy}
+Atrybut klasy i pole \code{static} są oba współdzielone, więc kusi, żeby
+nazwać je tym samym. Różnicą nie jest współdzielenie. Jest nią to, że
+atrybut klasy jest czytelny \emph{przez instancję}, bez żadnego
+doprecyzowania i bez ostrzeżenia, więc \code{self.seen} znajduje obiekt na
+klasie \dash{} a zmiana go zmienia go dla każdej instancji, która
+kiedykolwiek powstanie.
+
+\pyregion{code/ch04/state.py}{shared}{Jedna lista, każda instancja, i nic w miejscu wywołania tego nie mówi}{lst:ch04-shared}
+
+\mermaidfig{ch04-attribute-lookup}{Wyszukiwanie, które sprawia, że atrybut klasy wygląda jak pole}{jak \code{self.seen} znajduje obiekt klasy}
+
+\transcript{ch04-state}
+
+\begin{trapbox}
+\textbf{Mutowalny atrybut klasy jest współdzielony przypadkiem, przez
+\code{self}.} Wyszukiwanie atrybutu przechodzi najpierw po własnym
+słowniku instancji, nic nie znajduje, przechodzi po słowniku klasy,
+znajduje listę i zmienia tę jedną. W C\# musiałbyś napisać nazwę typu,
+żeby sięgnąć po pole statyczne, i to jest dokładnie ten sygnał, którego
+Python ci nie daje. Stan na instancję tworzy się w \code{\_\_init\_\_} i
+nigdzie indziej.
+\end{trapbox}
+
+\noindent
+\code{@dataclass} jest jedynym miejscem w języku, które zatrzymuje to,
+zanim się uruchomi: mutowalna wartość domyślna podnosi \code{ValueError}
+przy tworzeniu klasy, nazywając \code{default\_factory}. Nie widzi zapisu
+na zwykłej klasie powyżej, a to jest ten zapis, w którym ta pułapka
+naprawdę przychodzi.
+
+To samo aliasowanie pojawia się bez żadnej klasy w zasięgu wzroku.
+\code{[[]] * n} nie daje ci \code{n} list; daje jedną listę \code{n} razy,
+bo \code{*} kopiuje referencję. Wyrażenie listowe oblicza swoje ciało raz
+na element i daje ci \code{n}.
+
+\pyregion{code/ch04/state.py}{aliasing}{Mnożenie kopiuje referencję; wyrażenie listowe nie}{lst:ch04-aliasing}
+
+\begin{exercise}{e04_04_shared}{Współdzielone przypadkiem, współdzielone celowo}
+\code{Basket} trzyma swoje pozycje w atrybucie klasy, więc każdy koszyk
+dzieli jedną listę. Napraw to, a potem trzymaj licznik, ile koszyków
+otwarto \dash{} co jest współdzielone \emph{celowo} i jest tym, na co
+naprawdę odwzorowuje się pole \code{static}. Druga połowa jest tą, przy
+której warto zwolnić: zwiększanie go przez \code{self} odczytałoby wartość
+klasy i związało nowy atrybut instancji, zostawiając licznik klasy na
+zerze na zawsze.
+\end{exercise}
+
+\section{Dwa operatory, które nie są tymi z C\#}
+\label{sec:ch04-arithmetic}
+
+\index{dzielenie!podłogowe przeciw obcinającemu}
+\code{/} na dwóch liczbach całkowitych jest dzieleniem całkowitym w C\# i
+dzieleniem prawdziwym w Pythonie, i o tej różnicy mówi się każdemu. Tą, o
+której się nie wspomina, jest to, że \code{//} też nie jest \code{/} z
+C\#. Ono \emph{zaokrągla w dół}, ku minus nieskończoności, podczas gdy
+C\# obcina ku zeru \dash{} więc oba języki nie zgadzają się co do $-7$
+podzielonego przez $2$ i żadne rzutowanie tego nie naprawia. Odpowiedzią
+C\# jest \code{int(a / b)} w Pythonie.
+
+\pyregion{code/ch04/arithmetic.py}{division}{Cztery odpowiedzi tam, gdzie C\# daje dwie}{lst:ch04-division}
+
+\transcript{ch04-arithmetic}
+
+\noindent
+Ten sam podział przechodzi przez resztę z dzielenia: \code{\%} w Pythonie
+bierze znak dzielnika, zgadzając się z \code{//}, a \api{math.fmod} bierze
+znak dzielnej, zgadzając się z \code{\%} z C\#. Oba są dostępne; tylko
+jedno jest operatorem.
+
+\begin{trapbox}
+\textbf{\code{0.1 + 0.2 != 0.3} nie jest wadą Pythona.} To jest IEEE 754 i
+jest równie prawdziwe w C\#. Wypisywanie kiedyś się różniło i już się nie
+różni: .NET Framework formatował \code{double} do piętnastu cyfr
+znaczących i ukrywał błąd, a od .NET Core 3.0 domyślną postacią jest
+najkrótszy napis wracający do tej samej liczby \dash{} czyli to, co Python
+wypisywał zawsze. Oba pokazują teraz \code{0.30000000000000004}. Żaden z
+języków nie jest dokładniejszy od drugiego. Używaj \api{math.isclose} do
+wyliczanych liczb zmiennoprzecinkowych, a \api{decimal.Decimal} do
+pieniędzy, co jest tą samą radą co \code{decimal} w C\#.
+\end{trapbox}
+
+\section{Co to ci dało}
+\label{sec:ch04-summary}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{C\#} & \textbf{Python} \\
+\midrule
+przeciążanie operatorów & \code{\_\_add\_\_}, \code{\_\_lt\_\_} i reszta,
+  żadna nie zadeklarowana \\
+\code{ToString()} & \code{\_\_repr\_\_}, a opcjonalnie
+  \code{\_\_str\_\_} \\
+\code{Equals} + \code{GetHashCode} & \code{\_\_eq\_\_} +
+  \code{\_\_hash\_\_}, a pominięcie drugiej ją usuwa \\
+\code{IComparable} & \code{\_\_lt\_\_} albo \code{order=True} \\
+\code{record}, \code{with} & \code{@dataclass(frozen=True)},
+  \api{dataclasses.replace} \\
+właściwość & \code{@property}, awansowane ze zwykłego atrybutu \\
+indekser, \code{Count} & \code{\_\_getitem\_\_}, \code{\_\_len\_\_} \\
+\code{IEnumerable<T>} & \code{\_\_iter\_\_} \\
+\code{enum}, \code{[Flags]} & \code{Enum}, \code{StrEnum}, \code{Flag} \\
+pole \code{static} & atrybut klasy \dash{} ale czytelny przez
+  \code{self} \\
+\code{/} na dwóch \code{int}-ach & \code{//}, które zaokrągla w dół,
+  a nie obcina \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent
+Zyskiem jest ten, od którego rozdział się zaczął, i jest to umiejętność
+czytania, a nie pisania. Otwórz dowolną klasę w dowolnej bibliotece,
+spójrz na metody z podkreśleniami po obu stronach, a umiesz powiedzieć, do
+czego ona służy: ta jest typem wartościowym, tamta kolekcją, ta
+menedżerem kontekstu. Nic w klasie tego nie mówi, bo nic nie musi. Ceną
+tej oszczędności jest ten podrozdział, który w każdym przypadku idzie za
+mechanizmem \dash{} protokół, którego nic nie deklaruje, jest protokołem,
+o którym nic ci nie powie, że skończyłeś go w połowie, a dwie połowy
+\code{\_\_eq\_\_} i \code{\_\_hash\_\_} są miejscem, gdzie ten rachunek
+przychodzi pierwszy.

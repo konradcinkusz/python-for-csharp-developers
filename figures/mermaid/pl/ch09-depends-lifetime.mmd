@@ -1,0 +1,5 @@
+flowchart LR
+    A["<b>Singleton</b><br/>budowany w lifespan,<br/>raz na proces,<br/>dostepny przez<br/>request.state"]
+    B["<b>Scoped (domyslnie)</b><br/>Depends(fn): jedna instancja<br/>na ZADANIE, ilu by parametrow<br/>o nia nie prosilo.<br/>Z yield kod po nim dziala<br/>jako Dispose."]
+    C["<b>Transient</b><br/>Depends(fn,<br/>use_cache=False):<br/>instancja na KAZDA prosbe,<br/>o ktora trzeba poprosic"]
+    A --> B --> C

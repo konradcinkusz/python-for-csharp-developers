@@ -1,34 +1,425 @@
 %% ch12 --- Obserwowalność i operacje: structlog, OpenTelemetry, kontenery i audyty
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie bloku \chapterstub{} i zastąpienie go
-%% rozdziałem -- po czym ten plik nie jest już generowany.
+%% Napisany we wrześniu 2026. Każde twierdzenie o bibliotece zostało
+%% sprawdzone wobec zainstalowanej, przypiętej paczki; dwa, które przeczyły
+%% opisowi rozdziału, są odnotowane w CLAUDE.md w sekcji *Resolved questions*.
 
 \chapter{Obserwowalność i operacje: structlog, OpenTelemetry, kontenery i audyty}
 \label{ch:observability}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\noindent
+Twoje odruchy operacyjne są dobre i przenoszą się w całości. Logi
+strukturalne zamiast formatowanych napisów; jeden identyfikator
+przewleczony przez wszystko, czego dotyka żądanie; spany wokół pracy, która
+kosztuje; obraz na tyle mały, żeby szybko się pobierał; skan, który mówi,
+która zależność ma opublikowaną podatność; zamknięcie, które kończy to, co
+zaczęło. Python ma wszystkie sześć, a do każdego jest paczka, której używa
+wielu ludzi i co do której panuje zgoda.
 
-Argument: the .NET engineer's operational reflexes are right, and the Python
-tools that satisfy them exist; the gap is their names and their defaults.
-The standard \code{logging} module against \code{ILogger}, its configuration
-model and why people replace it; structlog against structured \code{ILogger}
-scopes; correlation identifiers through \code{contextvars} against
-\code{AsyncLocal}; OpenTelemetry in Python against .NET \dash{} auto-
-instrumentation, exporters, resource attributes; container images built with
-uv (multi-stage, \code{uv sync --frozen --no-dev}, a non-root user, the two
-environment variables everybody sets); \code{pip-audit} against \code{dotnet
-list package --vulnerable}; health and readiness checks; graceful shutdown
-through signals and the lifespan; secrets through \code{pydantic-settings}
-again. Payoff: a Dockerfile and a logging-and-tracing bootstrap the reader
-can copy. Measurement: experiment E7, image size and cold start of three
-Dockerfile shapes, free. Four exercises.
+Nie przenoszą się natomiast domyślne ustawienia. W .NET domyślne ustawienia
+tej szóstki są takie, jakich chce serwer, bo host builder został napisany
+dla serwerów. W Pythonie większość z nich jest taka, jakiej chce sesja
+interaktywna, bo moduł, w którym żyją, jest starszy niż model wdrożenia
+\dash{} a różnica prawie nigdy nie jest błędem. Konfiguracja logów, która po
+cichu nic nie robi, identyfikator korelacji, który po cichu należy do innego
+żądania, obraz, który po cichu wiezie twoje zależności testowe: każde z tego
+działa, zwraca wynik i jest błędne.
 
-\medskip
-\textbf{Budżet słów:} 3000.\\
-\textbf{Wydanie:} v0.2.\\
-\textbf{Pomiar:} E7.
-}
+Ten rozdział zakłada rozdział~\ref{ch:services}, do którego należy
+FastAPI, jego \api{lifespan} i konfiguracja czytana przez
+\pkg{pydantic-settings}, oraz rozdział~\ref{ch:testing}, do którego należy
+pytest. Sam zajmuje się tym, co dzieje się z procesem potem.
+
+\section{Konfiguracja, która zdarza się raz \dash{} temu, kto był pierwszy}
+\label{sec:ch12-logging}
+
+Przeczytaj poniższy listing, zanim go uruchomisz, i zdecyduj, co robi drugie
+wywołanie \api{basicConfig} \dash{} prosi o poziom i format, o które
+pierwsze nie prosiło.
+
+\pyfile{code/ch12/logging_default.py}{\code{basicConfig} to nie jest konfiguracja \code{ILogger}}{lst:ch12-logging-default}
+
+\noindent
+Nie robi nic:
+
+\transcript{ch12-logging-default}
+
+\noindent
+Żadnego wyjątku, żadnego ostrzeżenia, żadnej wartości zwrotnej do
+sprawdzenia. Żądana linia \code{DEBUG} nigdy się nie pojawia, a ostrzeżenie,
+które się pojawia, jest w formacie \emph{domyślnym}, nie w tym, o który
+poproszono. Reguła to jedna linia biblioteki standardowej: \api{basicConfig}
+konfiguruje logger główny tylko wtedy, gdy ten nie ma jeszcze handlera, a
+pierwsze wywołanie go tam wstawiło.
+
+\begin{csbox}
+\code{ILogger} konfigurujesz raz, sam, na host builderze, i wszystko inne
+dostaje go przez wstrzykiwanie. Nic, co paczka robi przy ładowaniu, nie
+odbierze ci tej decyzji, bo nie ma żadnego loggera w otoczeniu, którym można
+by ją odebrać. Pythonowy \pkg{logging} to stan na poziomie modułu, wspólny
+dla każdego, kto go importuje.
+\end{csbox}
+
+\noindent
+W listingu pierwsze wywołanie jest jawne, żebyś je widział. W serwisie nie
+jest twoje w ogóle: \api{logging.warning(...)} wywołane przy imporcie, przez
+cokolwiek, wywołuje za ciebie \api{basicConfig()} bez argumentów. To, czy
+twoja konfiguracja zadziała, zależy wtedy od kolejności importów.
+
+\begin{trapbox}
+\textbf{\enquote{\code{logging.basicConfig} i gotowe.}} To jeden strzał, a
+strzał mógł już paść \dash{} oddany przez zależność, której nigdy nie
+czytałeś. \code{force=True} to odpowiedź samej biblioteki standardowej
+\dash{} wyrzuć każdy istniejący handler i skonfiguruj od zera \dash{} i
+dlatego bootstrap z następnej sekcji przypisuje \code{root.handlers} wprost,
+zamiast do nich dopisywać.
+\end{trapbox}
+
+\noindent
+Jest jeszcze drugi, mniejszy powód, dla którego ludzie zastępują ten moduł:
+domyślnie pisze na standardowe wyjście błędów, a domyślnym formatem jest
+napis. Serwer chce standardowego wyjścia i rekordu czytelnego dla maszyny.
+
+\section{Jedna linia to jeden słownik}
+\label{sec:ch12-structlog}
+
+\pkg{structlog} trzyma rekord logu jako słownik do ostatniej możliwej
+chwili. Wszystko między wywołaniem a wyjściem to \emph{procesor} \dash{}
+funkcja, która bierze słownik i go zwraca \dash{} a ostatni procesor w
+łańcuchu go renderuje. To cały projekt i dlatego poniższy bootstrap warto
+skopiować, a nie opisywać.
+
+\mermaidfig{obs-log-pipeline}{Dwa źródła rekordów, jeden łańcuch i jeden renderer: \code{foreign\_pre\_chain} przepuszcza cudzą linię przez te same procesory co twoją}{potok logowania}
+
+\pyfile{code/ch12/log_setup.py}{Bootstrap: skonfiguruj raz, renderuj raz i złap rekordy, które nigdy nie widziały structloga}{lst:ch12-log-setup}
+
+\noindent
+Częścią, którą łatwo pominąć, jest \api{foreign\_pre\_chain}. Bez niego
+twoje własne linie są JSON-em z identyfikatorem żądania, a linie bibliotek
+gołymi napisami; z nim jedne i drugie przechodzą przez te same procesory i
+wychodzą w tym samym kształcie:
+
+\transcript{ch12-log-setup}
+
+\noindent
+Środkowa linia należy do \pkg{httpx}. Napisano ją biblioteką standardową, w
+kodzie, który nic nie wie o structlogu i nic o identyfikatorze żądania, a
+mimo to identyfikator niesie.
+
+\begin{note}
+Demo prosi o brak znacznika czasu i dlatego jego linie mieszczą się na tej
+stronie. To także obronny wybór produkcyjny: pod kolektorem, który stempluje
+każdą otrzymaną linię, własny znacznik aplikacji jest drugą, nieco inną
+odpowiedzią na pytanie, na które ktoś już odpowiedział. Zostaw wartość
+domyślną, gdy piszesz do pliku.
+\end{note}
+
+\noindent
+Jeszcze jedna rzecz należy do łańcucha, a nie do listy kontrolnej przeglądu.
+Rozdział~\ref{ch:services} ładuje konfigurację przez \pkg{pydantic-settings};
+zadeklaruj pola z sekretami jako \api{SecretStr}, a nie trafią do linii
+logu. \api{SecretStr} renderuje się jako rząd gwiazdek w \api{repr}, a
+renderer JSON structloga schodzi do \api{repr} dla wszystkiego, czego
+serializator odmawia \dash{} więc sekret zalogowany przez przypadek drukuje
+się jako \code{SecretStr('**********')} tam, gdzie zwykły \code{str}
+wydrukowałby sekret. Kontrolą jest typ.
+
+\section{Identyfikator, którego dwa żądania nie mogą dzielić}
+\label{sec:ch12-contextvars}
+
+Oto następny do przeczytania przed uruchomieniem. Dwa handlery działają
+jednocześnie; każdy zapisuje swój identyfikator do zmiennej na poziomie
+modułu i do \api{ContextVar}, czeka i czyta oba z powrotem. Zapisz, co
+zgłosi każdy z nich.
+
+\pyfile{code/ch12/correlation.py}{Gdzie może mieszkać wartość na żądanie, gdy dwa żądania dzielą jeden wątek}{lst:ch12-correlation}
+
+\transcript{ch12-correlation}
+
+\noindent
+Handler~A zapisał \code{A}, a odczytał \code{B}. Każda kolejna linia logu A
+trafia pod żądanie B i nigdzie nic nie zgłasza problemu. Kolumna
+\api{ContextVar} jest poprawna dla obu, a wiersz wywołującego pokazuje drugą
+połowę zachowania: zadanie działa w \emph{kopii} kontekstu rodzica, więc
+wartość dziecka nie może wyciec na zewnątrz.
+
+\begin{csbox}
+\api{ContextVar} to \code{AsyncLocal<T>} \dash{} na tyle dokładnie, że model
+myślowy przenosi się bez poprawek. Odpowiednika nie ma natomiast nawyk, że
+pole statyczne jest bezpieczne, bo na wątek przypada tylko jedno żądanie
+naraz \dash{} tutaj jeden wątek niesie je wszystkie.
+\end{csbox}
+
+\begin{trapbox}
+\textbf{\enquote{Identyfikator korelacji w polu statycznym, jak
+\code{AsyncLocal}.}} Zmienna na poziomie modułu jest polem statycznym i
+dzieli ją każde żądanie na pętli. Awaria jest cicha, potrzebuje
+współbieżności, żeby się pokazać, a test na jednym żądaniu nigdy jej nie
+pokaże.
+\end{trapbox}
+
+\noindent
+W praktyce rzadko piszesz \api{ContextVar} sam:
+\api{bind\_contextvars} trzyma go za ciebie, a
+\api{merge\_contextvars} \dash{} pierwszy procesor w łańcuchu powyżej
+\dash{} kopiuje go na każdy rekord. Zwiąż identyfikator raz na żądanie, a
+każda linia do końca tego żądania go poniesie. Jak pętla planuje te żądania,
+jest tematem rozdziału~\ref{ch:asyncio} i nie jest tu powtarzane.
+
+\section{Spany: trzy rzeczowniki, które już masz}
+\label{sec:ch12-otel}
+
+OpenTelemetry to ta sama specyfikacja w obu ekosystemach, więc jest to
+głównie ćwiczenie ze zmiany nazw:
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{.NET} & \textbf{Python} \\
+\midrule
+\code{ActivitySource} & \api{Tracer}, z \api{trace.get\_tracer(\_\_name\_\_)} \\
+\code{Activity} & span, z \api{tracer.start\_as\_current\_span()} \\
+\code{ActivityListener} i eksportery & \api{TracerProvider} z procesorami spanów \\
+\code{Activity.Current} & \api{trace.get\_current\_span()} \\
+Atrybuty zasobu na builderze & \api{Resource} przekazany do providera \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent
+Jedno domyślne ustawienie warto znać przed wdrożeniem: zasób. Utwórz
+providera bez niego, a SDK samo uzupełni \code{service.name}. Wartością,
+którą wstawi, jest dosłowny napis \code{unknown\_service}, więc każdy span,
+jaki twój serwis kiedykolwiek wysłał, trafia do backendu pod nazwą, która
+jest zarazem nazwą każdego innego nieskonfigurowanego serwisu.
+
+\pyfile{code/ch12/tracing.py}{Provider, nazwany serwis i procesor, który wkłada identyfikator trace'u do każdej linii logu}{lst:ch12-tracing}
+
+\noindent
+\api{add\_trace\_ids} to część do skopiowania. Włóż ją do łańcucha z
+listingu~\ref{lst:ch12-log-setup}, a linia logu napisana wewnątrz spanu
+poniesie identyfikatory, pod którymi zapisano trace \dash{} i to sprawia, że
+linia w wyszukiwarce logów i span w przeglądarce trace'ów są o jedno
+kliknięcie od siebie. Strażnik \api{is\_valid} ma znaczenie: poza spanem SDK
+zwraca kontekst, którego identyfikatory są zerami, a pole logu z samymi
+zerami jest gorsze niż jego brak, bo wygląda jak wartość.
+
+\begin{versionbox}
+Instrumentacja automatyczna \dash{} nakładka \code{opentelemetry-instrument},
+która łata wywołania frameworka bez zmiany kodu \dash{} istnieje i zwykle
+jest punktem wyjścia, ale mieszka w dystrybucjach, których ta książka nie
+przypina, a to, która z nich pokrywa którą bibliotekę, zmienia się szybciej,
+niż książka nadąży. Nic tutaj tego nie mierzy. Ręczny span powyżej to to, co
+daje samo SDK.
+\end{versionbox}
+
+\section{Obraz}
+\label{sec:ch12-image}
+
+Trzy kształty, a różnica między pierwszym a ostatnim nie jest subtelna.
+Pierwszy jest tym, co pisze odruch.
+
+\pyfile{code/ch12/Dockerfile.naive}{Kształt pierwszy: pełny obraz bazowy, \code{pip}, bez locka, root}{lst:ch12-dockerfile-naive}
+
+\pyfile{code/ch12/Dockerfile.slim}{Kształt drugi: slim, uv, jeden etap \dash{} wciąż wieziesz narzędzie, które instalowało}{lst:ch12-dockerfile-slim}
+
+\pyfile{code/ch12/Dockerfile}{Kształt trzeci: dwa etapy, i ten do skopiowania}{lst:ch12-dockerfile}
+
+\begin{verifybox}
+Tych trzech nie zbudowano. Maszyna, na której kompiluje się ta książka, ma
+demona Dockera i nie ma drogi do żadnego rejestru \dash{} magazyny blobów
+Docker Huba i GitHuba odpowiadają jej proxy wyjściowemu \code{403} \dash{}
+więc nie da się pobrać żadnego obrazu bazowego. Każda flaga i każda zmienna
+środowiskowa w nich została sprawdzona wobec zainstalowanego \code{uv} i
+przypiętego interpretera; pliki jako całość nie zostały wykonane, a
+eksperyment E7 poniżej jest tym, co by je wykonało.
+\end{verifybox}
+
+\mermaidfig{obs-image-stages}{Między etapami przechodzi środowisko wirtualne i nic więcej: żadnego menedżera paczek, żadnego locka, żadnego cache'u}{dwa etapy}
+
+\noindent
+Cztery decyzje w kształcie trzecim warto nazwać.
+
+\textbf{Dwa etapy.} Builder potrzebuje \code{uv} i locka; runtime nie
+potrzebuje żadnego z nich. Przeniesienie tylko środowiska wirtualnego
+zostawia wysyłany obraz bez menedżera paczek, co jest mniejszą powierzchnią
+ataku w takim samym stopniu, w jakim jest mniejszym obrazem.
+
+\textbf{\code{-{}-frozen} kontra \code{-{}-locked}.} To nie są synonimy.
+\code{-{}-locked} \emph{stwierdza}, że \code{uv.lock} zgadza się z
+\code{pyproject.toml}, i zawodzi, jeśli tak nie jest; \code{-{}-frozen}
+instaluje to, co mówi lock, bez sprawdzania. Stwierdzaj w CI, gdzie
+nieaktualny lock jest usterką, o której chcesz usłyszeć; instaluj frozen w
+obrazie, gdzie już usłyszałeś.
+
+\code{UV\_COMPILE\_BYTECODE} i \code{PYTHONDONTWRITEBYTECODE} celowo
+wskazują w przeciwne strony. Pierwsza, w builderze, kompiluje każdy moduł
+raz, przy budowaniu, do niezmiennej warstwy, więc start nie musi za to
+płacić. Druga, w runtime, powstrzymuje proces od pisania kolejnych, co
+tylko brudziłoby zapisywalną warstwę kontenera. Obie są poprawne; dotyczą
+różnych momentów.
+
+\textbf{\code{PYTHONUNBUFFERED=1}.} Standardowe wyjście jest buforowane
+blokowo, gdy jest potokiem, a w kontenerze zawsze jest potokiem. Bez tego
+twoje linie logu siedzą w buforze, przychodzą zrywami i przepadają
+całkowicie, jeśli proces zostanie zabity \dash{} czyli dokładnie w tym
+procesie, z którego logów najbardziej chciałeś skorzystać.
+
+\begin{trapbox}
+\textbf{\enquote{\code{FROM python:\pyver} i \code{pip install} w
+Dockerfile.}} Działa \dash{} i wiezie kompilator, menedżer paczek, twoje
+zależności deweloperskie i użytkownika root, rozwiązane wobec tego, co
+indeks podał tego ranka, a nie wobec locka. Wieloetapowo, \code{uv sync
+-{}-frozen -{}-no-dev} i użytkownik nie-root podany po numerze.
+\end{trapbox}
+
+\subsection{Ile wart jest \code{-{}-no-dev} i czego nie zmierzono}
+\label{sec:ch12-measured}
+
+Jedną z tych czterech decyzji da się wycenić bez budowania czegokolwiek.
+\code{uv.lock} zapisuje rozmiar każdego koła, więc zbiór zależności czasu
+wykonania i zbiór pełny można zsumować, czytając zatwierdzony plik:
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}Xrr@{}}
+\toprule
+& \textbf{Paczek} & \textbf{Koła, MiB} \\
+\midrule
+Tylko runtime, tak jak instaluje \code{-{}-no-dev} & \val{ch12.deps.runtime.count} & \val{ch12.deps.runtime.mib} \\
+Wszystko, tak jak instaluje zwykły \code{uv sync} & \val{ch12.deps.full.count} & \val{ch12.deps.full.mib} \\
+\midrule
+Co flaga usuwa & \val{ch12.deps.dev.count} & \val{ch12.deps.dev.mib} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent
+Pominięcie flagi mnoży ładunek zależności przez \val{ch12.deps.ratio}, dla
+locka tej książki. Dwa uczciwe zastrzeżenia: to są bajty \emph{pobierane}, a
+koło rozpakowuje się do czegoś większego, niż waży, więc usunięty z obrazu
+ślad jest większy od tej liczby, a nie mniejszy; i jest to jedna z trzech
+różnic między kształtami, a nie rozmiar obrazu.
+
+Rozmiar obrazu to eksperyment~E7 \dash{} trzy kształty zbudowane, zmierzone
+i uruchomione \dash{} i \textbf{nie został przeprowadzony}, z powodu, który
+podaje powyższe pudełko. Jego skrypt jest napisany i zatwierdzony; potrzebuje
+maszyny z rejestrem kontenerów w zasięgu. Dopóki nie zostanie
+przeprowadzony, każde porównanie trzech kształtów w tym rozdziale jest
+argumentem z tego, co zawierają, czyli oceną, i nie ma tu tabeli rozmiarów,
+bo nie ma czego w niej umieścić.
+
+\section{Audyt locka, a nie maszyny}
+\label{sec:ch12-audit}
+
+\code{dotnet list package -{}-vulnerable} czyta twój projekt. \pkg{pip-audit}
+domyślnie czyta \emph{środowisko}, w którym go uruchomiono, co jest innym
+pytaniem o podobnej odpowiedzi i którego nie da się zadać, zanim czegoś nie
+zainstalujesz.
+
+Ma tryb locka, a nazwa jest pułapką: \code{-{}-locked} audytuje plik
+\code{pylock.toml} z PEP~751, a \code{uv.lock} nim nie jest \dash{}
+skierowany na projekt uv zgłasza, że nie znalazł żadnego locka. Mostem jest
+jedno polecenie, a potem obie połowy pasują:
+
+\begin{shellcmd}
+uv export --no-dev --format pylock.toml -o pylock.toml
+uv run pip-audit --locked .
+\end{shellcmd}
+
+\noindent
+Warto wiedzieć, zanim włożysz to do CI: twoja własna paczka jest pomijana,
+bo nie ma jej w indeksie, w którym można by ją sprawdzić, a pominięcie nie
+jest porażką. \code{-{}-strict} nią je czyni. Audytuj zbiór
+\emph{runtime}, jak wyżej, albo będziesz segregował zgłoszenia dotyczące
+lintera, którego nie wysyłasz.
+
+\section{Sygnał, drenowanie i dwie sondy}
+\label{sec:ch12-shutdown}
+
+Sekwencja, którą uvicorn wykonuje po otrzymaniu \code{SIGTERM}, jest w jego
+własnym źródle i warto ją przeczytać tam, a nie ufać streszczeniu: przestań
+przyjmować nowe połączenia, poproś otwarte o dokończenie, zaczekaj na
+trwające zadania i dopiero wtedy uruchom połowę zamykającą \api{lifespan}.
+Sprzątanie, które rozdział~\ref{ch:services} umieścił w lifespanie, biegnie
+więc po opróżnieniu z żądań, czyli w kolejności, o którą chodzi.
+
+\begin{warning}
+Limit czasu łagodnego zamknięcia uvicorna jest domyślnie nieustawiony, a
+nieustawiony znaczy \emph{czekaj bez końca}. Jedno żądanie, które nigdy się
+nie kończy, i proces nigdy nie wyjdzie, dopóki orkiestrator nie straci
+cierpliwości i nie wyśle \code{SIGKILL} \dash{} a wtedy nic z lifespanu nie
+wykona się w ogóle. Ustaw \code{timeout\_graceful\_shutdown} na liczbę
+mniejszą niż okres łaski twojego orkiestratora.
+\end{warning}
+
+\noindent
+Czego ta sekwencja nie robi, to nie mówi load balancerowi. Między
+nadejściem sygnału a zauważeniem przez balancer każde żądanie, które on
+wciąż tu kieruje, trafia na zamknięte gniazdo. Dlatego readiness musi
+przestać przechodzić jako pierwszy, a drenowanie odczekuje okres odpytywania
+balancera, zanim się zacznie.
+
+\mermaidfig{obs-shutdown}{Readiness idzie pierwszy, a liveness zostaje prawdziwy: drenujący proces wychodzi, a nie choruje, i nieudana sonda liveness kazałaby go zabić w trakcie}{sekwencja zamykania}
+
+\pyfile{code/ch12/shutdown.py}{Kolejność wyłożona wprost: wycofany readiness, potem drenowanie, potem lifespan}{lst:ch12-shutdown}
+
+\transcript{ch12-shutdown}
+
+\noindent
+Obie sondy odpowiadają na różne pytania i orkiestrator traktuje je zupełnie
+inaczej. Nieudany liveness powoduje zabicie procesu i zastąpienie go;
+nieudany readiness wyprowadza go z rotacji i zostawia w spokoju. Podczas
+zamykania chcesz dokładnie jednego z tych dwóch, i dlatego \code{live}
+zostaje prawdziwe przez całe powyższe drenowanie.
+
+\section{Co masz teraz}
+\label{sec:ch12-summary}
+
+Sześć odruchów, sześć nazw. Logowanie strukturalne to \pkg{structlog} z
+jednym rendererem i \api{foreign\_pre\_chain}, żeby cudze linie też mu
+podlegały. Identyfikator korelacji to \api{ContextVar}, czyli
+\code{AsyncLocal} pod inną nazwą i jedyne miejsce, w którym zmienna na
+poziomie modułu kosztuje cię awarię na produkcji. Tracing to ta sama
+specyfikacja, którą już znasz, z zasobem, o którym trzeba pamiętać. Obraz to
+dwa etapy, lock i numer użytkownika. Audyt to \pkg{pip-audit} nad
+wyeksportowanym \code{pylock.toml}, a nie nad maszyną. A zamknięcie to
+sygnał, wycofana sonda readiness i drenowanie, w tej kolejności.
+
+Każde domyślne ustawienie z tej listy było przeciwko tobie i ani jedno nie
+zgłosiłoby błędu.
+
+\begin{exercise}{e12_01_bootstrap}{Jeden renderer dla twoich linii i cudzych}
+Dokończ \api{configure\_logging} tak, żeby rekord napisany przez structloga
+i rekord napisany biblioteką standardową trafiały do tego samego strumienia,
+oba jako JSON, i oba niosąc to, co związano przez \api{bind\_contextvars}.
+Trzeci test wyłapuje odpowiedź w połowie skończoną: łatwo zrobić dobrze
+własne linie i zostawić cudze zupełnie bez kontekstu. Napisz to, zanim
+przeczytasz listing~\ref{lst:ch12-log-setup}.
+\end{exercise}
+
+\begin{exercise}{e12_02_correlation}{Identyfikator żądania, którego dwa żądania nie dzielą}
+\code{RequestContext} to pole statyczne przeniesione z C\# bez tłumaczenia i
+przy jakiejkolwiek współbieżności identyfikator, który handler odczytuje, to
+ten, który zapisał ostatni. Zachowaj nazwy trzech metod i zrób wartość
+osobną dla kontekstu. Test uruchamia dwa handlery naraz i sprawdza też
+połowę, o której się zapomina: wartość ustawiona w zadaniu nie może wyciec
+z powrotem do wywołującego.
+\end{exercise}
+
+\begin{exercise}{e12_03_trace_id}{Procesor, który łączy linię logu z trace'em}
+Napisz procesor, który stempluje rekord identyfikatorami bieżącego spanu.
+Wewnątrz spanu muszą pojawić się oba, szesnastkowo i o właściwej szerokości;
+poza nim żaden. Druga połowa jest sednem: kontekst spanu, który nie jest
+prawidłowy, wciąż ma identyfikatory, są nimi same zera, a pole logu pełne
+zer jest gorsze od brakującego.
+\end{exercise}
+
+\begin{exercise}{e12_04_readiness}{Kolejność, w jakiej musi przebiec zamknięcie}
+Dokończ \code{Lifecycle} tak, żeby rozpoczęcie zamykania wycofywało
+readiness i zostawiało liveness w spokoju, oraz żeby proces mógł wyjść
+dopiero, gdy zamykanie się zaczęło i nic nie jest w locie. Pomylenie połowy
+z liveness jest ciekawą awarią: powoduje zabicie drenującego procesu z
+żądaniami wciąż na nim, czyli tę awarię, której drenowanie miało zapobiec.
+\end{exercise}
