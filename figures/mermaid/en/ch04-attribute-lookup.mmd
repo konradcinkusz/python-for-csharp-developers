@@ -1,0 +1,3 @@
+flowchart LR
+    R["self.seen is read,<br/>and it looks exactly<br/>like an instance field"] --> I["The instance dictionary<br/>has no 'seen' in it,<br/>so the lookup walks on"]
+    I --> K["The CLASS dictionary has it,<br/>so append mutates one list<br/>shared by every instance"]
