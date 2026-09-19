@@ -18,6 +18,7 @@
 <meta name="description" content="A C#-to-Python translation dictionary and a field manual for shipping Python to production. Free, in English and Polish, with every listing run in CI against pinned versions.">
 <meta name="author" content="Konrad Cinkusz">
 <link rel="canonical" href="https://konradcinkusz.github.io/python-for-csharp-developers/">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
 <meta property="og:type" content="book">
 <meta property="og:title" content="Python for .NET Engineers">
 <meta property="og:description" content="Reading, writing and shipping Python when C# is your first language. Free, in English and Polish.">
@@ -64,11 +65,19 @@
 
   .wrap { max-width: 48rem; margin: 0 auto; padding: 3rem 1rem 4rem; }
 
+  .masthead { display: flex; align-items: center; gap: 1.1rem; margin: 0 0 .4rem; }
+  .masthead img { width: 4.25rem; height: 4.25rem; flex: none; }
+
+  @media (max-width: 30rem) {
+    .masthead { gap: .8rem; }
+    .masthead img { width: 3rem; height: 3rem; }
+  }
+
   h1 {
     font-size: clamp(1.8rem, 5vw, 2.6rem);
     line-height: 1.15;
     color: var(--blue);
-    margin: 0 0 .4rem;
+    margin: 0;
     letter-spacing: -.01em;
   }
 
@@ -211,7 +220,10 @@
 <body>
 <div class="wrap">
 
-<h1>Python for .NET Engineers</h1>
+<div class="masthead">
+  <img src="logo.svg" alt="" width="128" height="128">
+  <h1>Python for .NET Engineers</h1>
+</div>
 <p class="sub">Reading, writing and shipping Python when C# is your first language.</p>
 <p class="sub-pl">Python dla inżynierów .NET — czytanie, pisanie i wdrażanie Pythona, gdy C# jest twoim pierwszym językiem.</p>
 

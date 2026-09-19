@@ -1,29 +1,47 @@
+<div align="center">
+
+<img src="docs/logo.svg" alt="" width="104" height="104">
+
 # Python for .NET Engineers
 
 *Reading, writing and shipping Python when C# is your first language.*
 
-**Python dla inżynierów .NET** — *Czytanie, pisanie i wdrażanie Pythona, gdy
-C# jest twoim pierwszym językiem.*
+**Python dla inżynierów .NET** — *Czytanie, pisanie i wdrażanie Pythona,
+gdy C# jest twoim pierwszym językiem.*
 
-Both editions are built from one source and published on every push to
-`main`:
+[![Download the English edition](https://img.shields.io/badge/Download-English%20edition-1F4E79?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)](https://konradcinkusz.github.io/python-for-csharp-developers/Python-for-dotNET-Engineers.pdf)
+[![Pobierz wydanie polskie](https://img.shields.io/badge/Pobierz-wydanie%20polskie-0E7C7B?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)](https://konradcinkusz.github.io/python-for-csharp-developers/Python-dla-inzynierow-dotNET.pdf)
 
-- <https://konradcinkusz.github.io/python-for-csharp-developers/> — the
-  summary page, with both PDFs
-- `.../Python-for-dotNET-Engineers.pdf` — English, A4
-- `.../Python-dla-inzynierow-dotNET.pdf` — Polish, A4
+[![Build](https://github.com/konradcinkusz/python-for-csharp-developers/actions/workflows/build.yml/badge.svg)](https://github.com/konradcinkusz/python-for-csharp-developers/actions/workflows/build.yml)
+[![Pages](https://github.com/konradcinkusz/python-for-csharp-developers/actions/workflows/pages.yml/badge.svg)](https://github.com/konradcinkusz/python-for-csharp-developers/actions/workflows/pages.yml)
+[![Code: MIT](https://img.shields.io/badge/code-MIT-5A5A5A)](LICENSE)
+[![Text: CC BY-NC-SA 4.0](https://img.shields.io/badge/text-CC%20BY--NC--SA%204.0-5A5A5A)](LICENSE-CONTENT)
+
+</div>
+
+Both editions are built from one source and republished on every push to
+`main`, so the two PDFs above are the current state of this repository
+rather than a snapshot somebody remembered to upload. The
+[summary page](https://konradcinkusz.github.io/python-for-csharp-developers/)
+carries both, and its own counts are generated from the tree on every
+build.
 
 ## Status
 
-**The scaffold, plus Chapter 14.** The structure, the build, every gate and
-the front matter exist and compile in both languages. **Chapter 14 is
-written**, and with it the guiding project `trace-assert` is complete: the
-trace model and all twelve deterministic assertions, built and run by the
-repository's own CI. Every other chapter is a brief printed where the
-chapter will go. The outstanding work is tracked as GitHub issues under the
-`chapter`, `appendix`, `experiment` and `infrastructure` labels, and printed
-for a reader in Appendix E, which the build computes rather than anybody
-types.
+**Thirteen of the fourteen chapters are written, in both languages**, and
+with them the guiding project `trace-assert` is complete: the trace model
+and all twelve deterministic assertions, built and run by the repository's
+own CI. Chapter 4, *Objects and data*, is the one chapter still to write,
+and appendices A to D are still briefs. Anything unwritten prints as a brief
+where it will go, so the shape of the book is on the page before the prose
+is.
+
+No count above is repeated anywhere it could go stale unnoticed: the live
+ledger is computed from the tree on every build and printed in two places a
+reader can reach — the
+[summary page](https://konradcinkusz.github.io/python-for-csharp-developers/)
+and Appendix E of either edition. Outstanding work is tracked as GitHub issues under the `chapter`,
+`appendix`, `experiment` and `infrastructure` labels.
 
 `CLAUDE.md` is the working record: what is done, the conventions, the build
 traps already hit, and what is left. Read it before touching a chapter.
@@ -73,6 +91,7 @@ make code       # uv sync, ruff, pyright, pytest with the solutions in place
 make starters   # every exercise starter must FAIL its test
 make check      # the source-level gates, without rebuilding
 make debt       # the outstanding-work ledgers
+make site       # assemble locally exactly what CI publishes to Pages
 ```
 
 Needs a TeX Live with `newtx`, `inconsolata`, `siunitx`, `tcolorbox` and the
@@ -96,7 +115,8 @@ code/                      the uv project CI runs: listings, exercises, trace-as
 figures/mermaid/{en,pl}/   diagram sources, committed; renders are build output
 figures/values/            computed numbers, committed, drift-gated
 figures/transcripts/       console output written by code/measure, committed
-tools/                     the gates
+tools/                     the gates, and gen_site.py for the Pages one-pager
+docs/                      index.html.in, the one-pager TEMPLATE, and the logo
 notes/                     the plan and the trap catalogue
 ```
 
