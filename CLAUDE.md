@@ -20,7 +20,7 @@ repository's `CLAUDE.md`, and it is not repeated here.
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
 | Chapters | **All 14 written, both editions.** Chapter 4 *Objects and data* was the last in and completes v0.1 with Chapters 1, 2, 3, 5, 6 and 7 | — |
-| Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
+| Appendices | **E (Manifest), generated; B (Traps), written from `notes/02-traps.md` and gated against it.** A, C and D are briefs | A, C, D |
 | Code | `code/` is a locked uv project: `trace-assert` **complete** (the specification's trace model, all twelve assertions, the `trace` fixture and the `Recorder` both stages write into), **every chapter's listings and exercises**, Chapter 12's three Dockerfiles, experiments E1, E2, E3, E4, E5, E6 and E8, and the measurement, ledger and transcript scripts, and CI runs all of it | every experiment the manifest's Status column still marks *not run* |
 
 **The scaffold plus thirteen chapters.** The scaffold existed so that the shape
@@ -65,8 +65,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 225 | 0 | 0 | 1 · 10.0 pt | 0 |
-| `main-pl` | 228 | 0 | 0 | 0 | 0 |
+| `main-en` | 231 | 0 | 0 | 1 · 10.0 pt | 0 |
+| `main-pl` | 234 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -103,7 +103,7 @@ for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **0 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
+- **0 of 14 chapters are stubs, in each edition; 3 of 5 appendices are**,
   and both editions agree about what is written
 - 292 listing references, every file and region present · 58 exercises, each
   with a starter, a solution and a test · 114 transcript references, every
@@ -118,8 +118,12 @@ does not:
   prints; `make debt`'s `shots` target greps both editions and says 2.**
   Quote whichever you mean, and say which
 - 84 Mermaid sources, forty-two per language, all rendering, all placed
+- **67 trap entries**, each numbered once, each naming the chapter that
+  elicits it, and each printed in both editions — `check_structure.py
+  --traps` compares Appendix B against `notes/02-traps.md` and fails on a
+  duplicate number, a missing entry or an entry no chapter owns
 - 151 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 319 labels in each edition,
+- Parity: 23 file pairs, 0 failures, 0 warnings · 324 labels in each edition,
   0 mismatches
 - Prose words against a budget of 3,000, and `csbox` translation boxes,
   English first: Chapter 1 at 2,399 / 2,098 with 2 boxes, Chapter 2 at
@@ -1686,8 +1690,10 @@ rather than against the body note it came from.
 
 **A sixth trap box had no entry at all.** The chapter's `match` capture box
 is one of the pass's better findings and Chapter 5's block, 20 to 24, was
-full — so it is entry **61**, appended out of block on the precedent Chapter
-8 set for entry 60, because that file's numbers are never reused. Both
+full — so it is entry **140**, in Chapter 5's own second-tier block. It was
+first appended as 61, out of block, on the precedent Chapter 8 set for its
+own overflow entry; the whole overflow range was swept into per-chapter
+blocks in September 2026 and the number moved with it. Both
 halves of it were re-verified against the pinned interpreter rather than
 copied out of this file: the compiler refuses the capture when another case
 follows, with `SyntaxError: name capture 'ACTIVE' makes remaining patterns
@@ -1713,7 +1719,11 @@ two.** Chapter 11's pass had independently appended its own “next free number�
 second time before the first instance was even fixed. Per the rule already
 recorded here, the earliest and most-cited (Ch. 8's, cited by number in this
 file's own Chapter 8 pass note) keeps 60; Ch. 13's moves to **62** and Ch. 11's
-to **63**, both free and both past Chapter 5's own 61. Neither renumbered trap
+to **63**, both free and both past Chapter 5's own 61. **That resolution did
+not hold either, and the reason is the one this file kept predicting**: every
+number in this sentence was allocated from a running maximum, and all of them
+have since moved into per-chapter blocks (Ch. 8 to 170, Ch. 11 to 200, Ch. 13
+to 220). Neither renumbered trap
 was cited by number anywhere in the typeset chapters, only in this file's own
 prose, which is now consistent with the table. **The generalisable half stands
 unchanged and is now attested twice**: a file several branches append to needs
@@ -1831,7 +1841,9 @@ wrote it.**
 **PEP 8 names an exception `...Error`, and ruff enforces it (N818).**
 `JobUnavailable` is a lint failure until it is `JobUnavailableError`. It is a
 clean C#-habit mapping --- the suffix there is `Exception` --- so it is in
-the chapter's csbox and is `notes/02-traps.md` entry 31a.
+the chapter's csbox and is `notes/02-traps.md` entry **150**, in Chapter 6's
+second-tier block. It was written as `31a` because 25--31 was full, which a
+non-integer number hides from the duplicate check; the sweep gave it one.
 
 **Two library facts, read out of the installed packages rather than
 remembered.** pydantic's `ValidationError` subclasses **`ValueError`**, so a
@@ -2048,8 +2060,10 @@ and names no .NET figure it cannot verify.
 **One finding the brief did not have**, and it is the cold/hot difference
 paying out: a `Task` can be awaited any number of times and a coroutine
 cannot. The second `await` raises `RuntimeError: cannot reuse already
-awaited coroutine`. Added to the catalogue as entry 60 -- out of Chapter
-8's 36--41 block, because that file's numbers are never reused.
+awaited coroutine`. Added to the catalogue as entry **170**, in Chapter 8's
+second-tier block. It was first appended as 60, out of its 36--41 block,
+and was the row the later collision formed around; the sweep of September
+2026 moved it into a block of its own.
 
 **The brief's GIL clause collides with the overlap table, and the table
 wins.** The brief asks for "threads against processes under the GIL"; the
@@ -2181,7 +2195,7 @@ installed package.
 And one mechanism read out of starlette rather than remembered: **the last
 middleware registered is the outermost**, because `add_middleware` does
 `self.user_middleware.insert(0, ...)`. That is the reverse of ASP.NET Core
-and nothing warns. It is trap 60.
+and nothing warns. It is trap 180.
 
 #### Experiment E5, and what the calibration guard was worth
 
@@ -2222,7 +2236,7 @@ listening socket, so the worker that is in `accept()` first takes the
 connection and keeps it: measured over forty keep-alive connections, three of
 four workers got any at all and one took thirty-three. Balancing is per
 CONNECTION, not per request, which is the difference from Kestrel's thread
-pool and is trap 62. The survey is a cell of the experiment rather than a
+pool and is trap 182. The survey is a cell of the experiment rather than a
 hypothesis in the prose.
 
 **The absolute numbers are this machine's and the ratios are the finding.**
@@ -2953,7 +2967,8 @@ against a local server, not inferred: `anthropic` refuses an `httpx.Client`
 with a `TypeError` naming both packages, and `openai` accepts it and **works**
 on a plain request. The first draft of this note said openai breaks; it does
 not, on the path that was tested, and the chapter says only what was tested. It
-is a new trap, **62** in `notes/02` -- renumbered from 60 at the ninth merge,
+is a new trap, **220** in `notes/02`, in Chapter 13's second-tier block. It
+was 60, then 62 at the ninth merge,
 when Chapter 11's independently appended trap turned out to carry the same free
 number.
 
@@ -3448,6 +3463,12 @@ already recorded, and the file's own header now says so and gives the
 `uniq -d` that checks it. It reaches nobody today because Appendix B is a
 stub, which is the only reason leaving it is defensible.
 
+> **That defence expired and the sweep was done**, in the pass that wrote
+> Appendix B — which is the moment the collision would have reached a
+> reader, and from the only branch then open, which is the condition the
+> fix needed. Seven rows moved into per-chapter blocks and `uniq -d` now
+> prints nothing. See *The trap-numbering sweep* below.
+
 **And Chapter 5 (#50) landed while that merge was being measured, which is
 the shape this branch has met eleven times.** Bookkeeping again, except for
 one thing worth having: **the Chapter 5 pass had independently renumbered
@@ -3690,6 +3711,100 @@ takes either.
 
 ---
 
+### Appendix B, and the trap-numbering sweep, September 2026
+
+**Appendix B is written, in both editions, and the numbering collision this
+file predicted three times is swept.** The sweep had to come first: the
+appendix is the moment the collision would have reached a reader, and the
+catalogue's own header says a branch can only fix it if it is the only one
+open. It was.
+
+#### The sweep, and why the previous two attempts made it worse
+
+Three numbers were used twice on `main` \dash{} 60, 61 and 62 \dash{} by
+six passes that could not see each other. **Two earlier branches had each
+tried to fix it and each created a new collision**, because both allocated
+"the next free number" from a maximum that was already stale. That is not
+carelessness twice; it is what allocating from a running maximum does when
+several branches are open.
+
+The fix is the one the catalogue's header had already specified: **a block
+per owning chapter, with room**. Chapter~N owns `100 + 10 * (N - 1)`
+through `+9`, documented in the file, so a pass adding a trap takes the
+next free number *in its own chapter's block*, which no other chapter's
+pass can be holding. A branch never has to know what any other branch did.
+Seven rows moved: Ch. 5's pattern capture to 140, Ch. 8's re-awaited
+coroutine to 170, Ch. 9's three to 180--182, Ch. 11's to 200, Ch. 13's to
+220. Numbers are never reused, so 60--63 stay empty, and **every citation
+of a moved number in this file was updated with it**.
+
+**Two neighbouring defects fell out of writing the appendix**, which is the
+argument for writing a thing from its source rather than about it:
+
+- **`31a` was not an integer**, so the duplicate check could not see it. It
+  was Chapter 6's, written with a letter because 25--31 was full \dash{}
+  the same out-of-band allocation the sweep exists for, in a costume the
+  check was blind to. It is 150 now.
+- **Entry 200 was filed under Part V and is Chapter 11's**, which is a
+  Part IV chapter. It had been appended to the end of the file rather than
+  to its own part, which is what appending rather than placing does.
+
+#### The check that makes the appendix maintainable
+
+`check_structure.py --traps` compares Appendix B against the catalogue and
+fails on three things nothing else could see: a duplicate number, an entry
+in one and not the other (in either direction, in either edition), and an
+entry naming no chapter. **Numbers are language-independent, which is what
+lets one check cover both editions** while parity compares the prose around
+them. Watched failing on all three conditions before it was believed, and
+wired into `make check`, `make debt`, `build.yml` and `release.yml`.
+
+It is the gate this file has wanted since the Chapter 8 pass: git merges
+different *rows* of one table without a conflict, so no session's copy is
+ever wrong until somebody merges, and nothing was comparing the table
+against anything.
+
+#### The `\code{}`-inside-`\emph{}` trap, met sixty-seven times at once
+
+The first build raised ``Font shape `T1/zi4/m/it' undefined``, which
+`checklog.py` is hard on and which this file already records: inconsolata
+has no italic, so a `\code{}` inside an `\emph{}` is silently substituted.
+Every one of the sixty-seven habits is set in the reader's own voice and
+carries `\code{}` spans, so the macro put all sixty-seven inside `\emph{}`.
+
+**It was fixed once, because the entries go through a macro**, and the fix
+is the one the Chapter 5 pass recorded: `\enquote{}` rather than `\emph{}`
+round a quoted thing \dash{} which is also what the habit *is*, and what
+the Polish edition owes anyway. That is the argument for a macro over
+sixty-seven hand-laid paragraphs, arriving as a one-line diff.
+
+**And the layout decision was made before the boxes could happen rather
+than after.** An entry is mostly `\code{}` spans, which are unbreakable
+runs, and this book's most-recorded page defect is a long `\code{}` landing
+mid-paragraph in the edition with the longer words. Sixty-seven justified
+paragraphs of them is sixty-seven chances at it. The body is set **ragged
+right**, which removes the class rather than fixing it one box at a time,
+and a reference list is the one place here where it reads better anyway:
+both editions came back with **zero new overfull boxes**, against a
+baseline that had one.
+
+#### Also
+
+- The appendix points at each chapter with `\ref{}` rather than a typed
+  chapter number, so it cannot go stale; fourteen chapter labels, every one
+  resolved, and two of them were wrong on the first draft
+  (`ch:ai-toolkit` and `ch:trace-assert` against the real
+  `ch:aitoolkit` and `ch:traceassert`), caught by the unresolved-reference
+  gate rather than by reading.
+- **Every entry in the catalogue now names a delivered chapter**, so the
+  appendix carries no promises: there are no bare `Ch. N` owners left, and
+  `--traps` would fail on one.
+- Parity came back clean on its first run \dash{} 79 structural tokens and
+  87 numeric literals identical \dash{} which is what writing the English
+  first and mirroring it entry by entry buys on a file of this shape.
+
+---
+
 ## After each pass
 
 1. `python3 tools/parity.py`, `python3 tools/check_structure.py --all`,
@@ -3739,14 +3854,13 @@ issues under the `chapter`, `appendix`, `experiment` and `infrastructure`
 labels --- **work from the labels, not from a list here**, because a list
 in this file is the class of claim nothing can check. In rough order:
 
-1. **Appendices A to D** (v1.0), which are now the only stubs in the book.
-   B is written from `notes/02-traps.md`, and that file's numbering
-   collision in the high fifties and sixties has to be swept first, from a
-   branch that is the only one open, allocating a block per owning chapter
-   rather than a next-free number. C's version column prints from the
-   preamble's macros and is never typed. A owes the ledger that checks its
-   chapter references. D needs the open decision on whether CI compiles
-   its C\# side settled first.
+1. **Appendices A, C and D** (v1.0), now the only stubs in the book.
+   **B is written**, from `notes/02-traps.md`, with `--traps` gating the
+   two against each other; the numbering collision it needed swept first
+   is swept. C's version column prints from the preamble's macros and is
+   never typed. A owes the ledger that checks its chapter references.
+   D's open decision is settled \dash{} CI compiles its C\# side, and
+   `code/csharp/` is the scaffold.
 2. **The experiments that have not run.** `notes/01-curriculum.md` §4 is
    the ledger, filled in by the pass that runs each one; naming them here
    would be a second copy to go stale, and **no total is stated in either

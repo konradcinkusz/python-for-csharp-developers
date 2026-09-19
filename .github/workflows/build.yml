@@ -164,6 +164,14 @@ jobs:
         run: python3 tools/check_structure.py --pins
       - name: Every written chapter is inside its word budget
         run: python3 tools/check_structure.py --words
+
+      # Appendix B is written from notes/02-traps.md and can drift from it
+      # silently: a trap added to the notes and not to the book, an entry
+      # dropped from one edition, or two entries sharing a number, which is
+      # the one thing the numbering exists to prevent and which six
+      # parallel branches broke three times before this check existed.
+      - name: Appendix B prints every trap, once, in both editions
+        run: python3 tools/check_structure.py --traps
       - name: The Pages one-pager renders from the tree
         run: python3 tools/gen_site.py --check
 
