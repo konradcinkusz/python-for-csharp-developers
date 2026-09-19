@@ -10,15 +10,20 @@ name: Build
 # listing runs on the pinned versions, and a job that does not run them is a
 # promise nobody is keeping.
 
+# docs/ is deliberately NOT in paths-ignore. It stopped being inert static
+# HTML when the Pages one-pager became docs/index.html.in, a template that
+# tools/gen_site.py renders from the manifest and the ledger file -- and a
+# template can fail to render. Skipping the gates on a docs-only change
+# would let that reach main, where pages.yml is the only thing that would
+# notice, after the fact and instead of publishing.
+
 on:
   push:
     branches: [main]
     paths-ignore:
-      - 'docs/**'
       - '**.md'
   pull_request:
     paths-ignore:
-      - 'docs/**'
       - '**.md'
   workflow_dispatch:
 
@@ -126,6 +131,8 @@ jobs:
         run: python3 tools/check_structure.py --pins
       - name: Every written chapter is inside its word budget
         run: python3 tools/check_structure.py --words
+      - name: The Pages one-pager renders from the tree
+        run: python3 tools/gen_site.py --check
 
   diagrams:
     name: Render diagrams

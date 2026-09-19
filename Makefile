@@ -46,6 +46,7 @@ check:
 	@python3 tools/check_structure.py --lines
 	@python3 tools/check_structure.py --pins
 	@python3 tools/check_structure.py --words
+	@python3 tools/gen_site.py --check
 	@python3 tools/checklog.py main-en.log main-pl.log
 	@# reflist needs both aux trees, so it is skipped -- and says so -- on a
 	@# tree without a build, and is a hard failure on one with a build.
@@ -201,10 +202,12 @@ debt:
 	@echo; echo "== Polish/English parity =="    ; $(MAKE) -s translate
 	@echo; echo "== Unverified listings, diagrams =="; $(MAKE) -s shots
 
-# Assemble locally exactly what CI publishes to Pages.
+# Assemble locally exactly what CI publishes to Pages. gen_site.py renders
+# docs/index.html.in -- the one-pager's counts come from the ledger file and
+# its contents from tools/chapters.json, so the page cannot describe a
+# different book from the two PDFs beside it.
 site: en pl
-	@rm -rf _site && mkdir -p _site
-	@cp -r docs/. _site/
+	@python3 tools/gen_site.py _site
 	@cp main-en.pdf "_site/Python-for-dotNET-Engineers.pdf"
 	@cp main-pl.pdf "_site/Python-dla-inzynierow-dotNET.pdf"
 	@cp main-en.pdf _site/book-en.pdf
