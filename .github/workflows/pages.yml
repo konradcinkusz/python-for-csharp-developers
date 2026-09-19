@@ -81,7 +81,7 @@ jobs:
             --lines --pins --words
           python3 tools/gen_site.py --check
 
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           version: "0.12.13"
           enable-cache: true
