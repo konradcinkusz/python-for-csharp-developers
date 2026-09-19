@@ -19,9 +19,9 @@ repository's `CLAUDE.md`, and it is not repeated here.
 |---|---|---|
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
-| Chapters | **13 of 14 written: Chapter 1 *CPython and the GIL*, Chapter 2 *Environments and packaging*, Chapter 3 *Typing*, Chapter 5 *Functions and control flow*, Chapter 6 *Errors*, Chapter 7 *Imports and dependency injection*, Chapter 8 *asyncio*, Chapter 9 *Services*, Chapter 10 *Data*, Chapter 11 *Testing*, Chapter 12 *Observability and operations*, Chapter 13 *The AI engineer's kit* and Chapter 14 *trace-assert, complete* — both editions** | 4 |
+| Chapters | **All 14 written, both editions.** Chapter 4 *Objects and data* was the last in and completes v0.1 with Chapters 1, 2, 3, 5, 6 and 7 | — |
 | Appendices | **E (Manifest), generated.** A–D are briefs | A, B, C, D |
-| Code | `code/` is a locked uv project: `trace-assert` **complete** (the specification's trace model, all twelve assertions, the `trace` fixture and the `Recorder` both stages write into), those thirteen chapters' listings and exercises, Chapter 12's three Dockerfiles, experiments E1, E2, E3, E4, E5, E6 and E8, and the measurement, ledger and transcript scripts, and CI runs all of it | every other chapter's listings and exercises; every experiment the manifest's Status column still marks *not run* |
+| Code | `code/` is a locked uv project: `trace-assert` **complete** (the specification's trace model, all twelve assertions, the `trace` fixture and the `Recorder` both stages write into), **every chapter's listings and exercises**, Chapter 12's three Dockerfiles, experiments E1, E2, E3, E4, E5, E6 and E8, and the measurement, ledger and transcript scripts, and CI runs all of it | every experiment the manifest's Status column still marks *not run* |
 
 **The scaffold plus thirteen chapters.** The scaffold existed so that the shape
 of the book could be argued with before any chapter was written, and so that
@@ -65,8 +65,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 211 | 0 | 0 | 1 · 10.0 pt | 0 |
-| `main-pl` | 214 | 0 | 0 | 0 | 0 |
+| `main-en` | 225 | 0 | 0 | 1 · 10.0 pt | 0 |
+| `main-pl` | 228 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -103,11 +103,11 @@ for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **1 of 14 chapters is a stub, in each edition; 4 of 5 appendices are**,
+- **0 of 14 chapters are stubs, in each edition; 4 of 5 appendices are**,
   and both editions agree about what is written
-- 266 listing references, every file and region present · 54 exercises, each
-  with a starter, a solution and a test · 102 transcript references, every
-  file present · 296 code files, none over 79 columns · 21 pins agree between
+- 292 listing references, every file and region present · 58 exercises, each
+  with a starter, a solution and a test · 114 transcript references, every
+  file present · 316 code files, none over 79 columns · 21 pins agree between
   `preamble.tex` and `code/pyproject.toml`
 - **1 `verifybox` block** — Chapter 12's three Dockerfiles, which could not
   be built because no container registry is reachable from the machine that
@@ -116,9 +116,9 @@ does not:
   was not run. **That figure is per edition, which is what Appendix E
   prints; `make debt`'s `shots` target greps both editions and says 2.**
   Quote whichever you mean, and say which
-- 78 Mermaid sources, thirty-nine per language, all rendering, all placed
+- 84 Mermaid sources, forty-two per language, all rendering, all placed
 - 151 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 295 labels in each edition,
+- Parity: 23 file pairs, 0 failures, 0 warnings · 319 labels in each edition,
   0 mismatches
 - Prose words against a budget of 3,000, and `csbox` translation boxes,
   English first: Chapter 1 at 2,399 / 2,098 with 2 boxes, Chapter 2 at
@@ -126,7 +126,8 @@ does not:
   2,638 / 2,311 with 3, Chapter 7 at 2,581 / 2,242 with 3, Chapter 8 at
   2,269 / 1,990 with 2, Chapter 5 at 2,535 / 2,258 with 2, Chapter 9 at
   2,507 / 2,176 with 2, Chapter 10 at
-  2,386 / 2,069 with 3, Chapter 11 at 2,572 / 2,260 with 2, Chapter 12 at
+  2,386 / 2,069 with 3, Chapter 4 at 2,435 / 2,235 with 2, Chapter 11 at
+  2,572 / 2,260 with 2, Chapter 12 at
   2,765 / 2,388 with 2, Chapter 13 at 2,543 / 2,225 with 2, Chapter 14 at
   2,303 / 1,962 with 2. These are what
   `--words` and `--csbox` print and they move with any prose edit, so
@@ -3457,6 +3458,139 @@ is the only form of the fix that a twelfth parallel pass cannot break.
 
 ---
 
+### Chapter 4 pass, September 2026 --- the last chapter in
+
+**Written last, and alone**, which is the first time that has been true
+here: every other chapter was written beside several others by passes that
+could not see each other, and this one was written against a `main` that
+already carried thirteen. So it is the one pass with no merge cost in it,
+and the comparison is worth recording --- the Chapter 9 pass merged `main`
+eight times and Chapter 14's three, and this one merged nothing and
+re-measured every ledger exactly once. **That is the argument for
+finishing a branch rather than opening another**, and it is the only
+evidence in this file gathered from the other side of the parallel-passes
+experiment.
+
+**Nothing in the brief turned out to be wrong**, which has not been true of
+most chapters here. Every claim it makes about what the chapter should
+contain survived, so `tools/chapters.json` is untouched. What did not
+survive was an entry in the trap catalogue, and it is the pass's best
+finding.
+
+#### Trap 14 was wrong in the direction that makes it invisible
+
+`notes/02-traps.md` entry 14 said `is` on integers is true for small ones
+"and false one magnitude up". **Measured on the pinned interpreter, the
+demonstration does not reproduce**: `a = 257; b = 257; a is b` inside a
+function is `True`. A reader who tries the catalogue's own example
+concludes `is` is safe.
+
+Two separate mechanisms are at work and the folklore names only the first:
+
+- **CPython caches the integers -5 to 256.** Verified at both boundaries
+  rather than assumed --- `int(str(n)) is n` is `True` for -5 and 256 and
+  `False` for -6 and 257.
+- **The compiler stores equal constants in a code object's table once**,
+  so two literal `257`s in one function body are one object. This is not
+  caching and has nothing to do with the range. The proof is in the code
+  object itself: `identity_report.__code__.co_consts` carries `256` and
+  `257` once each against two literal occurrences of each.
+
+That is also why the folklore exists and why it is repeated by people who
+did check: **in a REPL each statement is its own code object**, so the
+classic demonstration is honest there and misleading in a script. Measured
+both ways.
+
+So the trap is sharper than the catalogue's version and worse: the bug
+needs a value that crossed a run-time boundary, which is where every real
+value comes from --- a parsed request, a database row, a JSON payload ---
+so `is` on integers looks correct in every small example and fails in
+production. `code/ch04/equality.py` crosses that boundary in one call,
+`int(str(n))`, and the section prints both columns beside `==`. Entry 14
+keeps its number and says it was corrected, which is what that file's rule
+asks for.
+
+#### pyright proves four of this chapter's claims statically
+
+Five strict errors came out of the first type-check and **four of them were
+the checker being right about the chapter's own argument**, so they are
+suppressed by name with a comment saying why, rather than written around:
+
+- `{NodeBroken("db"): 1}` is refused with *Dictionary key must be
+  hashable* --- so the headline trap, which CPython only raises on at run
+  time, is one the checker Chapter~3 pinned catches while you are still
+  typing. That is a stronger claim than the chapter set out to make.
+- `Severity.LOW == 1` is refused as a comparison whose types have no
+  overlap, which is the C\# habit caught at author time.
+- `isinstance(Region.EU, str)` is refused as unnecessary, which is the
+  `StrEnum` claim confirmed statically.
+- The fifth was a real defect and was fixed rather than suppressed:
+  `field(default_factory=list)` is `list[Unknown]`, and the recorded
+  remedy --- a named factory with a return type --- is what the listing
+  now carries.
+
+**A suppression that is the point of the paragraph beside it is not the
+same as a suppression that hides a defect**, and the way to keep the two
+apart is that every one of these says, in the file, what the checker was
+right about.
+
+#### `make starters` earned its keep again, on the same shape as three other passes
+
+Exercise 4.4's first draft had a test that passed against the untouched
+starter, reported as `XPASS(strict)`. The starter's `add` already returns
+`self` --- only the shared list is broken --- so a test that checked
+chaining alone did not depend on the reader's answer. Folded into one test
+that chains **and** asserts isolation. This is the fourth pass to record
+it (Chapters 3, 10 and 12 are the others), and the rule is the one those
+passes wrote: **every test of an exercise must fail on the starter**, and
+a reassuring extra assertion is the usual way one stops doing so.
+
+#### The exercise-ordinal defect did not happen, and that is a data point
+
+Four passes independently shipped an exercise whose key ordinal disagreed
+with its printed number, and this file argues from that that the
+convention needs a gate. This pass numbered the keys by **where they would
+print** before writing the files, which is the remedy those notes
+prescribe, and `main-en.exr` reads 4.1 to 4.4 against `e04_01` to `e04_04`
+on the first build. One clean pass is not evidence the discipline is
+sufficient --- four failures against one success is still the argument for
+writing the check --- but it does establish that the prescribed remedy
+works when it is applied deliberately rather than remembered.
+
+#### Also
+
+- **Three figures, measured with `pdfinfo` before the captions were
+  written.** All six renders are 552 to 589 pt wide at 93.12 pt high, so
+  every aspect ratio is about six and all are width-bound; node text lands
+  between 8.5 and 9.1 pt by the recorded formula, which is the band the
+  rest of the book sits in. No redraw was needed, which is the first time
+  that has been true here --- and the reason is that all three were drawn
+  as three-node `flowchart LR` chains from the start, the shape every
+  previous pass converged on after measuring.
+- **One over-budget hbox, in Polish, and the recorded remedy worked first
+  time.** 15.4 pt from `\code{FrozenInstanceError}` landing mid-paragraph
+  in the edition with the longer words, with the English clean. Starting a
+  sentence with the identifier cleared it, and the edit was applied to
+  **both** editions so the two still read alike --- which is the Chapter 6
+  pass's rule and it keeps C4 and C14 moving together.
+- **A transcript is held to 79 columns and two listings had to be told
+  so.** 3.14's unhashable-key message is 85 characters and
+  `json.dumps`'s TypeError is one line too wide; both are split in the
+  listing rather than trimmed, because the message is what the reader will
+  see. The guard caught both.
+- **A default `__repr__` carries a memory address, which no committed
+  transcript may.** `code/ch04/dunders.py` deliberately prints a list of
+  an object that has no `__repr__` --- that is the section's point --- and
+  substitutes the address before printing. The transcript writer's own
+  address guard would have caught it; substituting is better than
+  dropping the demonstration.
+- This chapter owes **no measurement**, as the brief says, and adds no
+  value key: every claim in it is semantic and is checked by a listing
+  that runs or a test that passes. It is the only written chapter of which
+  that is true, and it is why `151 value keys` did not move.
+
+---
+
 ## After each pass
 
 1. `python3 tools/parity.py`, `python3 tools/check_structure.py --all`,
@@ -3500,52 +3634,35 @@ Tag from a local clone.
 
 ## What is left
 
-Thirteen chapters of fourteen are written: 1, 2, 3, 5, 6, 7, 8, 9, 10, 11,
-12, 13 and 14, and with Chapters 11, 13 and 14 the guiding project is
-complete. The
-outstanding work is tracked as GitHub issues under the `chapter`, `appendix`,
-`experiment` and `infrastructure` labels — **work from the labels, not from
-a list here**, because a list in this file is the class of claim nothing can
-check. In rough order:
+**All fourteen chapters are written, in both editions, and with them v0.1
+and v0.2 are content-complete.** The outstanding work is tracked as GitHub
+issues under the `chapter`, `appendix`, `experiment` and `infrastructure`
+labels --- **work from the labels, not from a list here**, because a list
+in this file is the class of claim nothing can check. In rough order:
 
-1. **Chapter 4**, which with the written Chapters 1, 2, 3, 5, 6 and 7
-   completes v0.1. The suggested order was 1, 2, 3 first, because every later
-   chapter's listings assume the reader trusts the environment — and every
-   chapter written out of that order so far has not suffered for it, because
-   each names what it borrows and borrows almost nothing. Treat the ordering
-   as a preference rather than a constraint. **Chapter 5's two forward
-   references are both discharged**: Chapter 3's was kept, and Chapter 2
-   arrived at the seventh merge, at which point its claim — that ruff is
-   “the toolchain from Chapter 2” — was checked against the written chapter
-   rather than against the brief it was drafted from, and holds. Two things
-   that cost Chapter 6 a round are under *Resolved questions* and are worth
-   reading first — the
-   exercise-harness paragraph before writing an exercise, and the note on
-   dumping the English token stream with `parity.py`'s own tokeniser before
-   writing the Polish.
-2. **Nothing in v0.2 is outstanding.** Chapters 8 to 12 are written, with
-   trace-assert stage 01 in Chapter 11, and E4, E5, E6 and the deps-weight
-   measurement with them. Chapter 12's E7 is the one experiment blocked
-   rather than merely unrun — `PYBOOK_E7=1` runs it on any machine that can
-   reach a registry.
-3. **Appendices A to D** (v1.0). Chapters 11, 13 and 14 are all written, so
-   the guiding project is finished and Appendix B is written from
-   `notes/02-traps.md`; Appendix C's version column prints from the
-   preamble's macros and is never typed; Appendix D needs the open decision
-   above settled first.
-4. **The experiments that have not run**, each free, each writing a value
-   file that a chapter reads with `\val{}`. `notes/01-curriculum.md` §4 is
+1. **Appendices A to D** (v1.0), which are now the only stubs in the book.
+   B is written from `notes/02-traps.md`, and that file's numbering
+   collision in the high fifties and sixties has to be swept first, from a
+   branch that is the only one open, allocating a block per owning chapter
+   rather than a next-free number. C's version column prints from the
+   preamble's macros and is never typed. A owes the ledger that checks its
+   chapter references. D needs the open decision on whether CI compiles
+   its C\# side settled first.
+2. **The experiments that have not run.** `notes/01-curriculum.md` §4 is
    the ledger, filled in by the pass that runs each one; naming them here
    would be a second copy to go stale, and **no total is stated in either
-   place** — this file once said *the eight* while the table above it said
-   *seven of the eight*. E4 and E8 are the worked examples of committing
-   bounds and counts rather than timings, and E1, E2 and E5 are the other
-   shape — a `--record` or `--run` mode writing committed raw trials,
-   formatted in a second deterministic pass — for a quantity that has no
-   exact form. All five are what make a stopwatch survive `make verify`,
-   and `code/measure/data/` holds one JSON file per experiment of the
-   second kind.
-5. **The first Pages deployment**, which needs one human click.
+   place**. E7 is the one that is blocked rather than merely unrun ---
+   `PYBOOK_E7=1` runs it on any machine that can reach a container
+   registry, which this sandbox cannot.
+3. **The first Pages deployment**, which needs one human click.
+4. **Trusted publishing of `trace-assert`**, whose one-time configuration
+   is on the index's side and outside this repository.
+
+**Chapter 4 was the last chapter in, and it was written alone** against a
+`main` that already carried thirteen. Its pass note above records the one
+thing that is only visible from that position: a branch with no other
+branch open re-measures every ledger once, where the passes that ran in
+parallel re-measured them on every overtaking.
 
 **Do not fill a measurement table with plausible numbers.** An empty table
 is load-bearing. And an experiment that measures a *timing* writes its raw

@@ -1,0 +1,11 @@
+NodeBroken.__hash__ is None
+as a dict key:      TypeError: cannot use 'NodeBroken' as a dict key
+                    (unhashable type: 'NodeBroken')
+
+Node.__hash__ is    Node.__hash__
+as a dict key:      {Node('db'): 1}
+equal objects hash equal: True
+a set of two equals:      1
+
+  256   two literals: True    parsed at run time: True    but == says: True
+  257   two literals: True    parsed at run time: False   but == says: True
