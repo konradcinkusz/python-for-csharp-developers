@@ -254,7 +254,7 @@
   chapters are written in both languages, along with
   {{appendices.written}} of {{appendices.total}} appendices; what is left is
   marked <em>planned</em> in the contents below and prints as a brief where
-  the chapter will go. This paragraph's numbers are computed from the tree on
+  it will go. This paragraph's numbers are computed from the tree on
   every build, not typed, so the page cannot claim a chapter that is not
   there — or go on calling itself a scaffold after the book has been written.
 </div>

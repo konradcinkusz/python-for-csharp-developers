@@ -28,20 +28,19 @@ build.
 
 ## Status
 
-**Thirteen of the fourteen chapters are written, in both languages**, and
-with them the guiding project `trace-assert` is complete: the trace model
-and all twelve deterministic assertions, built and run by the repository's
-own CI. Chapter 4, *Objects and data*, is the one chapter still to write,
-and appendices A to D are still briefs. Anything unwritten prints as a brief
-where it will go, so the shape of the book is on the page before the prose
-is.
+**Every chapter is written, in both languages**, and with them the guiding
+project `trace-assert` is complete: the trace model and all twelve
+deterministic assertions, built and run by the repository's own CI.
+Appendices A to D are still briefs, and each prints where it will go, so
+the shape of the book is on the page before the prose is.
 
 No count above is repeated anywhere it could go stale unnoticed: the live
 ledger is computed from the tree on every build and printed in two places a
 reader can reach — the
 [summary page](https://konradcinkusz.github.io/python-for-csharp-developers/)
-and Appendix E of either edition. Outstanding work is tracked as GitHub issues under the `chapter`,
-`appendix`, `experiment` and `infrastructure` labels.
+and Appendix E of either edition. Outstanding work is tracked as GitHub
+issues under the `chapter`, `appendix`, `experiment` and `infrastructure`
+labels.
 
 `CLAUDE.md` is the working record: what is done, the conventions, the build
 traps already hit, and what is left. Read it before touching a chapter.
