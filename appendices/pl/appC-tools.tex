@@ -1,21 +1,109 @@
-%% appC --- Macierz narzędzi
+%% appC --- Macierz narzedzi
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie zalążkowego bloku (tego, który zaczyna się po
-%% linii \chapter) i zastąpienie go rozdziałem -- po czym ten plik nie jest
-%% już generowany.
+%% Napisany we wrzesniu 2026. Kazda wersja tutaj drukuje sie z makra
+%% przypietej wersji w preamble.tex i zadna nie jest wpisana: ta strona
+%% jest jedynym miejscem, gdzie czytelnik widzi wszystkie przypiecia naraz,
+%% a przypiecie przepisane tutaj byloby druga kopia faktu, ktory preambula
+%% juz posiada. tools/check_structure.py --tools oblewa, gdy makro
+%% przypiecia istnieje, a ten dodatek go nie drukuje, oraz gdy wersja jest
+%% wpisana zamiast wydrukowana z makra.
 
 \chapter{Macierz narzędzi}
 \label{app:tools}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\noindent
+Kolumna wersji nie jest wpisana. Każda liczba na tej stronie to to samo
+makro, które drukuje strona tytułowa i rozdziały, czyli ten sam napis,
+który przypina \code{code/pyproject.toml} i rozwiązuje \code{uv.lock}
+\dash{} więc macierz nie może się nie zgadzać z tym, co zainstalowało CI, a
+podniesienie wersji rusza tę stronę bez niczyjej edycji. Bramka oblewa
+build, jeśli przypięcie istnieje, a ta tabela go nie pokazuje.
 
-A .NET tool on the left, the Python tool this book uses on the right, the
-version it was verified against in the middle \dash{} printed from the
-pinned-version macros in the preamble and never typed \dash{} and the
-chapter that introduces it. The table is the one place a reader can see
-every pin at once.
-}
+Czytaj pierwszą kolumnę luźno. Część z nich to dokładne odpowiedniki, a
+część tylko najbliższa rzecz, którą inżynier .NET już zna; tam, gdzie oba
+różnią się w sposób, który ma znaczenie, rozdział wskazany po prawej jest
+tym, w którym ta różnica jest wydana.
+
+\section{Język i jego narzędziówka}
+\label{sec:appC-toolchain}
+
+\begin{toolmatrix}{.NET}{Python}{Sprawdzone na}{Rozdz.}
+środowisko uruchomieniowe & CPython & \pypatch & \ref{ch:runtime} \\
+CLI \code{dotnet}, NuGet & \pkg{uv} & \uvver & \ref{ch:packaging} \\
+\code{dotnet format}, analizatory & \pkg{ruff} & \ruffver &
+  \ref{ch:packaging} \\
+sprawdzanie typów przez kompilator & \pkg{pyright}, ściśle &
+  \pyrightver & \ref{ch:typing} \\
+--- & \pkg{mypy}, druga opinia & \mypyver & \ref{ch:typing} \\
+\end{toolmatrix}
+
+\noindent
+Przypięte są dwa checkery, a nie jeden, i rozdział~\ref{ch:typing} mierzy,
+dlaczego: na tych samych czterech funkcjach pyright nie zgłasza nic, a mypy
+zgłasza dwa, bo jeden stosuje system typów, a drugi dokłada opinię, której
+system typów nie ma.
+
+\section{Wdrażanie}
+\label{sec:appC-shipping}
+
+\begin{toolmatrix}{.NET}{Python}{Sprawdzone na}{Rozdz.}
+wiązanie modelu, walidacja & \pkg{pydantic} & \pydanticver &
+  \ref{ch:typing} \\
+\code{IOptions<T>} & \pkg{pydantic-settings} & \pysettingsver &
+  \ref{ch:services} \\
+ASP.NET Core & \pkg{fastapi} & \fastapiver & \ref{ch:services} \\
+Kestrel & \pkg{uvicorn} & \uvicornver & \ref{ch:services} \\
+\code{HttpClient} & \pkg{httpx} & \httpxver & \ref{ch:asyncio} \\
+Entity Framework & \pkg{sqlalchemy} & \sqlalchemyver & \ref{ch:data} \\
+migracje EF & \pkg{alembic} & \alembicver & \ref{ch:data} \\
+--- & \pkg{aiosqlite}, do listingów asynchronicznych & \aiosqlitever &
+  \ref{ch:data} \\
+DataTable & \pkg{polars} & \polarsver & \ref{ch:data} \\
+\end{toolmatrix}
+
+\section{Testowanie i eksploatacja}
+\label{sec:appC-testing}
+
+\begin{toolmatrix}{.NET}{Python}{Sprawdzone na}{Rozdz.}
+xUnit & \pkg{pytest} & \pytestver & \ref{ch:testing} \\
+wsparcie testów asynchronicznych & \pkg{pytest-asyncio} & \pytestasyncver &
+  \ref{ch:testing} \\
+FsCheck & \pkg{hypothesis} & \hypothesisver & \ref{ch:testing} \\
+coverlet & \pkg{coverage} & \coveragever & \ref{ch:testing} \\
+\code{ILogger<T>} & \pkg{structlog} & \structlogver &
+  \ref{ch:observability} \\
+OpenTelemetry & \pkg{opentelemetry-sdk} & \otelver &
+  \ref{ch:observability} \\
+\code{dotnet list package -{}-vulnerable} & \pkg{pip-audit} &
+  \pipauditver & \ref{ch:observability} \\
+\end{toolmatrix}
+
+\section{Zestaw do AI}
+\label{sec:appC-ai}
+
+\begin{toolmatrix}{.NET}{Python}{Sprawdzone na}{Rozdz.}
+SDK & \pkg{anthropic} & \anthropicver & \ref{ch:aitoolkit} \\
+SDK & \pkg{openai} & \openaiver & \ref{ch:aitoolkit} \\
+\end{toolmatrix}
+
+\begin{note}
+Oba SDK zależą od dystrybucji \pkg{httpx2}, a nie od \pkg{httpx}
+przypiętego powyżej. To różne pakiety, które dzielą pochodzenie i zapis, i
+dlatego sprawdzenie \api{isinstance} względem tego, który przypiąłeś,
+zawodzi na kliencie, który jest oczywiście klientem httpx.
+Rozdział~\ref{ch:aitoolkit} to mierzy.
+\end{note}
+
+\section{Budowanie książki}
+\label{sec:appC-book}
+
+\noindent
+Dwa przypięcia nie są w tabelach powyżej, bo nie są bibliotekami, które
+instaluje czytelnik. Interpreterem, na który celuje książka, jest
+Python~\pyver, a dokładną budową, na której działał każdy listing, jest
+\pypatch, czyli to, co nazywa \code{code/.python-version}. A własny C\#
+książki \dash{} porównania, które robią jej rozdziały, i rozwiązania w
+dodatku~\ref{app:interview} \dash{} jest kompilowany i testowany w CI
+względem .NET~\dotnetver, przypiętego raz w
+\code{code/csharp/global.json} i stamtąd czytanego przez każdy workflow,
+który go potrzebuje.

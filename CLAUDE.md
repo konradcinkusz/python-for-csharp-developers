@@ -20,7 +20,7 @@ repository's `CLAUDE.md`, and it is not repeated here.
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
 | Chapters | **All 14 written, both editions.** Chapter 4 *Objects and data* was the last in and completes v0.1 with Chapters 1, 2, 3, 5, 6 and 7 | — |
-| Appendices | **E (Manifest), generated; B (Traps) and A (Cheat sheet), written and each gated against what they claim.** C and D are briefs | C, D |
+| Appendices | **E (Manifest), generated; A (Cheat sheet), B (Traps) and C (Tool matrix), written and each gated against what they claim.** D is a brief | D |
 | Code | `code/` is a locked uv project: `trace-assert` **complete** (the specification's trace model, all twelve assertions, the `trace` fixture and the `Recorder` both stages write into), **every chapter's listings and exercises**, Chapter 12's three Dockerfiles, experiments E1, E2, E3, E4, E5, E6 and E8, and the measurement, ledger and transcript scripts, and CI runs all of it | every experiment the manifest's Status column still marks *not run* |
 
 **The scaffold plus thirteen chapters.** The scaffold existed so that the shape
@@ -65,8 +65,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 236 | 0 | 0 | 1 · 10.0 pt | 0 |
-| `main-pl` | 238 | 0 | 0 | 0 | 0 |
+| `main-en` | 237 | 0 | 0 | 1 · 10.0 pt | 0 |
+| `main-pl` | 240 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -103,7 +103,7 @@ for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **0 of 14 chapters are stubs, in each edition; 2 of 5 appendices are**,
+- **0 of 14 chapters are stubs, in each edition; 1 of 5 appendices is**,
   and both editions agree about what is written
 - 292 listing references, every file and region present · 58 exercises, each
   with a starter, a solution and a test · 114 transcript references, every
@@ -127,6 +127,10 @@ does not:
   the half a machine can. **Whether a row is TRUE of its chapter is a
   reading job and the check says so**, which is the honest shape for a
   gate over an appendix of claims
+- **25 of 25 pinned versions printed in Appendix C, in both editions, none
+  of them typed** — `check_structure.py --tools` fails when the preamble
+  pins something the matrix does not show, and when a version is typed
+  rather than printed from its macro
 - 151 computed value keys, every one produced and every one used
 - Parity: 23 file pairs, 0 failures, 0 warnings · 324 labels in each edition,
   0 mismatches
@@ -3867,6 +3871,50 @@ now that the decision has paid rather than the fix.
 
 ---
 
+### Appendix C, September 2026 --- a gate for the claim the page makes
+
+**Appendix C is written in both editions, and `--tools` checks the claim
+the page opens with.** The appendix says it is the one place a reader sees
+every pin at once. That is a checkable sentence, so it is checked: the gate
+fails when `preamble.tex` defines a pin macro the matrix does not print,
+and when a version appears as a typed literal rather than from its macro.
+Both watched firing on a mutated copy \dash{} replacing `\polarsver` with a
+placeholder names the missing pin, and typing `1.44.2` in its place names
+the typed number \dash{} before the green was believed.
+
+**That second half is the one worth having.** A typed version here would
+have been a second copy of a fact `preamble.tex`, `code/pyproject.toml` and
+`uv.lock` already agree about, and it is always the copy that goes stale;
+this file's own dated pin table is the proof, and it says so. C12 confirms
+it from the other side: parity reports **0 numeric literals** in the
+appendix, in both editions, because there are none to compare.
+
+#### Two pins are not rows, and the appendix says why
+
+`\pyver` and `\pypatch` are the interpreter rather than a library a reader
+installs, and `\dotnetver` compiles the book's own C\#. All three are in a
+closing section instead of the tables, which keeps the matrix about things
+you `uv add` \dash{} and the gate still requires all three to appear, so
+the closing section cannot quietly be dropped.
+
+#### And the check of the check was the thing that nearly went wrong
+
+Verifying that the macros had actually expanded, rather than silently
+printing nothing, first reported **0 of 24 versions on the page**. The page
+was right and the instrument was wrong: it searched from the first match of
+the chapter title, which is the entry in the CONTENTS, so the window it
+read was a list of dots. Searching from a sentence that only occurs in the
+body gives 24 of 24 in both editions.
+
+That is the recorded instrument class once more \dash{} the tool accepted
+the input and returned a plausible answer \dash{} and it is worth noting
+that the plausible answer here was the *alarming* one. A check that comes
+back catastrophic deserves the same scepticism as one that comes back
+clean, and it is easier to remember the second half of that rule than the
+first.
+
+---
+
 ## After each pass
 
 1. `python3 tools/parity.py`, `python3 tools/check_structure.py --all`,
@@ -3916,13 +3964,12 @@ issues under the `chapter`, `appendix`, `experiment` and `infrastructure`
 labels --- **work from the labels, not from a list here**, because a list
 in this file is the class of claim nothing can check. In rough order:
 
-1. **Appendices C and D** (v1.0), now the only stubs in the book.
-   **A and B are written**, each with a gate gating it against what it
-   claims (`--cheatsheet` and `--traps`). C's version column prints from
-   the preamble's macros and is never typed, and `\dotnetver` is now
-   among them. D's open decision is settled \dash{} CI compiles its C\#
-   side, and `code/csharp/` is the scaffold, a library plus a test
-   project, which takes either shape its twenty problems end up in.
+1. **Appendix D** (v1.0), the last stub in the book. **A, B and C are
+   written**, each with a gate gating it against what it claims
+   (`--cheatsheet`, `--traps`, `--tools`). D's open decision is settled
+   \dash{} CI compiles its C\# side, and `code/csharp/` is the scaffold,
+   a library plus a test project, which takes either shape its twenty
+   problems end up in.
 2. **The experiments that have not run.** `notes/01-curriculum.md` §4 is
    the ledger, filled in by the pass that runs each one; naming them here
    would be a second copy to go stale, and **no total is stated in either

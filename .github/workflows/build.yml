@@ -179,6 +179,13 @@ jobs:
       # the row is TRUE of that chapter stays a reading job.
       - name: Every cheat-sheet row names a chapter that exists
         run: python3 tools/check_structure.py --cheatsheet
+
+      # Appendix C claims to be the one page where a reader sees every pin
+      # at once. This is that claim: a pin macro the preamble defines and
+      # the matrix does not print fails here, and so does a version typed
+      # rather than printed from its macro.
+      - name: The tool matrix prints every pin, and types none
+        run: python3 tools/check_structure.py --tools
       - name: The Pages one-pager renders from the tree
         run: python3 tools/gen_site.py --check
 

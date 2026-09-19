@@ -382,6 +382,39 @@
 %  is mostly \code{} spans, which are unbreakable runs, and a justified
 %  narrow column full of them is an overfull box waiting for the edition
 %  with the longer words.
+% ---------------------------------------------------------------------------
+%  Appendix C's tool matrix: the .NET tool, the Python tool this book uses,
+%  the version it was verified against and the chapter that introduces it.
+%
+%  The version column prints \pydanticver and its siblings and is never
+%  typed, which is the whole point of the appendix: it is the one page where
+%  a reader sees every pin at once, and a pin that had to be re-typed here
+%  would be a second copy of a fact the preamble already owns.
+%  tools/check_structure.py --tools fails when a pin macro exists and this
+%  table does not print it.
+\NewDocumentEnvironment{toolmatrix}{mmmm}{%
+  \small
+  \begin{longtable}{@{}%
+    >{\raggedright\arraybackslash}p{0.27\linewidth}%
+    >{\raggedright\arraybackslash}p{0.31\linewidth}%
+    >{\raggedright\arraybackslash}p{0.20\linewidth}%
+    >{\raggedright\arraybackslash}p{0.08\linewidth}@{}}
+  \toprule
+  \textbf{#1} & \textbf{#2} & \textbf{#3} & \textbf{#4} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{#1} & \textbf{#2} & \textbf{#3} & \textbf{#4} \\
+  \midrule
+  \endhead
+  \midrule
+  \endfoot
+  \bottomrule
+  \endlastfoot
+}{%
+  \end{longtable}%
+}
+
 \NewDocumentEnvironment{cheatsheet}{mmm}{%
   \small
   \begin{longtable}{@{}%

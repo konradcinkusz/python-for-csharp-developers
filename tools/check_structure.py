@@ -416,11 +416,61 @@ def check_cheatsheet(soft: bool) -> int:
                   f"its chapter is a reading job and is not checked here")
 
 
+def check_tools(soft: bool) -> int:
+    """Appendix C against the preamble's pins.
+
+    The appendix's whole claim is that it is the ONE page where a reader
+    sees every pin at once, so the check is that claim: every pin macro the
+    preamble defines must be printed here, in both editions. A pin added to
+    preamble.tex and pyproject.toml without a row here would leave the
+    matrix quietly incomplete, and nothing else would notice -- which is
+    exactly what happened to the dated pin table in CLAUDE.md.
+
+    It also refuses a TYPED version. A number re-typed here is a second
+    copy of a fact the preamble owns, and it is the copy that goes stale.
+    """
+    tex = (ROOT / "preamble.tex").read_text(encoding="utf8")
+    pins = {m for _, _, m in
+            [(a, b, c) for a, b, c in RE_PIN_TEX.findall(tex)]}
+    macros = {name for name, _, _ in RE_PIN_TEX.findall(tex)}
+    macros.add("pypatch")
+    macros.add("pyver")
+
+    problems, printed_counts = [], []
+    for lang in LANGS:
+        src = ROOT / "appendices" / lang / "appC-tools.tex"
+        if not src.exists():
+            continue
+        text = RE_COMMENT.sub("", src.read_text(encoding="utf8"))
+        if not written(text):
+            continue
+        used = set(re.findall(r"\\([A-Za-z]+)(?![A-Za-z])", text))
+        missing = sorted(m for m in macros if m not in used)
+        for m in missing:
+            problems.append(f"appendices/{lang}/appC-tools.tex: preamble.tex "
+                            f"pins \\{m} and the tool matrix does not print it")
+        # A version-shaped literal anywhere in the appendix is a typed pin.
+        for lit in re.findall(r"(?<![\\A-Za-z0-9.])\d+\.\d+(?:\.\d+)?(?![0-9])",
+                              text):
+            problems.append(f"appendices/{lang}/appC-tools.tex: {lit} is typed; "
+                            f"every version here prints from a pin macro")
+        printed_counts.append(len(macros) - len(missing))
+    n = min(printed_counts) if printed_counts else 0
+    # Say how many editions were actually read. A stub is skipped, and a
+    # summary claiming "both editions" while one is a stub is the class of
+    # green tick this repository keeps finding.
+    where = {0: "no edition is written yet", 1: "in 1 edition"}.get(
+        len(printed_counts), f"in {len(printed_counts)} editions")
+    return result("tools", problems, soft,
+                  f"{n} of {len(macros)} pinned versions printed in the tool "
+                  f"matrix, {where}, none of them typed")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     for name in ("stubs", "listings", "exercises", "transcripts", "lines", "pins",
-                 "words", "csbox", "traps", "cheatsheet", "all"):
+                 "words", "csbox", "traps", "cheatsheet", "tools", "all"):
         ap.add_argument(f"--{name}", action="store_true")
     ap.add_argument("--soft", action="store_true", help="report instead of failing")
     a = ap.parse_args()
@@ -428,7 +478,7 @@ def main() -> int:
         "stubs": check_stubs, "listings": check_listings, "exercises": check_exercises,
         "transcripts": check_transcripts, "lines": check_lines, "pins": check_pins,
         "words": check_words, "csbox": check_csbox, "traps": check_traps,
-        "cheatsheet": check_cheatsheet,
+        "cheatsheet": check_cheatsheet, "tools": check_tools,
     }
     chosen = [k for k in checks if getattr(a, k)] or (list(checks) if a.all else [])
     if not chosen:
