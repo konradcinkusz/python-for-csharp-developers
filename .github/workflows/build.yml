@@ -145,7 +145,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
       - name: The manifest and the tree agree
@@ -359,7 +359,7 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
       - uses: actions/download-artifact@v5
@@ -377,7 +377,7 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
       - name: Print every ledger
@@ -399,7 +399,7 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
       - name: Compare preamble pins to the current release on PyPI
