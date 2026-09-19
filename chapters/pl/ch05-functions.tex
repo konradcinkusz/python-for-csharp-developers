@@ -1,36 +1,442 @@
 %% ch05 --- Funkcje i sterowanie: dekoratory, składanie list, generatory, menedżery kontekstu
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie bloku \chapterstub{} i zastąpienie go
-%% rozdziałem -- po czym ten plik nie jest już generowany.
+%% Napisane we wrześniu 2026. Każdy listing w code/ch05/ uruchamia się na
+%% przypiętym interpreterze i jest wykonywany przez code/tests/test_listings.py;
+%% każde cytowane wyjście to wygenerowany transkrypt; jedyny zmierzony wynik
+%% pochodzi z code/measure/ch05_concat.py i trafia na stronę jako ograniczenie.
 
 \chapter{Funkcje i sterowanie: dekoratory, składanie list, generatory, menedżery kontekstu}
 \label{ch:functions}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\noindent
+Słownik sterowania w Pythonie odwzorowuje się na C\# funkcja po funkcji.
+Dekorator to middleware, składanie listy to zapytanie LINQ, generator to
+blok iteratora, \code{with} to \code{using}, \code{match} to wyrażenie
+switch. To odwzorowanie jest dość bliskie, by warto je było zrobić, i dość
+luźne, by warto je było sprawdzić. Ten rozdział jest o miejscach, w których
+się rozjeżdża: każde z nich daje Pythona, który się wykonuje, a najgorsze
+z nich dają Pythona, który wykonuje się po cichu źle.
 
-Argument: Python's control-flow vocabulary maps onto C\# feature for
-feature, and the mapping is where the idioms live. A decorator against an
-attribute AND against middleware \dash{} a decorator runs, an attribute is
-metadata, and confusing the two is the chapter's headline; \code{*args} and
-\code{**kwargs} against \code{params}, optional and named arguments;
-keyword-only and positional-only parameters; closures and late binding;
-comprehensions against LINQ (eager, where \code{IEnumerable} is deferred
-\dash{} and a generator expression IS deferred); generators against
-\code{yield return}, and \code{send()}; \code{with} against \code{using},
-and \code{contextlib}; \code{match} against switch expressions and pattern
-matching; first-class functions against delegates and \code{Func<>};
-\code{functools.partial} and \code{lru\_cache}. Payoff: rewrite a LINQ
-pipeline as a comprehension and know when to reach for \code{itertools}
-instead. Listings: the same pipeline in LINQ and as comprehensions; a
-decorator that is middleware, timing and retrying a call. Five exercises.
-Overlap rule: the LangChain book's chapter 7 uses decorators for agent
-middleware; this chapter owns the mechanism and that one owns the use.
+Argument mieści się w jednym zdaniu. \textbf{Dekorator się wykonuje;
+atrybut nie}, a prawie wszystko inne w tym rozdziale to ta sama różnica w
+innym przebraniu \dash{} co już się wydarzyło, zanim dostałeś wartość do
+ręki, a co dopiero czeka.
 
-\medskip
-\textbf{Budżet słów:} 3000.\\
-\textbf{Wydanie:} v0.1.
-}
+\section{Funkcja jest obiektem}
+\label{sec:ch05-first-class}
+
+Znasz już ten pomysł, pod dwiema nazwami. Delegat jest typem;
+\code{Func<>} jest rodziną typów indeksowaną liczbą argumentów; grupa metod
+konwertuje się na jeden z nich. Python ma ten pomysł bez ceremonii: funkcja
+jest zwykłą wartością zwykłego typu, można ją przechować, przekazać, zwrócić
+i włożyć do słownika, a adnotacja jest jedynym miejscem, w którym sygnatura
+jest zapisana.
+
+\pyregion{code/ch05/first_class.py}{table}{Tablica wysyłkowa: bez deklaracji delegata i bez liczby argumentów w nazwie typu}{lst:ch05-table}
+
+\begin{csbox}
+Powyższy słownik to \code{Dictionary<string, Func<Job, bool>>}. Dwie różnice
+warte zapamiętania. \code{Callable} bierze swoje parametry jako listę, więc
+liczba argumentów jest kształtem, a nie częścią nazwy, i nie ma osobnego
+\code{Action}: funkcja nic nie zwracająca to funkcja zwracająca \code{None}.
+Nie ma też \code{Invoke} ani konwersji grupy metod, bo nigdy nie było typu
+delegata, na który miałaby konwertować.
+\end{csbox}
+
+\noindent
+To cała maszyneria. Dekorator to funkcja nałożona na funkcję,
+\code{functools.partial} to funkcja zwracająca funkcję, a funkcja
+kluczująca to funkcja przekazana innej. Nic poniżej nie wprowadza nowego
+rodzaju rzeczy.
+
+\section{Dekorator się wykonuje; atrybut nie}
+\label{sec:ch05-decorators}
+
+To nagłówek rozdziału, a spośród odwzorowań w nim to właśnie ono najdrożej
+kosztuje, gdy zostanie źle odczytane. \code{[Timed]} w C\# to metadane.
+Kompilator je zapisuje, nic nie zmieniają i robią cokolwiek dopiero wtedy, gdy framework odczyta je przez
+refleksję i postanowi zadziałać. Czytanie \code{@timed} w ten sam sposób to
+czytanie go jako czegoś biernego, a bierny nie jest: \code{@timed} to
+wywołanie funkcji, które dzieje się w chwili, gdy kończy się instrukcja
+\code{def}.
+
+\pyregion{code/ch05/decorators.py}{definition_time}{Dekorator wykonuje się w czasie definicji; ciało funkcji w czasie wywołania}{lst:ch05-deftime}
+
+\noindent
+Uruchom plik, a moduł ma już zapisaną linię, zanim cokolwiek zostanie
+wywołane:
+
+\transcript{ch05-decorators}
+
+\mermaidfig{ch05-decorator-timeline}{Dekorator jest nakładany w czasie definicji, a to, co zwróci, jest odtąd znaczeniem nazwy}{kiedy wykonuje się dekorator}
+
+\begin{trapbox}
+\textbf{Dekorator to nie metadane.} Dostaje obiekt funkcji, a to, co zwróci,
+zastępuje tę funkcję \dash{} więc dekorator może ją opakować, zalogować,
+zapamiętać w cache, gdzieś zarejestrować albo zwrócić coś, co funkcją w
+ogóle nie jest. Najbliższym odpowiednikiem w C\# nie jest atrybut, tylko
+kawałek middleware owinięty wokół wywołania, a \code{functools.wraps}
+powstrzymuje tożsamość opakowania przed wyciekaniem do każdej linii logu i
+każdego stosu wywołań w dole systemu. Bez niego
+\code{parse.\_\_name\_\_} to \code{wrapper}.
+\end{trapbox}
+
+\noindent
+Dekorator przyjmujący argumenty to funkcja zwracająca dekorator, czyli trzy
+poziomy wywołań, które czyta się gorzej, niż działają.
+
+\pyregion{code/ch05/decorators.py}{retry}{Trzy poziomy: wywołanie, zwrócony przez nie dekorator i opakowanie}{lst:ch05-retry}
+
+\noindent
+Pomiar wywołania to druga połowa tego, co robi middleware, a złożenie obu
+pokazuje kolejność, w jakiej nakładają się dekoratory. Nakładają się od
+dołu, więc \code{@timed} napisane nad \code{@retry} opakowuje ponawiające
+opakowanie i dzięki temu mierzy wszystkie próby, a nie jedną z nich.
+
+\pyregion{code/ch05/decorators.py}{timing}{Druga połowa middleware i powód, dla którego nie drukuje czasu}{lst:ch05-timed}
+
+
+Biblioteka standardowa dostarcza kilka, których raczej użyjesz, niż je
+napiszesz. \api{functools.lru\_cache} i \api{functools.cache} zapamiętują
+wynik po krotce argumentów, co znaczy, że argumenty muszą być hashowalne, a
+argument typu \code{list} podnosi \code{TypeError}; obie doczepiają do
+funkcji \code{cache\_info()}, czyli dokładnie to, co potrafi zrobić tylko
+dekorator, który funkcję \emph{zastępuje}.
+
+\begin{note}
+Middleware agentowe jest jednym z zastosowań tego mechanizmu
+w pythonowym stosie AI i należy do tomu towarzyszącego: \emph{LangChain,
+LangGraph and Async Python} poświęca rozdział kolejności middleware i
+haczykom, które je składają. Ten rozdział ma mechanizm, tamten ma
+zastosowanie.
+\end{note}
+
+\begin{exercise}{e05_01_audit}{Dekorator, który jest middleware}
+Napisz \code{audit} tak, by zapisywał każde wywołanie i poza tym zostawiał
+funkcję niezmienioną. Rozstrzygają cztery asercje: zwracana wartość,
+zapisane wywołania oraz \code{\_\_name\_\_} i \code{\_\_doc\_\_}, które mają
+przeżyć opakowanie. Te dwie ostatnie zawodzą, gdy zapomnisz o
+\api{functools.wraps}, i to one są dwiema, których nikt nie zauważa, dopóki
+stos wywołań trzy usługi dalej nie powie \code{wrapper}.
+\end{exercise}
+
+\section{Pięć rodzajów parametru, a C\# ma trzy}
+\label{sec:ch05-parameters}
+
+\code{*args} to \code{params}. Wartości domyślne to argumenty opcjonalne.
+Przekazanie po nazwie to argument nazwany. Do tego Python ma dwa znaczniki
+bez żadnego zapisu w C\# i jedną kolekcję bez odpowiednika.
+
+\pyregion{code/ch05/parameters.py}{signature}{Wszystko, co Python potrafi powiedzieć o parametrze, w jednej sygnaturze}{lst:ch05-signature}
+
+\noindent
+Wszystko przed \code{/} można przekazać wyłącznie pozycyjnie, wszystko po
+\code{*} wyłącznie po nazwie, a \code{**options} zbiera nazwy, których
+funkcja nigdy nie zadeklarowała. Ten \code{/} jest wart więcej, niż wygląda.
+W C\# nazwa każdego parametru jest publiczną powierzchnią na zawsze, bo
+każdy wywołujący może użyć jej jako argumentu nazwanego, a zmiana nazwy go
+psuje; ten znacznik jest sposobem, w jaki Python to sobie odbiera.
+
+\pyregion{code/ch05/parameters.py}{refusals}{Dwie odmowy, których C\# nie umie wyrazić}{lst:ch05-refusals}
+
+\transcript{ch05-parameters}
+
+\begin{note}
+Oba błędy odrzuca \pkg{pyright}, zanim cokolwiek się wykona, i dlatego
+listing niesie dwa wyciszenia, żeby w ogóle dało się pokazać połowę
+wykonawczą. Ostatnia linia transkryptu jest powodem, dla którego \code{/}
+zarabia na swój znak: wobec parametru, który \emph{nie} jest wyłącznie
+pozycyjny, ta sama pomyłka zostaje po cichu wchłonięta przez
+\code{**options}, zamiast zostać odrzucona.
+\end{note}
+
+\api{functools.partial} wiąże część argumentów teraz i zwraca coś
+wywoływalnego, czyli tyle, ile biblioteka standardowa ma do zaoferowania
+zamiast przechwyconego delegata.
+
+\pyregion{code/ch05/parameters.py}{partial}{partial i dodatek z 3.14, którego wtyczki typów jeszcze nie opisują}{lst:ch05-partial}
+
+\noindent
+Zmienna wartość domyślna \dash{} \code{def f(items=[])} \dash{} to druga
+pułapka parametrów i należy do rozdziału~\ref{ch:typing}, bo tam właśnie
+rozumowanie sprawdzarki o argumentach domyślnych gryzie pierwszy raz.
+
+\section{Domknięcie przechwytuje zmienną, nie jej wartość}
+\label{sec:ch05-closures}
+
+Jeśli pisałeś w C\# przed wersją~5, spotkałeś ten błąd i pamiętasz lekarstwo.
+Ciało \code{foreach}, które przechwytywało zmienną pętli, przechwytywało
+\emph{zmienną}, więc każdy delegat widział ostatnią wartość, a kuracją było
+skopiowanie jej do świeżej zmiennej lokalnej wewnątrz ciała. C\#~5 sprawił,
+że \code{foreach} robi to za ciebie. Python nigdy tego nie zrobił, a
+składanie listy jest pętlą.
+
+\pyregion{code/ch05/late_binding.py}{trap}{Trzy domknięcia nad jedną zmienną}{lst:ch05-trap}
+
+\transcript{ch05-late-binding}
+
+\begin{trapbox}
+\textbf{Każde domknięcie widzi ostatnią wartość.} Lista trzyma trzy różne
+obiekty funkcji, a one dzielą jedną komórkę, więc odpowiedzią jest
+\code{[2, 2, 2]}, a nie \code{[0, 1, 2]}. Obie poprawki są tą samą poprawką:
+zwiąż wartość w chwili, w której funkcja powstaje \dash{} albo jako argument
+domyślny, obliczany raz, przy \code{def}, albo przekazując ją do
+\api{functools.partial}.
+\end{trapbox}
+
+\pyregion{code/ch05/late_binding.py}{fixes}{Świeża zmienna lokalna, wypisana wprost, i to samo przez partial}{lst:ch05-fixes}
+
+\noindent
+Tę jedną znajduje linter. \code{B023} z \pkg{ruff}, \emph{definicja funkcji
+nie wiąże zmiennej pętli}, odrzuca zepsutą linię, więc powyższy listing musi
+wyciszyć tę regułę, żeby w ogóle wydrukować błąd. To rzadka dobra wiadomość
+w tym rozdziale: spośród tutejszych pułapek tylko tę łapie za ciebie zestaw
+narzędzi z rozdziału~\ref{ch:packaging}.
+
+\begin{exercise}{e05_02_handlers}{Zwiąż zmienną pętli}
+\code{broken} zostaje zepsute \dash{} test to sprawdza, bo cała rzecz polega
+na tym, że to się kompiluje i wykonuje. Napisz obie poprawki. Czwarty test
+woła jeden z handlerów dwa razy i sprawdza, czy odpowiada tak samo, i to jest
+ta asercja, która pada, gdy sięgniesz po współdzieloną strukturę mutowalną.
+\end{exercise}
+
+\section{Składanie listy to nie zapytanie LINQ}
+\label{sec:ch05-comprehensions}
+
+Składanie listy czyta się jak \code{Select} i \code{Where} z przestawionymi
+klauzulami, a przestawienie nie jest tą różnicą, która ma znaczenie.
+
+\begin{csbox}
+\begin{csharp}
+var worst = jobs
+    .Where(j => j.Status == "failed")
+    .OrderByDescending(j => j.Seconds)
+    .Select(j => $"{j.Name} ({j.Seconds}s)")
+    .Take(2);
+\end{csharp}
+Nic się nie wykonało. \code{worst} jest typu \code{IEnumerable<string>}, a
+przejście po nim dwa razy uruchamia cały potok dwa razy.
+\end{csbox}
+
+\pyregion{code/ch05/pipeline.py}{eager}{Ten sam potok jako składanie listy. Gdy wraca, już się wykonał}{lst:ch05-eager}
+
+\noindent
+Zamień nawiasy kwadratowe na okrągłe, a stanie się odroczony \dash{} i
+wtedy różni się od \code{IEnumerable} w sposób, który gryzie.
+
+\pyregion{code/ch05/pipeline.py}{deferred}{Odroczony i zużyty przez pierwsze przejście}{lst:ch05-deferred}
+
+\transcript{ch05-pipeline}
+
+\mermaidfig{ch05-eager-vs-lazy}{Trzy zapisy jednego potoku i to, co każdy z nich zdążył zrobić, zanim wrócił}{zachłanny, odroczony i powtarzalny}
+
+\begin{trapbox}
+\textbf{Wyrażenie generatora jest jednoprzebiegowe.} Zapytanie LINQ jest
+odroczone i powtarzalne: przejdź po nim jeszcze raz, a potok pobiegnie
+jeszcze raz. Wyrażenie generatora jest odroczone i \emph{zużywalne} \dash{}
+drugie przejście jest puste, bez błędu i bez ostrzeżenia. Odroczony potok
+nie jest więc zamiennikiem \code{IEnumerable}, które miałeś komuś oddać, a
+lekarstwem jest zmaterializować go raz, świadomie, przez \code{list()}.
+\end{trapbox}
+
+\noindent
+Zauważ też, co sortowanie zrobiło z wersją leniwą: nie ma go tam.
+Porządkowanie nie odpowie, dopóki nie zobaczy każdego elementu, więc potok,
+który sortuje, już się wykonał, cokolwiek obiecywała reszta. Dotyczy to tak
+samo \code{OrderBy}; to jedno z niewielu miejsc, w których oba języki zgadzają
+się dokładnie. Gdy składanie przestaje się dobrze czytać, następną rzeczą do
+sięgnięcia jest \pkg{itertools}: \api{islice} to \code{Take},
+\api{takewhile} to \code{TakeWhile}, \api{chain} to \code{Concat}, a
+\api{groupby} to \code{GroupBy} po \emph{posortowanym} wejściu, i to ta
+ostatnia zaskakuje ludzi.
+
+\subsection{Sklejanie napisu na końcu}
+\label{sec:ch05-join}
+
+Nawyk z C\# na końcu potoku to \code{+=} w pętli, a folklor mówi, że w
+Pythonie jest to kwadratowe. Na przypiętym interpreterze folklor myli się co
+do przypadku, który ludzie faktycznie piszą, i ma rację co do przypadku,
+którego nikt się nie spodziewa. Zapytaj interpretera: zdeasembluj rozgrzaną
+pętlę, a kodem operacji jest \code{\valtext{ch05.concat.opcode}}. Gdy napis
+po lewej stronie nie ma innej referencji, jest powiększany w miejscu, a
+pętla jest liniowa.
+
+\code{code/measure/ch05\_concat.py} podwaja pracę i sprawdza kształt, a nie
+czas trwania, bo czas trwania jest własnością maszyny. Podwojenie wejścia
+mnoży pracę liniową przez dwa, a kwadratową przez cztery, więc oba
+ograniczenia leżą po dwóch stronach tej przerwy: zwykła pętla oraz
+\code{"".join(...)} mieszczą się poniżej \val{ch05.concat.linear} przy
+przejściu z \val{ch05.concat.small} doklejeń do \val{ch05.concat.large}, a
+ta sama pętla z jedną dodatkową żywą referencją do napisu wypada powyżej
+\val{ch05.concat.quadratic} przy przejściu z \val{ch05.concat.qsmall} do
+\val{ch05.concat.qlarge}. Obie pary rozmiarów muszą się różnić i to jest ten
+wynik: pętla kwadratowa przy rozmiarze liniowej biegnie minutami.
+
+\begin{trapbox}
+\textbf{Jest szybkie, dopóki niezwiązana linia nie uczyni go wolnym.}
+Dopisanie bieżącego napisu do listy, domknięcie nad nim albo oddanie go
+czemukolwiek, co go trzyma, unieważnia powiększanie w miejscu, a pętla robi
+się kwadratowa bez żadnej zmiany w miejscu wywołania.
+\code{"".join(pieces)} nie zależy od liczby referencji i nie ma złego
+przypadku, i dlatego jest idiomem, chociaż \code{+=} zwykle wystarcza.
+\end{trapbox}
+
+\begin{exercise}{e05_03_pipeline}{To samo zapytanie, zachłanne i odroczone}
+Napisz wersję posortowaną i zachłanną oraz odroczoną. Lista na poziomie
+modułu zapisuje każdy element, którego potok dotknie, a testy z niej czytają,
+by udowodnić, która z dwóch wersji już się wykonała, kiedy wracała \dash{}
+więc buduj obie ze źródła, które dostajesz, a nie z listy zmaterializowanej
+wcześniej. Ostatni test przechodzi po odroczonej wersji dwa razy.
+\end{exercise}
+
+\section{Generator to blok iteratora, i coś ponadto}
+\label{sec:ch05-generators}
+
+\code{yield} to \code{yield return}, a odwzorowanie sięga dalej, niż
+większość ludzi się spodziewa: generator jest leniwy, wznawialny, a blok
+\code{finally} w jego środku wykonuje się, gdy konsument przerwie wcześnie,
+czyli robi to, co \code{IEnumerator.Dispose} na końcu \code{foreach}.
+
+\pyregion{code/ch05/generators.py}{yield_return}{Blok iteratora, ze sprzątaniem przy wcześniejszym wyjściu włącznie}{lst:ch05-batched}
+
+\noindent
+A potem idzie dalej, w dwie rzeczy, których C\# nie ma jak zapisać.
+
+\pyregion{code/ch05/generators.py}{two_way}{Wartość wysłana do środka i wartość zwrócona na zewnątrz}{lst:ch05-twoway}
+
+\transcript{ch05-generators}
+
+\mermaidfig{ch05-generator-resume}{Trzy sposoby wznowienia zawieszonego generatora i jedna rzecz, którą mają wspólną}{wznawianie generatora}
+
+\begin{trapbox}
+\textbf{\code{yield} jest wyrażeniem, nie instrukcją.} Ma wartość tego, co
+konsument wysłał do środka \dash{} \code{None} przy zwykłym \code{next()} i
+argument przy \code{send()}. Generator, który wykonuje \code{return}, wynosi
+wartość także na zewnątrz, i dlatego \code{Generator} ma trzy parametry
+typowe tam, gdzie \code{IEnumerable} ma jeden. To czyni pythonowy generator
+korutyną w pierwotnym znaczeniu i jest to maszyneria, na której zbudowano
+\code{async def}. Rozdział~\ref{ch:asyncio} jest tam, gdzie są korutyny
+właściwe, a pierwsza rzecz, którą o nich mówi, jest tą samą rzeczą: nic nie
+robią, dopóki coś ich nie napędzi.
+\end{trapbox}
+
+\section{\code{with} to \code{using}, a contextlib to reszta}
+\label{sec:ch05-with}
+
+\code{using (var x = ...)} potrzebuje typu implementującego
+\code{IDisposable}, czyli napisania klasy. \code{with} potrzebuje typu z
+\code{\_\_enter\_\_} i \code{\_\_exit\_\_} \dash{} a
+\api{contextlib.contextmanager} buduje taki typ z generatora, więc
+typowym przypadkiem jest funkcja z \code{yield} pośrodku.
+
+\pyregion{code/ch05/context.py}{contextmanager}{Wszystko przed yield to wejście; blok finally to wyjście}{lst:ch05-cm}
+
+\begin{warning}
+\code{try}/\code{finally} nie jest ozdobą. Bez niego wyjątek podniesiony w
+ciele przechodzi przez \code{yield} na zewnątrz, a sprzątanie nigdy się nie
+wykonuje \dash{} i to czyni tę rzecz jedyną tutaj, którą łatwiej zepsuć niż
+instrukcję \code{using}, bo \code{using} nie da się napisać bez zwolnienia
+zasobu.
+\end{warning}
+
+\noindent
+Dwie kolejne różnice zarabiają na swoje miejsce i obie są w
+\pkg{contextlib}:
+
+\begin{itemize}[leftmargin=1.4em, itemsep=2pt]
+  \item \api{suppress} \dash{} \code{\_\_exit\_\_} dostaje wyjątek i może
+        go połknąć, czego \code{Dispose} nie potrafi.
+  \item \api{ExitStack} \dash{} trzyma liczbę kontekstów nieznaną aż do
+        czasu wykonania i rozwija je w odwrotnej kolejności, czego
+        zagnieżdżone instrukcje \code{using} nie wyrażą.
+\end{itemize}
+
+\pyregion{code/ch05/context.py}{exitstack}{Liczba kontekstów rozstrzygnięta w czasie wykonania}{lst:ch05-exitstack}
+
+\begin{versionbox}
+Zapisz typ zwracany jako \code{Generator[str]}, a nie
+\code{Iterator[str]}, który pokazuje każdy tutorial. Wtyczki typów, które
+wysyła \pkg{pyright} \pyrightver{}, oznaczają to przeciążenie jako
+przestarzałe, dosłownie: \enquote{annotating the return type as
+\code{-> Iterator[Foo]} with \code{@contextmanager} is deprecated. Use
+\code{-> Generator[Foo]} instead.} Kod działa tak i tak; zmieniła się
+sprawdzarka.
+\end{versionbox}
+
+\begin{exercise}{e05_04_lease}{Menedżer kontekstu, który zawsze zwalnia}
+Napisz \code{lease} przy użyciu \api{contextlib.contextmanager}. Testem,
+który ma znaczenie, jest ten podnoszący wyjątek w ciele: menedżer kontekstu
+oparty na generatorze bez \code{try}/\code{finally} wygląda poprawnie,
+dopóki coś nie poleci. Czwarty test
+zagnieżdża dwa i sprawdza, czy rozwijają się w odwrotnej kolejności.
+\end{exercise}
+
+\section{\code{match} i wzorzec, który nie jest porównaniem}
+\label{sec:ch05-match}
+
+Nowoczesne wyrażenie switch w C\# daje już wzorce typowe, własnościowe i
+relacyjne. \code{match} ma je wszystkie, a do tego wzorce sekwencji i
+odwzorowań oraz jedną regułę bez odpowiednika w C\#.
+
+\pyregion{code/ch05/matching.py}{match}{Wzorce typu, własności, strażnika, sekwencji, odwzorowania i wartości}{lst:ch05-match}
+
+\transcript{ch05-matching}
+
+\noindent
+Zwróć uwagę na zadeklarowaną unię nad funkcją. Parametr typu \code{object}
+sprawia, że każde przechwycenie jest nieotypowane; unia jest tym, co ma
+switch po zapieczętowanej hierarchii, i tym, co pozwala sprawdzarce zawężać
+typ w każdym przypadku.
+
+\begin{trapbox}
+\textbf{Goła nazwa we wzorcu przechwytuje, a nie porównuje.}
+\code{case ACTIVE:} nie sprawdza wartości względem stałej \code{ACTIVE}.
+Dopasowuje się do czegokolwiek i przypisuje nazwę na nowo, lokalnie. Zapisem,
+który porównuje, jest ten z kropką, \code{case Status.ACTIVE:}, a do reguły
+dołączona jest jedna dobra wiadomość: Python odmawia kompilacji gołego
+przechwycenia, po którym następuje kolejny przypadek, mówiąc, że pozostałe
+wzorce są nieosiągalne. Kompiluje się po cichu tylko wtedy, gdy jest
+przypadkiem ostatnim \dash{} czyli dokładnie tam, gdzie przeżywa przegląd
+kodu.
+\end{trapbox}
+
+\pyregion{code/ch05/matching.py}{capture}{Jedyne miejsce, w którym reguła przechwycenia kompiluje się cicho}{lst:ch05-capture}
+
+\begin{exercise}{e05_05_route}{Skieruj komunikat przy pomocy match}
+Siedem przypadków, po kolei, obejmujących strażnika, wzorzec klasy ignorujący
+pola, których nie nazywa, sekwencję, odwzorowanie i wariant zapasowy. Jeden
+test podaje wartość, która pasowałaby do wzorca z gołą nazwą, i oczekuje, że
+nie pasuje.
+\end{exercise}
+
+\section{Co to dało}
+\label{sec:ch05-summary}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{C\#} & \textbf{Python} \\
+\midrule
+\code{Func<>}, delegat & funkcja z adnotacją \code{Callable[[A], B]} \\
+atrybut czytany przez framework & nic; dekorator \emph{się wykonuje} \\
+middleware wokół wywołania & dekorator \\
+\code{params}, opcjonalne, nazwane & \code{*args}, domyślne, po nazwie \\
+--- & znaczniki \code{/} i \code{*}, \code{**kwargs} \\
+LINQ, odroczone i powtarzalne & składanie listy, zachłanne; albo wyrażenie
+  generatora, odroczone i jednoprzebiegowe \\
+\code{yield return} & \code{yield}, plus \code{send} i zwracana wartość \\
+\code{using} / \code{IDisposable} & \code{with} / \api{contextmanager} \\
+wyrażenie switch & \code{match}, ze wzorcami sekwencji i odwzorowań \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent
+Zysk jest ten, od którego rozdział się zaczął. Wszystko powyżej obraca się
+wokół tego, kiedy coś się wykonuje: przy definicji czy przy wywołaniu, przy
+nawiasie czy przy przejściu, raz czy przy każdym przebiegu. Inżynier C\#
+czytający Pythona szybko założy \emph{później} i pomyli się co do składania
+list, a założy \emph{nigdy} i pomyli się co do dekoratorów. Pytaj o każdą
+konstrukcję z tego rozdziału: czy to już się wydarzyło? Odpowiedź jest całą
+różnicą.

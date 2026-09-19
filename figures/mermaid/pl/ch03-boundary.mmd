@@ -1,0 +1,6 @@
+flowchart LR
+    U["<b>Na zewnatrz</b><br/>JSON, srodowisko, formularze:<br/>kazda wartosc jest typu Any"]
+    V["<b>Granica</b><br/>jedno miejsce, ktore waliduje<br/>i odrzuca to, czego nie przetworzy"]
+    T["<b>W srodku</b><br/>typowane obiekty, w ktorych<br/>adnotacja znaczy to, co mowi"]
+    U -->|"niezaufane"| V
+    V -->|"zaufane"| T

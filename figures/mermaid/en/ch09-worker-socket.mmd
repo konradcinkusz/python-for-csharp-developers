@@ -1,0 +1,6 @@
+flowchart LR
+    A["<b>One listening socket</b><br/>bound by the parent<br/>process and inherited<br/>by every worker"]
+    B["<b>accept() decides</b><br/>whichever worker is in<br/>accept() first takes the<br/>connection and keeps it<br/>for that connection's life"]
+    C["<b>Kestrel, for contrast</b><br/>one process, a thread pool,<br/>and any thread may serve<br/>any request on any<br/>connection"]
+    A --> B
+    B -.->|"balanced at accept,<br/>not per request"| C

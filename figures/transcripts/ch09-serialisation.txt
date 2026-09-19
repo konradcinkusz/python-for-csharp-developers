@@ -1,0 +1,6 @@
+model_dump()         ['incident_id', 'title', 'pager_token']
+model_dump(by_alias) ['incidentId', 'title', 'pager_token']
+on the wire          {'incidentId': 'INC-1', 'title': 'Disk filling up'}
+schema HTTPValidationError    ['detail']
+schema IncidentView           ['incidentId', 'title']
+schema ValidationError        ['loc', 'msg', 'type', 'input', 'ctx']

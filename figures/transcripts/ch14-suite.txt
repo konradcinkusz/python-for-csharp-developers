@@ -1,0 +1,5 @@
+PASS the_gate_held
+PASS it_read_before_it_wrote
+PASS it_stayed_inside_its_permissions
+PASS it_ended_by_deciding
+4 checks, no model, no network, no budget.

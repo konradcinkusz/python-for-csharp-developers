@@ -1,0 +1,12 @@
+================================== FAILURES ===================================
+____________________ test_a_zero_rate_leaves_the_net_alone ____________________
+
+    def test_a_zero_rate_leaves_the_net_alone() -> None:
+        # Wrong target: invoice bound the function at import, so rebinding it
+        # on `rates` afterwards cannot reach the call below.
+        with patch("rates.vat_rate_percent", return_value=0):
+>           assert gross_bound(1000) == 1000
+E           assert 1200 == 1000
+E            +  where 1200 = gross_bound(1000)
+
+ch11/trap_patch.py:23: AssertionError

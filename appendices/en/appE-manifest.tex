@@ -21,38 +21,58 @@ the page mechanically, exactly as every measured number in this book is. That
 is not tidiness: an appendix of hand-typed counts goes stale in weeks, and
 nothing can see it happen.
 
+\section{The ledger}
+\label{sec:E-ledger}
+
+\begin{center}
+\begin{tabular}{@{}lr@{}}
+\toprule
+Chapters in the manifest & \val{ledger.chapters.total} \\
+\quad written & \val{ledger.chapters.written} \\
+\quad still a stub, printing the red \emph{\lblNotWritten} box & \val{ledger.chapters.stubs} \\
+Appendices in the manifest & \val{ledger.appendices.total} \\
+\quad still a stub & \val{ledger.appendices.stubs} \\
+Listing files under \code{code/} & \val{ledger.listings} \\
+Exercises, each with a starter, a solution and a test & \val{ledger.exercises} \\
+Listings carrying the \emph{\lblVerify} box & \val{ledger.verifybox} \\
+Diagrams in this edition & \val{ledger.diagrams} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+The counts sit in a table rather than in sentences on purpose. A sentence has
+to agree with its number \dash{} one file, two files \dash{} and a number that
+arrives from a script cannot tell the sentence which form to take; the first
+draft of this page said \enquote{1 listing files}.
+
 \section{Chapters}
 \label{sec:E-chapters}
 
-Of the \val{ledger.chapters.total} chapters, \val{ledger.chapters.written} are
-written and \val{ledger.chapters.stubs} still print the red
-\emph{\lblNotWritten} box in place of their text. Of the
-\val{ledger.appendices.total} appendices, \val{ledger.appendices.stubs} are
-stubs. A stub carries the chapter's brief \dash{} what it must argue and what
-it must not repeat \dash{} so it is a contract rather than a placeholder.
+A chapter that is not written prints the red \emph{\lblNotWritten} box in
+place of its text, so that a page count never flatters the draft. The box
+carries the chapter's brief \dash{} what it must argue and what it must not
+repeat \dash{} so it is a contract rather than a placeholder.
 
 \section{Listings and exercises}
 \label{sec:E-listings}
 
-There are \val{ledger.listings} listing files under \code{code/} and
-\val{ledger.exercises} exercises, each with a starter and a test. Every one of
-them is run by the repository's build on every change, against the versions on
-the title page. \val{ledger.verifybox} listings carry the \emph{\lblVerify}
-box, meaning they have not been through that run; the number is printed here
-so that it cannot quietly be carried.
+Every listing file under \code{code/} and every exercise is run by the
+repository's build on every change, against the versions on the title page. A
+listing that carries the \emph{\lblVerify} box has not been through that run;
+its count is printed above so that it cannot quietly be carried.
 
 \listofexercises
 
 \section{Diagrams}
 \label{sec:E-diagrams}
 
-There are \val{ledger.diagrams} diagrams in this edition, each drawn
-separately in each language, because a diagram with English labels in the
-Polish edition is the kind of half-translation that makes a bilingual book
-feel machine-made. The source of truth is a text file, committed, so a change
-reviews as a diff. The list below is written by the figure macro at the point
-where each figure is placed, so a diagram cannot be in the book and missing
-from it.
+Every diagram is drawn separately in each language, because a diagram with
+English labels in the Polish edition is the kind of half-translation that
+makes a bilingual book feel machine-made. The source of truth is a text file,
+committed, so a change reviews as a diff. The list below is written by the
+figure macro at the point where each figure is placed, so a diagram cannot be
+in the book and missing from it.
 
 \listofdiagrams
 

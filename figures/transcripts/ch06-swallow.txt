@@ -1,0 +1,4 @@
+total_blind:  3
+total_narrow: 7
+compiler:     SyntaxWarning: 'return' in a 'finally' block
+and it still: -1

@@ -1,0 +1,6 @@
+flowchart LR
+    A["pyproject.toml:<br/>what a person wrote.<br/>Direct dependencies,<br/>as ranges or pins"]
+    B["uv.lock: what uv<br/>resolved. Every<br/>package, one version<br/>each, and a hash"]
+    C["uv sync --locked<br/>builds .venv from it,<br/>and fails rather than<br/>drift from it"]
+    A -->|"uv lock"| B
+    B -->|"uv sync"| C

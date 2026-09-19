@@ -1,38 +1,415 @@
-%% ch09 --- Serwisy: FastAPI i pydantic dla tych, którzy znają Minimal API
+%% ch09 --- Serwisy: FastAPI i pydantic dla tych, ktorzy znaja Minimal API
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie bloku \chapterstub{} i zastąpienie go
-%% rozdziałem -- po czym ten plik nie jest już generowany.
+%% Napisane we wrzesniu 2026 na przypietych wersjach. Kazde twierdzenie o
+%% frameworku sprawdzono w zainstalowanym pakiecie; te trzy, ktore przeczyly
+%% opisowi z manifestu, sa odnotowane w CLAUDE.md pod *Resolved questions*.
 
 \chapter{Serwisy: FastAPI i pydantic dla tych, którzy znają Minimal API}
 \label{ch:services}
+\index{FastAPI}
+\index{pydantic}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\noindent
+Endpoint w Minimal API to funkcja, jej parametry są wiązane z żądania, a
+kontener rozstrzyga, co znaczą te, które nie pochodzą z żądania. FastAPI to
+ten sam pomysł z jednym podstawieniem: kontenerem jest sygnatura. Nie ma
+\code{IServiceCollection}, nie ma rejestracji, nie ma wyliczenia czasu życia
+\dash{} jest parametr z wartością domyślną, która mówi, skąd bierze się jego
+wartość, a pydantic jest tym model binderem i walidatorem, który
+konfigurowałeś, zamiast go pisać.
 
-Argument: FastAPI is Minimal APIs with the DI container replaced by function
-signatures, and pydantic is the model binder and validator you used to
-configure. Routing and path operations against \code{MapGet}; \code{Depends}
-against DI, with per-request lifetime by default and \code{yield}
-dependencies against a disposable scope; request models, validation errors
-and the 422 against \code{ProblemDetails}; response models and
-serialisation, \code{model\_dump} and aliases against
-\code{JsonPropertyName}; the generated OpenAPI against Swashbuckle;
-middleware against ASP.NET middleware, and its order; \code{pydantic-
-settings} against \code{IOptions} and configuration providers; uvicorn
-against Kestrel, workers against threads, and the reverse proxy in front;
-lifespan against \code{IHostedService}; background tasks; testing with
-\code{TestClient} and \code{ASGITransport}. Payoff: a service skeleton the
-reader can copy, and the mapping table. Measurement: experiment E5, uvicorn
-workers against concurrency, throughput and p50 and p95 with a mocked
-upstream, calibrated the way the LangChain book's chapter 13 recorded, free.
-Five exercises. Overlap rule: the LangChain book's chapter 13 serves agents
-over SSE; this chapter owns the framework mapping and hands streaming there.
+Odwzorowanie jest na tyle bliskie, że większość tego rozdziału to tablica
+tłumaczeń. Warte jest twojego popołudnia z powodu trzech miejsc, w których
+odwzorowanie nie jest dokładne, a każde z nich daje serwis, który wstaje,
+obsługuje ruch i jest zły: czym naprawdę jest czas życia zależności, który
+koniec stosu middleware działa pierwszy i co kupuje ci worker.
 
-\medskip
-\textbf{Budżet słów:} 3000.\\
-\textbf{Wydanie:} v0.2.\\
-\textbf{Pomiar:} E5.
-}
+\mermaidfig{ch09-request-pipeline}{Co spotyka żądanie, po kolei. Nic z tego nie jest konfigurowane; wszystko odczytano z sygnatur}{potok żądania}
+
+\section{Kontenerem jest sygnatura}
+\label{sec:ch09-depends}
+\index{Depends@\texttt{Depends}}
+\index{wstrzykiwanie zależności}
+
+Zanim przeczytasz kolejny listing, odpowiedz z nawyku .NET: zależność, o którą
+proszono dwa razy w jednym żądaniu \dash{} to jeden obiekt czy dwa i kiedy
+zostaje zwolniona?
+
+\pyregion{code/ch09/depends_scope.py}{scoped}{Zależność i dwa sposoby, by o nią poprosić}{lst:ch09-scoped}
+
+\noindent
+\code{Depends} przyjmuje wywoływalny obiekt. FastAPI ogląda sygnaturę, woła go
+i przekazuje wynik. Obiekt, który robi \code{yield}, jest zakresem: to, co
+następuje po yield, dzieje się po wysłaniu odpowiedzi, czyli jest blokiem
+\code{using}, który napisałbyś wokół jednostki pracy.
+
+\pyregion{code/ch09/depends_scope.py}{route}{Dwie prośby, jedno żądanie}{lst:ch09-scoped-route}
+
+\noindent
+Uruchom plik, a odpowiedź nie będzie tą, którą przewiduje nawyk:
+
+\transcript{ch09-depends}
+
+\begin{trapbox}
+\textbf{\code{Depends} nie jest kontenerem, a jego domyślnym zachowaniem nie
+jest singleton.} Domyślny czas życia jest \emph{na żądanie}: poproś o ten sam
+obiekt w pięciu parametrach, a wykona się raz, a następne żądanie wykona go
+znowu. To transient jest tym, o co trzeba poprosić, przez
+\code{Depends(fn, use\_cache=False)}. Singleton nie jest tu w ogóle czasem
+życia \dash{} to coś, co budujesz w lifespanie (\S\ref{sec:ch09-lifespan}) i
+czytasz przez \code{request.state}. Rejestracja, która w twojej głowie mówi
+\code{AddSingleton}, a na stronie znaczy \code{AddScoped}, to pula połączeń na
+każde żądanie i nie zawiedzie, dopóki nie przyjdzie obciążenie.
+\end{trapbox}
+
+\mermaidfig{ch09-depends-lifetime}{Trzy czasy życia i ten, o który trzeba poprosić}{czasy życia zależności}
+
+\begin{csbox}
+\code{Annotated[Store, Depends(get\_store)]} to alias typu, który da się
+używać wielokrotnie \dash{} najbliższa tutaj rzecz do zarejestrowania typu raz
+i wstrzykiwania go wszędzie. Nadaj mu nazwę \dash{} \code{StoreDep} \dash{} a
+każdy handler, który potrzebuje magazynu, bierze jeden parametr tego aliasu.
+To cały composition root.
+\end{csbox}
+
+\section{Model binderem jest model}
+\label{sec:ch09-validation}
+\index{pydantic!walidacja}
+\index{status HTTP!422}
+
+Parametr opisany modelem pydantic to ciało żądania; parametr, którego nazwa
+zgadza się z symbolem ze ścieżki, pochodzi ze ścieżki; cokolwiek innego jest
+parametrem zapytania. To także nie jest nigdzie konfigurowane.
+
+\pyregion{code/ch09/service.py}{models}{Binder i walidator w jednej deklaracji}{lst:ch09-models}
+
+\noindent
+Serwis w .NET na ciało, którego nie umie związać, odpowiada 400 i
+\code{ProblemDetails}. Ten odpowiada 422 i własną listą błędów pydantica
+\dash{} jedna pozycja na każdą usterkę, każda z położeniem, komunikatem i
+wejściem, które ją wywołało:
+
+\transcript{ch09-validation}
+
+\begin{trapbox}
+\textbf{Statusem jest 422, a kształt należy do pydantica, nie do
+frameworka.} Nie ma \code{ProblemDetails} ani
+\code{InvalidModelStateResponseFactory}. Liczą się obie połowy: klient pisany
+pod serwis w .NET nie rozpozna ani statusu, ani ciała, a brama, która mapuje
+4xx ręcznie, nie będzie miała reguły na 422. Jeśli twoi klienci oczekują
+RFC 9457, jeden handler wyjątku przerabia każdą nieudaną walidację w serwisie
+naraz, a druga połowa transkryptu powyżej jest tym, co produkuje.
+\end{trapbox}
+
+\pyregion{code/ch09/validation.py}{problem}{Jeden handler i cały serwis mówi problem details}{lst:ch09-problem}
+
+\begin{exercise}{e09_01_problem_details}{Daj serwisowi kształt błędu, którego oczekują twoi klienci}
+Napisz ten handler sam, pod testem sprawdzającym status, typ treści i kształt
+obiektu \code{errors}. Ciekawe jest nie samo mapowanie, lecz to, że
+\code{exc.errors()} daje \emph{ścieżkę} położenia, a nie nazwę pola, a jej
+pierwszym elementem jest zawsze \code{body}.
+\end{exercise}
+
+\section{Co wychodzi na zewnątrz}
+\label{sec:ch09-serialisation}
+\index{pydantic!serializacja}
+\index{OpenAPI}
+
+\code{response\_model} jest kontraktem serializacji, a przy okazji filtrem, a
+nie tylko kształtem: handler może zwrócić szerszy obiekt, a na drut trafią
+tylko pola modelu.
+
+\pyregion{code/ch09/serialisation.py}{models}{Dwa modele: co serwis trzyma i co wolno zobaczyć klientowi}{lst:ch09-out-models}
+
+\pyregion{code/ch09/serialisation.py}{route}{Adnotacja zwrotu jest szeroka, model odpowiedzi wąski}{lst:ch09-out-route}
+
+\transcript{ch09-serialisation}
+
+\noindent
+Dwie rzeczy w tym wyjściu warte są zatrzymania. Nazwą na drucie jest
+\code{incidentId}, podczas gdy \code{model\_dump()} nadal daje
+\code{incident\_id}, ponieważ \code{serialization\_alias} zmienia nazwę pola
+w drodze na zewnątrz i nigdzie indziej. A wygenerowany schemat niesie nazwę z
+drutu, więc dokument OpenAPI \dash{} powstały z sygnatur, a nie z komentarzy
+XML, i serwowany pod \code{/openapi.json} bez dokładania pakietu \dash{}
+zgadza się z tym, co serwis naprawdę wysyła.
+
+\begin{trapbox}
+\textbf{\code{alias} to nie \code{JsonPropertyName}: zmienia nazwę pola także
+na WEJŚCIU.} Modelu, którego pole ma \code{alias="incidentId"}, nie da się już
+zbudować jako \code{Model(incident\_id=...)} \dash{} wywołanie podnosi błąd
+walidacji o brakującym \code{incidentId}, a checker mówi to wcześniej niż
+test. Używaj \code{serialization\_alias}, gdy chodzi ci o format na drucie, a
+\code{alias} tylko wtedy, gdy wejście naprawdę przychodzi pod tą nazwą. Gdy
+kształt wejścia i wyjścia modelu się różni, FastAPI emituje dwa schematy, z
+przyrostkami \code{-Input} i \code{-Output}, tam gdzie Swashbuckle wyemitowałby
+jeden.
+\end{trapbox}
+
+\begin{exercise}{e09_02_response_model}{Nazwa na drucie i nazwa pola to dwie różne rzeczy}
+Zbuduj model widoku, który zmienia nazwy dwóch pól na potrzeby drutu, trzyma
+sekret z dala od odpowiedzi i nadal daje się zbudować z Pythona zwykłymi
+argumentami nazwanymi. Test sprawdza wszystkie trzy, a czwarta asercja
+sprawdza wygenerowany schemat, bo serwis, którego specyfikacja kłóci się z
+wyjściem, jest gorszy niż serwis bez specyfikacji.
+\end{exercise}
+
+\section{Middleware, w odwrotnej kolejności}
+\label{sec:ch09-middleware}
+\index{middleware!kolejność}
+
+Zarejestruj dwa kawałki middleware, \code{audit}, a potem \code{timing}.
+Zanim pójdziesz dalej, zapisz, który z nich twoim zdaniem zobaczy żądanie
+pierwszy.
+
+\pyregion{code/ch09/middleware_order.py}{order}{Dwa kawałki middleware, zarejestrowane w tej kolejności}{lst:ch09-middleware}
+
+\transcript{ch09-middleware}
+
+\begin{trapbox}
+\textbf{Ostatnio zarejestrowany middleware jest tym najbardziej na zewnątrz.}
+W ASP.NET Core potok działa w kolejności rejestracji i pierwsze
+\code{app.Use} jest tym zewnętrznym; tutaj jest odwrotnie, a powodem jest
+jedna linia Starlette: \code{add\_middleware} robi
+\code{self.user\_middleware.insert(0, ...)}, więc każda rejestracja ląduje na
+przodzie stosu. Nic nie ostrzega. Obie kolejności są nie do odróżnienia,
+dopóki coś nie zacznie zależeć od sekwencji \dash{} na przykład dziennik
+audytu, który ma zapisać decyzję warstwy uwierzytelniania, albo stoper, który
+ma objąć pracę wszystkiego w środku.
+\end{trapbox}
+
+\section{Konfiguracja}
+\label{sec:ch09-settings}
+\index{pydantic-settings}
+\index{konfiguracja}
+
+\pyregion{code/ch09/settings.py}{settings}{IOptions<T>, tyle że wiązanie jest zarazem walidacją}{lst:ch09-settings}
+
+\noindent
+Nie ma łańcucha dostawców, nie ma \code{appsettings.json}, nie ma nałożonego
+na niego \code{appsettings.Production.json} i nie ma
+\code{IOptionsMonitor}. Jest model, jego źródłami są środowisko, plik
+\code{.env} i katalog plików z sekretami, a walidacja dzieje się przy jego
+konstrukcji \dash{} co, jeśli zbudujesz go w lifespanie, znaczy, że proces
+odmawia wstania, zamiast wywrócić się na pierwszym żądaniu, które czyta
+ustawienie.
+
+\begin{trapbox}
+\textbf{\code{extra="forbid"} nie pilnuje środowiska.} Odrzuca nieznany klucz
+w pliku \code{.env} i nieznany argument nazwany przekazany do konstruktora, a
+nieznaną zmienną \code{OPS\_} w środowisku ignoruje całkowicie, bo źródło
+środowiskowe patrzy wyłącznie na nazwy zadeklarowane w modelu. Zmierzone na
+przypiętej wersji, nie założone. W drugą stronę prefiks jest jednak prawdziwą
+izolacją: samo \code{DATABASE\_URL}, ustawione przez coś innego na maszynie,
+nie dotrze do modelu zadeklarowanego z \code{env\_prefix="OPS\_"}.
+\end{trapbox}
+
+\begin{note}
+\emph{Nazwa} pliku z sekretem także niesie prefiks, a dopasowanie nie
+rozróżnia wielkości liter: przy \code{env\_prefix="OPS\_"} sekret kontenera
+zamontowany jako \code{api\_key} nie zostanie znaleziony, a zamontowany jako
+\code{ops\_api\_key} albo \code{OPS\_API\_KEY} \dash{} tak. Zadeklaruj pole
+jako \code{SecretStr}, a zostanie poza każdym \code{repr} i każdą linią
+dziennika, dopóki ktoś nie wywoła \code{get\_secret\_value()}.
+\end{note}
+
+\begin{exercise}{e09_03_settings}{Konfiguracja, która wywraca się przy starcie, a nie przy pierwszym użyciu}
+Napisz model ustawień tego serwisu: wymagany adres bazy, ograniczony timeout,
+liczbę workerów i klucz API czytany z katalogu sekretów. Sześć testów, a dwa z
+nich są o tym, czego model ma \emph{odmówić}.
+\end{exercise}
+
+\section{Lifespan i praca po odpowiedzi}
+\label{sec:ch09-lifespan}
+\index{lifespan}
+\index{zadania w tle}
+
+\pyregion{code/ch09/service.py}{lifespan}{StartAsync i StopAsync z IHostedService jako jedna funkcja}{lst:ch09-lifespan}
+
+\noindent
+Wszystko przed \code{yield} to start, a wszystko po nim to zamknięcie, co
+czyni tę parę strukturalną, zamiast konwencją, której muszą dotrzymywać dwie
+metody. To, co lifespan wydaje przez yield, staje się \code{request.state},
+więc obiekty żyjące tyle, co proces \dash{} pula połączeń, obiekt ustawień,
+\code{httpx.AsyncClient} \dash{} budowane są raz, w jednym miejscu, i są
+osiągalne z każdego handlera.
+
+Dla pracy, która musi się wydarzyć po wysłaniu odpowiedzi, ale nie zasługuje
+na kolejkę, handler może wziąć parametr \code{BackgroundTasks} i coś do niego
+dołożyć; zadania wykonują się po odpowiedzi i po rozwinięciu stosu
+middleware. To jest ten \code{IHostedService}, którego byś nie napisał: nadaje
+się do wysłania powiadomienia i nie nadaje do niczego, czego szkoda by ci było
+stracić, bo nic tutaj nie przeżywa procesu.
+
+\section{Kestrel, uvicorn i co kupuje worker}
+\label{sec:ch09-workers}
+\index{uvicorn}
+\index{pomiar!E5}
+
+uvicorn jest serwerem, a aplikacja obiektem, który on woła. Nasuwa się
+pytanie, na które Kestrel odpowiada pulą wątków: jak użyć więcej niż jednego
+rdzenia? Odpowiedzią jest \code{--workers}, a zanim pójdziesz dalej, zapisz,
+czego spodziewasz się po czterech workerach dla przepustowości serwisu,
+którego handler spędza czas, czekając na coś innego.
+
+Eksperyment E5 pyta dokładnie o to. Jeden serwis, dwa handlery \dash{} jeden
+czeka \val{e05.delay.ms}~ms, udając wywołanie w górę, drugi spala
+\val{e05.cpu.ms}~ms bajtkodu \dash{} sterowane po prawdziwym gnieździe z
+osobnego procesu przy współbieżności \val{e05.conc.hi}, na maszynie o
+\val{e05.cores} rdzeniach. Każda komórka jest porównana z komórką
+kalibracyjną przy tej samej współbieżności: ten sam sterownik przeciw
+handlerowi, który wraca od razu, a ten osiągnął \val{e05.noop.rps} żądań na
+sekundę, więc nic poniżej nie jest pomiarem klienta.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}Xrrr@{}}
+\toprule
+ & \textbf{1 worker} & \textbf{4 workery} & \textbf{stosunek} \\
+\midrule
+czekanie w górę, żądań/s & \val{e05.await.w1.rps} & \val{e05.await.w4.rps} & \val{e05.await.ratio4} \\
+\quad opóźnienie p95, ms & \val{e05.await.w1.p95} & \val{e05.await.w4.p95} & \\
+obciążenie CPU, żądań/s & \val{e05.cpu.w1.rps} & \val{e05.cpu.w4.rps} & \val{e05.cpu.ratio4} \\
+\quad opóźnienie p95, ms & \val{e05.cpu.w1.p95} & \val{e05.cpu.w4.p95} & \\
+pamięć, MiB & \val{e05.pss.w1} & \val{e05.pss.w4} & \val{e05.pss.ratio4} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent
+Wiersz z czekaniem czyta się pierwszy i jest płaski. Jeden worker już obsługuje
+\val{e05.await.w1.rps} żądań na sekundę przy p50 równym
+\val{e05.await.w1.p50}~ms, czyli tyle, ile wynosi opóźnienie w górę i nic
+ponadto; przy współbieżności równej jeden ta sama liczba to
+\val{e05.await.w1.c1.p50}~ms. Cztery workery ruszają ją o czynnik
+\val{e05.await.ratio4} i kosztują \val{e05.pss.ratio4} razy tyle pamięci.
+Jedna pętla trzyma czterdzieści oczekujących wywołań bez wysiłku, bo żadne z
+nich nie działa.
+
+\begin{trapbox}
+\textbf{Więcej workerów to nie więcej przepustowości, tylko więcej procesów.}
+Worker to proces z własną pętlą, własnymi pulami i własną pamięcią, a kupuje
+dokładnie jedno: równoległość dla pracy, która trzyma interpreter. Serwisowi,
+który czeka, nie kupuje nic, a kosztuje \val{e05.pss.w4}~MiB tam, gdzie jeden
+worker kosztował \val{e05.pss.w1}. Sięgaj po niego, gdy handler liczy, i sięgaj
+najpierw po \code{asyncio.to\_thread} albo pulę procesów, bo one nie mnożą
+całego procesu.
+\end{trapbox}
+
+\noindent
+Wiersz CPU jest niespodzianką: cztery workery na czterech rdzeniach ruszyły go
+o czynnik \val{e05.cpu.ratio4}, czyli wcale. Powodem nie jest GIL \dash{} to
+osobne procesy \dash{} a pomiar mówi, co nim jest. Workery dzielą jedno
+gniazdo nasłuchujące, a ten, który pierwszy jest w \code{accept()}, bierze
+połączenie i trzyma je: z \val{e05.dist.conns} połączeń tylko
+\val{e05.dist.reached} workery dostały jakiekolwiek, a jeden z nich wziął
+\val{e05.dist.busiest}. Każde żądanie z danego połączenia obsługuje ten sam
+proces przez całe życie tego połączenia.
+
+\mermaidfig{ch09-worker-socket}{Dlaczego wiersz CPU się nie skalował: równoważenie dzieje się raz, przy accept}{workery i gniazdo nasłuchujące}
+
+\begin{csbox}
+Kestrel to jeden proces z pulą wątków, więc żądania z jednego połączenia może
+obsłużyć dowolny wątek, a praca obciążająca CPU rozkłada się sama. Jednostką
+równoważenia w uvicornie jest \emph{połączenie}, a nie żądanie, więc kilku
+długo żyjących klientów keep-alive potrafi przypiąć większość twojego ruchu do
+jednego workera, podczas gdy reszta stoi. To argument za odwrotnym proxy,
+które otwiera wiele połączeń w górę, i przeciw założeniu, że
+\code{--workers 4} podzieliło pracę przez cztery.
+\end{csbox}
+
+\begin{versionbox}
+\textbf{A \code{--workers} niesie na przypiętej wersji usterkę transportu.} Na
+tej samej maszynie jedno żądanie keep-alive dostało odpowiedź w
+\val{e05.nagle.w1}~ms przy jednym workerze i \val{e05.nagle.w4}~ms przy
+czterech. Przyczyna jest dokładna: \code{--workers} sprawia, że uvicorn sam
+wiąże gniazdo nasłuchujące, przez \code{socket.socket(family=AF\_INET)},
+którego \code{proto} wynosi 0, a nie \code{IPPROTO\_TCP}; gniazda przyjęte
+dziedziczą to, a asyncio ustawia \code{TCP\_NODELAY} tylko na gnieździe,
+którego \code{proto} to \code{IPPROTO\_TCP}. Więc Nagle zostaje włączony,
+ciało odpowiedzi jest drugim zapisem i czeka na opóźnione ACK klienta.
+Zmuszenie klienta, by potwierdził od razu, sprowadza tę samą wymianę do
+\val{e05.nagle.w4.quick}~ms. Zwykły klient tego nie robi, dlatego ten sam
+serwis na czterech workerach zmierzył \val{e05.plain.await.w4.rps} żądań na
+sekundę przy p50 \val{e05.plain.await.w4.p50}~ms wobec
+\val{e05.plain.await.w1.rps} na jednym workerze. Sprawdź to na własnej
+budowie, zanim obwinisz swój handler, i postaw z przodu odwrotne proxy.
+\end{versionbox}
+
+\section{Testowanie bez portu}
+\label{sec:ch09-testing}
+\index{testowanie!TestClient}
+\index{httpx!ASGITransport}
+
+Żaden z nich nie wstaje jako serwer i o to chodzi: nie ma portu do
+przydzielenia, nie ma gotowości, na którą trzeba czekać, i nie ma nic, co
+zostanie uruchomione, gdy test padnie.
+
+\pyregion{code/ch09/testing_client.py}{sync}{Test jak z WebApplicationFactory, bez fabryki}{lst:ch09-testclient}
+
+\pyregion{code/ch09/testing_client.py}{async}{Ten sam test, na pętli, na której działa handler}{lst:ch09-asgi}
+
+\noindent
+\code{TestClient} jest synchroniczny i prowadzi aplikację przez wątek
+roboczy, czego chcesz w większości testów. \code{ASGITransport} kładzie
+\code{httpx.AsyncClient} wprost na obiekcie aplikacji, czego chcesz, gdy sam
+test jest asynchroniczny \dash{} a jest to ta sama klasa klienta, której użyjesz
+przeciw prawdziwemu serwisowi, więc test i klient dzielą API.
+
+\begin{exercise}{e09_04_async_client}{Sprawdź aplikację bez wstawania serwera}
+Napisz funkcję, która woła aplikację przez \code{ASGITransport} i zwraca
+zdekodowane ciało. Jeden z jej testów zabrania \code{socket.socket} wprost, i
+tak właśnie dowodzi się, że nic nie zbliżyło się do sieci.
+\end{exercise}
+
+\section{Szkielet i tablica}
+\label{sec:ch09-skeleton}
+
+Wszystko powyżej mieści się w jednym pliku, w kolejności, w jakiej spotyka to
+żądanie: ustawienia, lifespan, modele, zależność o zakresie żądania, dwie
+trasy.
+
+\pyfile{code/ch09/service.py}{Szkielet serwisu: skopiuj to, a potem usuń, czego nie potrzebujesz}{lst:ch09-service}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{ASP.NET Core} & \textbf{FastAPI} \\
+\midrule
+\code{app.MapGet("/x", handler)} & \code{@app.get("/x")} nad handlerem \\
+rejestracja w \code{IServiceCollection} & parametr z \code{Depends(fn)} \\
+\code{AddScoped} & domyślnie \\
+\code{AddTransient} & \code{Depends(fn, use\_cache=False)} \\
+\code{AddSingleton} & budowane w lifespanie, czytane z \code{request.state} \\
+\code{IDisposable} na usłudze scoped & zależność, która robi \code{yield} \\
+wiązanie modelu i \code{[ApiController]} & model pydantic jako parametr \\
+\code{ProblemDetails}, 400 & lista błędów pydantica, 422 \\
+\code{JsonPropertyName} & \code{Field(serialization\_alias=...)} \\
+\code{[JsonIgnore]} na DTO & węższy \code{response\_model} \\
+Swashbuckle & \code{/openapi.json}, generowany, bez pakietu \\
+\code{app.Use(...)}, pierwsze na zewnątrz & \code{@app.middleware("http")}, \textbf{ostatnie} na zewnątrz \\
+\code{IOptions<T>}, \code{appsettings.json} & \code{BaseSettings}, środowisko i pliki sekretów \\
+\code{IHostedService} & menedżer kontekstu \code{lifespan} \\
+Kestrel & uvicorn \\
+wątki w jednym procesie & \code{--workers}, czyli procesy \\
+\code{WebApplicationFactory} & \code{TestClient} albo \code{ASGITransport} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{exercise}{e09_05_scoped_dependency}{Zależność z czasem życia}
+Zbuduj aplikację, którą opisuje pułapka z \S\ref{sec:ch09-depends}: jedna
+trasa prosząca o jednostkę pracy dwa razy, jedna instancja na żądanie, nowa
+następnym razem i zamknięta, gdy żądanie się skończy. Cztery testy, a trzeci
+jest tym, który łapie zależność zwracającą zamiast wydającą przez yield.
+\end{exercise}
+
+\begin{note}
+\textbf{Co ten rozdział przekazuje dalej.} Strumieniowanie odpowiedzi \dash{}
+server-sent events, rozłączający się klient, zamek na rozmowę \dash{} należy do
+tomu o LangChainie, który serwuje agentów dokładnie na tym stosie i mierzy ten
+sam serwis pod obciążeniem. Sesja bazy danych za \code{get\_store} to
+rozdział~\ref{ch:data}. Tutaj jest odwzorowanie frameworka i jest ono takie
+samo, cokolwiek nim serwujesz.
+\end{note}

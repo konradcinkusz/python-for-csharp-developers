@@ -1,0 +1,6 @@
+flowchart LR
+    A[".NET: one package<br/>cache per machine,<br/>and every project<br/>reads the same copy"]
+    B["Python: one<br/>directory per project.<br/>.venv/ holds its own<br/>interpreter"]
+    C["Changing project is<br/>changing directory.<br/>Nothing on the<br/>machine changes"]
+    A -->|"the habit"| B
+    B -->|"so"| C

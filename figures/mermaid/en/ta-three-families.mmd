@@ -1,0 +1,8 @@
+flowchart TB
+    T["The recorded trace:<br/>tool calls, contract events<br/>and turns, on one index"]
+    P["Presence, did it happen<br/>tool_called, tool_called_with,<br/>event_emitted, span_attribute,<br/>call_attempts"]
+    A["Absence, did it not happen<br/>tool_not_called,<br/>event_not_emitted"]
+    S["Shape, what kind of run<br/>order, argument_grounded,<br/>outcome, termination,<br/>output_excludes_internal_ids"]
+    T --> P
+    T --> A
+    T --> S

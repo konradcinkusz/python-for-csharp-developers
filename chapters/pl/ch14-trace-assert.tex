@@ -1,35 +1,344 @@
-%% ch14 --- trace-assert w całości: ten sam instrument w trzech językach
+%% ch14 --- trace-assert w calosci: ten sam instrument w trzech jezykach
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie bloku \chapterstub{} i zastąpienie go
-%% rozdziałem -- po czym ten plik nie jest już generowany.
+%% Napisany, wrzesien 2026. Lista asercji pochodzi z agent-eval-bench,
+%% skopiowana z evals/schema/scenario.schema.json oraz
+%% Assertions/AssertionEvaluator.cs w commicie 12b1bbd -- patrz
+%% notes/01-curriculum.md sekcja 5. Nic tutaj nie jest odtworzone z pamieci.
 
 \chapter{trace-assert w całości: ten sam instrument w trzech językach}
 \label{ch:traceassert}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\noindent
+Przebieg agenta jest drogi do oceniania i tani do sprawdzenia. Ocenianie
+wymaga drugiego modelu, rubryki, budżetu i argumentu za tym, że sędzia
+zgadza się z człowiekiem. Sprawdzenie wymaga zapisu samego przebiegu i
+funkcji, która go czyta \dash{} a większość tego, co psuje się agentom na
+produkcji, widać w tym zapisie, bez wydawania przez kogokolwiek opinii o
+tekście odpowiedzi.
 
-Argument: a deterministic assertion over an execution trace is the cheapest
-evaluation an agent can have, and the reader can now build it in Python as
-well as they could in C\#. The assertion types of agent-eval-bench's first
-layer, ported to pytest \dash{} and the list is that project's own: it must
-be copied from its specification when this chapter is written, never
-reconstructed from memory, and the count printed here is whatever that
-specification says. Each assertion as a fixture-backed function whose
-failure message names the offending event; trace capture from the chapter 13
-client; the comparison table across .NET, TypeScript and Python \dash{} what
-each port needed in types, async, test framework and packaging; and
-publishing \code{trace-assert} with \code{uv build} and trusted publishing
-as the book's last exercise. Payoff: the artefact is a package, a blog post
-and an interview answer at once. No new measurement; the suite's own run
-time is reported. Three exercises. Every listing here is the real package
-under \code{code/src/trace\_assert}, pulled in by region.
+Ten rozdział kończy \code{trace-assert}: model śladu, pełny zestaw asercji
+i pakiet. Na końcu zbudujesz w Pythonie to, co w C\# umiałeś zbudować już
+wcześniej, a ostatnia sekcja rozdziału to porównanie \dash{} bo ten sam
+projekt istnieje w trzech językach i okazuje się, że nie niosą one tego
+samego.
 
-\medskip
-\textbf{Budżet słów:} 3000.\\
-\textbf{Wydanie:} v1.0.\\
-\textbf{Projekt przewodni:} trace-assert final: the full assertion set, packaged and published.
-}
+\section{Najtańsza ewaluacja, jaką agent może mieć}
+\label{sec:ch14-cheapest}
+\index{ewaluacja!deterministyczna}
+
+Zanim przeczytasz dalej, odpowiedz sobie: czego potrzeba, żeby uruchomić
+ewaluację agenta? Większość odpowiedzi wymienia model \dash{} coś musi
+przeczytać odpowiedź i zdecydować, czy była dobra.
+
+\begin{trapbox}
+\textbf{Asercja nad śladem potrzebuje modelu, żeby cokolwiek ocenić.} Nie
+potrzebuje, a to założenie sprawia, że większość zespołów nie ma żadnej
+ewaluacji: zestaw, który potrzebuje dostawcy, potrzebuje budżetu, klucza i
+sieci, więc nie uruchamia się przy pull requeście. \emph{Czy agent wywołał
+narzędzie, które miał wywołać? W kolejności, w jakiej miał? Z
+identyfikatorem, który wrócił z wcześniejszego wywołania? Bez wywołania
+tego, czego mu zabroniono?} Każde z tych pytań jest rozstrzygalne z
+zapisanego przebiegu. Dodatek~\ref{app:traps} trzyma ten wpis i to jest
+powód, dla którego ta warstwa istnieje.
+\end{trapbox}
+
+\noindent
+Są więc dwie warstwy i nie są konkurencją. Warstwa deterministyczna ocenia
+mechanikę \dash{} co zostało wywołane, w jakiej kolejności, z czym.
+Warstwa sędziowska ocenia jakość zdania, które czyta użytkownik. Ten
+rozdział buduje pierwszą. To ta, która może zablokować scalenie, bo nic nie
+kosztuje i dwa razy daje tę samą odpowiedź.
+
+\begin{csbox}
+Inżynier od xUnit budował to już wcześniej, nie nazywając tego ewaluacją:
+to test integracyjny, który przechwytuje, co zrobił badany system, i
+asercjonuje nad przechwytem, a nie nad wartością zwracaną. Nowy jest
+przedmiot, nie technika \dash{} a powodem, by nadać przechwytowi nazwę i
+kształt, jest to, że kilkanaście asercji nad nim chce odpowiedzi na te same
+pytania.
+\end{csbox}
+
+\section{Ślad to nie log}
+\label{sec:ch14-trace}
+\index{ślad!model}
+
+Oczywistym modelem przebiegu jest lista zdarzeń z rodzajem przy każdym i to
+właśnie miała pierwsza wersja tego pakietu. Model ten przewraca się na
+pierwszym ciekawym pytaniu. \emph{Czy zapis nastąpił przed zatwierdzeniem?}
+to porównanie wywołania narzędzia ze zdarzeniem kontraktu, a jedna lista z
+dyskryminatorem nie ma osi, na której dałoby się je porównać, dopóki tej
+osi nie wymyślisz.
+
+Model jest więc taki, do jakiego doszedł \code{agent-eval-bench}: trzy
+równoległe zapisy, w których wywołania narzędzi i zdarzenia dzielą jeden
+indeks pozycji.
+
+\pyregion{code/src/trace_assert/trace.py}{model}{Trzy zapisy, z których składa się ślad}{lst:ch14-model}
+
+\noindent
+Warto nazwać trzy decyzje z tego listingu, bo każda z nich to defekt, który
+ktoś już wypuścił na produkcję.
+
+\textbf{Wywołanie narzędzia jest jedno, niezależnie od liczby prób
+transportu.} Handler odporności, który ponawia dwa razy pod agentem, nie
+wykonał trzech wywołań; pętla orkiestratora, która woła narzędzie
+ponownie \dash{} owszem. To różne liczby odpowiadające na różne pytania, a
+model, który je skleja, nie odróżni ponowionego żądania od podwójnej
+rezerwacji.
+
+\textbf{Wywołanie istnieje niezależnie od tego, czy się powiodło.} Gdyby
+nieudany zapis nie zostawiał śladu, \emph{zapisu nigdy nie próbowano} i
+\emph{zapis się nie powiódł} wyglądałyby w materiale dowodowym tak samo, a
+to są dwa wyniki, które test degradacji istnieje po to, by rozróżnić.
+
+\textbf{Nic tutaj nie pozwala asercji czytać tekstu agenta} poza
+\code{Turn.reply}, które jest po to, by jedna asercja mogła poszukać w nim
+wyciekłych identyfikatorów. W chwili, gdy asercja dopasowuje tekst w rodzaju
+\enquote{zarezerwowałem}, każde przeredagowanie promptu staje się
+czerwonym testem, a zestaw zaczyna oceniać sformułowania.
+
+\section{Dwanaście, w trzech rodzinach}
+\label{sec:ch14-twelve}
+\index{ślad!asercje}
+
+Asercji jest \val{ta.assertions} i ta liczba nie należy do tej książki:
+to liczba ze schematu samego \code{agent-eval-bench}, a lista została z
+niego skopiowana, nie przypomniana. Dodanie tutaj trzynastej zrobiłoby z
+niej trzynastą, której dwa pozostałe porty tego samego projektu nie mają.
+
+\mermaidfig{ta-three-families}{Asercje w liczbie \val{ta.assertions}, w trzech rodzinach, na jakie dzieli je specyfikacja}{trzy rodziny asercji}
+
+\noindent
+Obecność i nieobecność to te dwie połowy, które myli się razem. Test
+dowodzący, że agent odmówił, musi asercjonować i odmowę, \emph{i} to, że
+zabronione wywołanie nigdy nie nastąpiło: agent, który uprzejmie przeprasza,
+a potem i tak woła narzędzie, sam z siebie przechodzi pierwszą asercję.
+
+\pyregion{code/src/trace_assert/assertions.py}{presence}{Obecność i nieobecność, które zawsze pisze się parami}{lst:ch14-presence}
+
+\noindent
+W rodzinie kształtu siedzą te ciekawe, a \code{order} jest tą, której
+specyfikację trzeba przeczytać uważnie. Nie porównuje najwcześniejszego
+wystąpienia jednej rzeczy z najwcześniejszym wystąpieniem drugiej. Każde
+wystąpienie drugiej musi nastąpić po \emph{pierwszym} wystąpieniu
+pierwszej \dash{} bo słabsze odczytanie przepuszcza zapis wykonany przed
+bramką, o ile po nim nastąpi drugi, grzeczny zapis, a bramka dotyczy
+właśnie tego pierwszego.
+
+\pyregion{code/src/trace_assert/assertions.py}{order}{\code{order} i odczytanie, które wygląda na równoważne, a nie jest}{lst:ch14-order}
+
+\begin{exercise}{e14_01_called_with}{Przenieś jedną asercję}
+\code{tool\_called\_with} pyta, czy któreś wywołanie niosło wskazane przez
+ciebie argumenty, w jednym z dwóch odczytań: \code{subset} dopuszcza inne
+argumenty, \code{exact} nie. Napisz ją. Test prosi o oba odczytania, o
+komunikat błędu nazywający to, co zastano, i o przypadek, który odróżnia
+prawdziwą asercję od ozdobnej \dash{} narzędzie, którego nigdy nie
+wywołano, musi dać błąd, a nie przejść z braku kontrprzykładu.
+\end{exercise}
+
+\section{Trzy dyscypliny, z których jedna jest nośna}
+\label{sec:ch14-disciplines}
+\index{ewaluacja!asercja pusta}
+
+Funkcje w liczbie \val{ta.assertions} dzielą trzy reguły. Pierwsza jest
+powyżej: nic nie dopasowuje tekstu. Trzecia jest drobna \dash{} argument,
+którego nie da się użyć, jest błędem, a nie przejściem, co ma tu znaczenie,
+bo port w C\# ma przed sobą schemat JSON odrzucający źle napisaną asercję,
+a ten port nie ma nic poza sobą.
+
+Druga jest warta osobnej sekcji.
+
+\begin{trapbox}
+\textbf{Żadna asercja nie może przechodzić pusto.} Napisz
+\code{call\_attempts} w oczywisty sposób \dash{} weź największą liczbę prób
+spośród wywołań tego narzędzia, daj błąd, gdy przekracza próg \dash{} a
+będzie zielona na przebiegu, w którym narzędzia w ogóle nie wywołano, bo
+maksimum z niczego wynosi zero, a zero mieści się w każdym progu. Zestaw
+asercjonujący powściągliwość przechodzi wtedy na przebiegu, w którym nic
+się nie wydarzyło, czyli na tym jedynym, o którym powinien krzyczeć
+najgłośniej.
+\end{trapbox}
+
+\pyregion{code/src/trace_assert/assertions.py}{attempts}{Większość tego to zabezpieczenie przed zaliczeniem przebiegu, w którym nic się nie wydarzyło}{lst:ch14-attempts}
+
+\noindent
+Ta sama reguła rozstrzyga trzy dalsze przypadki.
+\code{order} daje błąd, gdy którejkolwiek ze stron nigdy nie było.
+\code{tool\_called\_with} daje błąd, gdy narzędzia nie wywołano. A
+\code{argument\_grounded} \dash{} asercja, która wyrabia całej warstwie
+jej miejsce, bo łapie pewnie wymyślony identyfikator, czego żaden sędzia
+nie robi niezawodnie.
+
+\pyregion{code/src/trace_assert/assertions.py}{grounded}{Ugruntowanie jako struktura: wartość musiała wrócić z wcześniejszego wywołania}{lst:ch14-grounded}
+
+\noindent
+A komunikat błędu, który mówi tylko, która asercja padła, jest nic nie
+wart, bo czerwony kolor już to powiedział. Oto, co wypisują cztery z nich
+na przebiegu, który przeskoczył bramkę, wymyślił identyfikator, pokazał go
+użytkownikowi i skończył, wyczerpując limit iteracji:
+
+\transcript{ch14-broken}
+
+\begin{exercise}{e14_02_never_vacuous}{Asercja, która może tylko przejść}
+Napisz \code{call\_attempts} tak, żeby nie mogła być zielona na przebiegu,
+w którym narzędzia nigdy nie wywołano. Test prosi o oba kierunki, a jednym
+z nich jest przebieg pusty.
+\end{exercise}
+
+\section{Jak wygląda zestaw}
+\label{sec:ch14-suite}
+
+Rejestrator \dash{} ten z rozdziału~\ref{ch:aitoolkit} albo eksporter
+czytający spany, które ustawił rozdział~\ref{ch:observability} \dash{}
+spłaszcza przebieg do trzech zapisów. Wszystko dalej to funkcje nad
+wartością.
+
+\pyregion{code/ch14/eval_suite.py}{suite}{Cztery grupy asercji nad jednym zapisanym przebiegiem}{lst:ch14-suite}
+
+\noindent
+W prawdziwym zestawie każda z nich jest testem biorącym fixture
+\code{trace} z rozdziału~\ref{ch:testing}, a zliczanie robi własna kolekcja
+pytesta. Jako skrypt wypisuje to:
+
+\transcript{ch14-suite}
+
+\noindent
+Własny zestaw projektu przewodniego to \val{ta.tests} testów nad asercjami
+w liczbie \val{ta.assertions} i kończy się poniżej \val{ta.ceiling} sekund.
+Ta liczba jest pułapem, a nie pomiarem, i to celowo: sekundy, które zajęło
+to tej maszynie, są własnością tej maszyny, a liczba, której nikt inny nie
+odtworzy, to liczba, przez którą kontrola dryfu świeci na czerwono przy
+każdym uruchomieniu, aż ktoś ją wyłączy. Książka twierdzi tylko to, co
+czytelnik może sprawdzić.
+
+\begin{csbox}
+Port w C\# zwraca z każdej asercji rekord wyniku, zamiast rzucać wyjątkiem,
+i to nie jest różnica języków \dash{} to różnica w tym, co musi zrobić
+harness. Ocenia on cały korpus i raportuje odsetek przejść wobec zapisanej
+linii bazowej, więc potrzebuje każdego wyniku, również tych nieudanych. W
+Pythonie zbiera to za ciebie framework testowy, więc asercja, która rzuca
+wyjątkiem, jest kształtem krótszym i bardziej idiomatycznym.
+\end{csbox}
+
+\section{Ten sam ślad w trzech językach}
+\label{sec:ch14-ports}
+\index{ślad!porty}
+
+Projekt istnieje trzy razy, a porównanie nie jest tym, które tytuł
+rozdziału obiecuje bez zastrzeżeń. \textbf{W trzech językach istnieje model
+śladu.} Warstwa zbudowana na nim jest w każdym inna.
+
+\mermaidfig{ta-three-ports}{Jeden model, przeniesiony dwukrotnie, niosący w każdym języku inną warstwę}{co naprawdę niesie każdy port}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}lXXX@{}}
+\toprule
+ & \textbf{.NET} & \textbf{TypeScript} & \textbf{Python} \\
+\midrule
+Warstwa & asercje i sędzia & tylko sędzia & tylko asercje \\
+Typy & rekordy, typy referencyjne dopuszczające null & schematy \pkg{zod}, parsowane na brzegu & zamrożone dataclass, \pkg{pyright} strict \\
+Async & niepotrzebny; ślad jest w pamięci & worker konsumuje kolejkę & niepotrzebny \\
+Framework & xUnit v3, jeden test na scenariusz & \pkg{vitest} & \pkg{pytest}, jeden test na tezę \\
+Odmowa & schemat JSON odrzuca złą asercję & schemat parsuje na brzegu & funkcja rzuca wyjątkiem \\
+Pakowanie & referencja do projektu, nigdy nie publikowana & prywatny, wdrażany jako kontener & wheel w indeksie \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent
+Z tej tabeli wynikają dwie rzeczy i żadnej z nich nie dało się przewidzieć,
+zanim otwarto te trzy repozytoria.
+
+Pierwsza jest taka, że \textbf{podróżuje kształt danych, a nie kod}. Każdy
+port implementuje swoją warstwę na nowo, w idiomie swojego języka, i żadna
+z implementacji nie przypomina pozostałych; identyczny jest zapis, który ta
+warstwa czyta, aż do wspólnego indeksu pozycji. Projekt, który podróżuje,
+to projekt, którego interfejsem jest wartość.
+
+Druga dotyczy tego, gdzie może mieszkać kontrakt. Port w .NET odrzuca źle
+napisaną asercję schematem JSON, bo jego asercje przychodzą z plików YAML
+pisanych ręcznie. Port w Pythonie nie ma w obiegu żadnego pliku, więc ta
+sama odmowa musi być kodem i funkcja rzuca \code{ValueError} tam, gdzie
+zrobiłby to schemat. Żaden z nich nie jest staranniejszy; staranność jest
+w tym samym miejscu potoku w obu przypadkach.
+
+\begin{note}
+Opis tego rozdziału, i wstęp książki, przedstawiają porównanie jako trzy
+porty jednego instrumentu. To prawda o śladzie, a nie o asercjach, które
+istnieją w .NET i w Pythonie. Portem w TypeScripcie jest
+\code{judge-worker} i niesie on sędziego z rubryką, a nie tę warstwę; jego
+własne typy śladu mówią w komentarzu, że zostały przeniesione z tego samego
+pliku w C\#. Poprawiony został opis, a nie rozdział napisany pod niego.
+\end{note}
+
+\section{Publikacja}
+\label{sec:ch14-publish}
+\index{pakowanie!uv build}
+
+\code{uv build} to jedno polecenie i nie ono jest warte strony. Warte
+strony jest to, co z niego wyszło, bo to \dash{} a nie kod \dash{} ktoś
+sobie instaluje.
+
+\pyregion{code/ch14/publish.py}{build}{Zbuduj dystrybucję, potem odczytaj z niej metadane}{lst:ch14-build}
+
+\noindent
+Wheel to plik zip z członem metadanych w formacie nagłówków wiadomości
+pocztowej, dlatego jest parsowany, a nie dzielony na dwukropkach: format
+dopuszcza powtarzające się pola, a słownik zachowa tylko ostatnią z
+powtórzonych linii \code{Requires-Dist}. Uruchomiony na projekcie tej
+książki raportuje:
+
+\transcript{ch14-publish}
+
+\noindent
+I to jest uczciwy wniosek tej sekcji. Katalog \code{code/} tej książki
+buduje dystrybucję nazwaną po książce, przypiętą do jednej wersji minor
+Pythona, na której książka jest budowana, i deklarującą szereg
+zależności uruchomieniowych.
+\code{trace\_assert} nie importuje żadnej z nich. To dobry projekt na
+czternaście rozdziałów listingów i nie jest to pakiet, który ktokolwiek
+powinien instalować. Publikuje się projekt, a projekt to jego metadane.
+
+Sama publikacja to potem dwa polecenia i żadnego sekretu:
+
+\begin{shellcmd}
+uv build
+uv publish --trusted-publishing automatic
+\end{shellcmd}
+
+\noindent
+Trusted publishing oznacza, że indeks weryfikuje workflow, który wysyła
+pakiet, a nie token wklejony przez kogoś w ustawieniach: nie ma
+długowiecznego poświadczenia, które mogłoby wyciec, a fork nie może go
+użyć. Jednorazowa konfiguracja jest po stronie indeksu, poza jakimkolwiek
+plikiem w tym repozytorium, i nie została zrobiona dla własnej kopii tej
+książki \dash{} to otwarte zgłoszenie, a nie krok, którego wykonanie ten
+rozdział może ci pokazać.
+
+\begin{exercise}{e14_03_publishable}{Zrób z tego pakiet do publikacji}
+Napisz tabelę \code{[project]}, której potrzebuje opublikowany
+\code{trace-assert}. Test ją parsuje i pyta o siedem rzeczy; przeczytaj
+test, bo to on jest specyfikacją. Dwie z tych siedmiu to te, które ta
+sekcja zmierzyła: pakiet nie może deklarować żadnych zależności
+uruchomieniowych, bo każdy import w nim pochodzi z biblioteki standardowej,
+i musi dopuszczać więcej niż tę jedną wersję minor Pythona, na której
+akurat budowana jest książka. Trzecia to ta, którą obiecał
+Rozdział~\ref{ch:testing}: fixture \code{trace} trafiał tam przez linijkę
+\code{conftest.py}, a pakiet nie może wymagać tej linijki od swoich
+użytkowników.
+\end{exercise}
+
+\section{Co masz}
+\label{sec:ch14-what}
+
+Pakiet, czyli artefakt, który ktoś może zainstalować. Projekt, który
+opiszesz na rozmowie w dwóch zdaniach \dash{} \emph{ślad to trzy zapisy na
+jednym indeksie, a czyta go dwanaście funkcji} \dash{} i obronisz przed
+oczywistym zarzutem, czyli tym, że nie ocenia jakości i nigdy nie miał.
+Oraz kawałek Pythona, który inżynier C\# rozpozna linia po linii, napisany
+w idiomie tego języka, a nie jako tłumaczenie z jego własnego.
+
+To było całe twierdzenie tej książki. Tabele odwzorowań są w
+dodatku~\ref{app:cheatsheet}; nawyki, które kosztują popołudnie, w
+dodatku~\ref{app:traps}; a wszystko pod \code{code/} się uruchamia.

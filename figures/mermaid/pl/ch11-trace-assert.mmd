@@ -1,0 +1,5 @@
+flowchart LR
+    R["Fixture trace daje testowi<br/>Recorder: mutowalny, jeden na test"]
+    C["Testowany kod zapisuje,<br/>co zrobil: recorder.tool_call(name)"]
+    A["recorder.trace to niezmienny<br/>zrzut, ktory czytaja asercje"]
+    R --> C --> A

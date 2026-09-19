@@ -1,0 +1,4 @@
+flowchart LR
+    A["orders begins;<br/>CURRENCY not bound yet"] --> B["pricing asks orders<br/>for the NAME CURRENCY"]
+    B --> C["not bound yet:<br/>ImportError"]
+    B -.->|"ask for the MODULE"| D["binds now,<br/>read at call time"]

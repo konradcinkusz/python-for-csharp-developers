@@ -1,0 +1,5 @@
+flowchart LR
+    S["Jedno drzewo zrodel,<br/>jeden numer wersji,<br/>dwa pliki wykonywalne"] --> D["python3.14<br/>build domyslny,<br/>blokada wlaczona"]
+    S --> T["python3.14t<br/>free-threaded,<br/>blokada wylaczona"]
+    D --> C["Te same pliki __pycache__:<br/>ten sam bajtkod,<br/>inne srodowisko pod nim"]
+    T --> C

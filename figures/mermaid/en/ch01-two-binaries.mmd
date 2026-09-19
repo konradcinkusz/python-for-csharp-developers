@@ -1,0 +1,5 @@
+flowchart LR
+    S["One source tree,<br/>one version number,<br/>two binaries"] --> D["python3.14<br/>the default build,<br/>lock on"]
+    S --> T["python3.14t<br/>free-threaded,<br/>lock off"]
+    D --> C["Same __pycache__ files:<br/>same bytecode,<br/>a different runtime"]
+    T --> C

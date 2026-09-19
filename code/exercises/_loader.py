@@ -28,7 +28,12 @@ HERE = Path(__file__).resolve().parent
 def load(chapter: str, key: str) -> ModuleType:
     """Import exercises/<chapter>/<key>.py, or its solution under CI."""
     folder = HERE / chapter
-    if os.environ.get("PYBOOK_SOLUTIONS"):
+    # A truthiness test on the raw string reads PYBOOK_SOLUTIONS=0 as ON,
+    # because "0" is a non-empty string -- an exported but explicitly-off
+    # variable would then silently run the solutions rather than the
+    # starter. Off is unset, empty, or "0"; anything else (documented as
+    # "1") is on.
+    if os.environ.get("PYBOOK_SOLUTIONS", "0") not in ("0", ""):
         folder = folder / "solutions"
     path = folder / f"{key}.py"
     spec = importlib.util.spec_from_file_location(f"exercise_{key}", path)

@@ -1,0 +1,4 @@
+lazy      6 SELECT(s) for 5 services
+selectin  2 SELECT(s) for 5 services
+joined    1 SELECT(s) for 5 services
+raiseload: 'Service.incidents' is not available due to lazy='raise'
