@@ -1,0 +1,5 @@
+flowchart LR
+    A["<b>raise New(...) from exc</b><br/>sets __cause__, and the printed<br/>failure says the above was<br/>the direct cause of this one"]
+    B["<b>raise New(...)</b><br/>sets __context__ only, and the<br/>printed failure says another<br/>exception occurred while handling"]
+    C["<b>raise, or raise exc</b><br/>the same exception carries on.<br/>The traceback lives on the object,<br/>so neither of them truncates it"]
+    A --- B --- C

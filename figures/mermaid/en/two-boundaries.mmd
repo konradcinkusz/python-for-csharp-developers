@@ -1,0 +1,5 @@
+flowchart LR
+    I["<b>In at the edge</b><br/>a caller you do not control.<br/>FastAPI validates the request<br/>into a model before your<br/>function is entered"]
+    P["<b>Between them</b><br/>your own code, where every<br/>value is the type it says it is<br/>and nothing is re-checked"]
+    O["<b>Back from the provider</b><br/>a service you do not control.<br/>The same mechanism, validating<br/>text into the type you asked<br/>the model for"]
+    I --> P --> O

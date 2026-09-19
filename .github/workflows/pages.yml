@@ -79,6 +79,7 @@ jobs:
           python3 tools/parity.py
           python3 tools/check_structure.py --listings --exercises --transcripts \
             --lines --pins --words
+          python3 tools/gen_site.py --check
 
       - uses: astral-sh/setup-uv@v6
         with:
@@ -140,10 +141,14 @@ jobs:
       - name: Refuse to publish a build that only looked like it worked
         run: python3 tools/checklog.py main-en.log main-pl.log
 
+      # gen_site.py renders docs/index.html.in: the one-pager's counts come
+      # from figures/values/ledgers.tex -- regenerated and drift-checked two
+      # steps above -- and its contents table from tools/chapters.json. So
+      # the page describes the same book as the PDFs it links to, on every
+      # push, with nobody editing it.
       - name: Assemble the site
         run: |
-          mkdir -p _site
-          cp -r docs/. _site/
+          python3 tools/gen_site.py _site
           cp main-en.pdf "_site/Python-for-dotNET-Engineers.pdf"
           cp main-pl.pdf "_site/Python-dla-inzynierow-dotNET.pdf"
           cp main-en.pdf _site/book-en.pdf

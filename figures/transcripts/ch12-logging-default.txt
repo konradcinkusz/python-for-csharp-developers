@@ -1,0 +1,7 @@
+handlers before anybody configures: 0
+handlers after the first call:   1
+level after the first call:      WARNING
+level after the second call:     WARNING
+WARNING:app:a WARNING line, in whose format?
+level after force=True:          DEBUG
+DEBUG|app|and now the DEBUG line arrives

@@ -1,0 +1,5 @@
+flowchart LR
+    A["<b>Asking is not free</b><br/>the check runs on every call,<br/>and its answer can go stale<br/>before you act on it"]
+    B["<b>Trying is, until it fires</b><br/>the handler compiles into a<br/>side table rather than into<br/>the path that does not raise"]
+    C["<b>So choose on the failure rate</b><br/>rare, and you can answer it: act and handle<br/>routine: ask, or return a value<br/>unrecoverable: let it out"]
+    A --> B --> C

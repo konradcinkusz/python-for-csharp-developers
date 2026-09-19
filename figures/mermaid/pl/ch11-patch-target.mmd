@@ -1,0 +1,5 @@
+flowchart LR
+    I["invoice.py wykonuje<br/>from rates import vat_rate_percent<br/>raz, przy imporcie"]
+    N["Obiekt funkcji jest teraz zwiazany<br/>z DWIEMA nazwami: rates.vat_rate_percent<br/>i invoice.vat_rate_percent"]
+    P["Podmiana jednej nie rusza<br/>drugiej. Podmieniaj nazwe,<br/>ktora czyta wolajacy kod."]
+    I --> N --> P

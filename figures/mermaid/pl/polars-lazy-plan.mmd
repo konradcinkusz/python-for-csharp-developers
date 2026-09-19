@@ -1,0 +1,5 @@
+flowchart LR
+    A["<b>LazyFrame</b><br/>filter, group_by, agg, sort:<br/>buduja plan i nic nie czytaja"]
+    B["<b>optymalizator</b><br/>przepisuje plan, wiec filtr<br/>schodzi do odczytu pliku"]
+    C["<b>collect()</b><br/>wykonuje go raz i zwraca<br/>DataFrame. To jest ToList()"]
+    A --> B --> C

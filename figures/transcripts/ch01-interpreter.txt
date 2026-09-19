@@ -1,0 +1,6 @@
+interpreter              cpython 3.14.7
+free-threaded build      False
+GIL enabled right now    True
+JIT available / enabled  True / False
+ABI flags                ''
+bytecode cache tag       cpython-314

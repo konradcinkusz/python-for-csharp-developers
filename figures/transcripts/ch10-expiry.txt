@@ -1,0 +1,3 @@
+5 objects, read after commit
+  expire_on_commit=True  (the default): 5 SELECTs
+  expire_on_commit=False:               0 SELECTs

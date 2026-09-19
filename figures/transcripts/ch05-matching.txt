@@ -1,0 +1,9 @@
+Retry(after=0)             -> retry immediately
+Retry(after=30)            -> retry in 30s
+Retry(after=120)           -> retry in 120s -- that is a long time
+Fail(reason='no quota')    -> gave up: no quota
+['a', 'b', 'c']            -> batch of 3 starting 'a'
+{'status': 'active'}       -> a dotted name IS compared, unlike a bare one
+'hello'                    -> plain text: 'hello'
+7                          -> no idea
+matched, and ACTIVE is now 'not active at all'

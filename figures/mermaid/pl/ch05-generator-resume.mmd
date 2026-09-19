@@ -1,0 +1,7 @@
+flowchart LR
+    Y["Generator jest<br/>zawieszony na yield"] --> N["next(g) wznawia go,<br/>a wyrazenie yield<br/>ma wartosc None"]
+    Y --> S["g.send(v) wznawia go,<br/>a wyrazenie yield<br/>ma wartosc v"]
+    Y --> C["g.close() wznawia go,<br/>podnoszac GeneratorExit<br/>w miejscu yield"]
+    N --> F["Ktorykolwiek z tych trzech<br/>go zakonczy, blok finally<br/>w generatorze i tak sie wykona"]
+    S --> F
+    C --> F

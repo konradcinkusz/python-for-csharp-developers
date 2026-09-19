@@ -1,0 +1,7 @@
+batch: ['a', 'b']
+batch: ['c', 'd']
+batched cleaned up
+primed at 0
+after 'retry': 1
+after 'retry': 2
+returned: closed after 2

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-labelledby="t">
+  <title id="t">Python for .NET Engineers</title>
+  <!--
+    Braces on the left, indentation on the right: the one syntactic
+    difference a C# engineer meets in the first minute, which is what this
+    book is about. Drawn as PATHS and RECTS, never <text>, so it renders
+    identically on a machine that has none of the book's fonts.
+
+    The tile carries its own background, so one file serves a light and a
+    dark README without a <picture> element and a second copy to keep in
+    step. Palette is the one-pager's.
+  -->
+  <rect width="128" height="128" rx="27" fill="#1F4E79"/>
+  <path d="M50 27 C 40 27 40 37 40 45 C 40 55 34 62 26 64 C 34 66 40 73 40 83 C 40 91 40 101 50 101"
+        fill="none" stroke="#F4F6F8" stroke-width="7"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="62" y="41" width="42" height="9" rx="4.5" fill="#F4F6F8"/>
+  <rect x="73" y="59" width="31" height="9" rx="4.5" fill="#4FC3C2"/>
+  <rect x="84" y="77" width="20" height="9" rx="4.5" fill="#E0A24A"/>
+</svg>

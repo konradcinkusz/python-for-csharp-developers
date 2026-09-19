@@ -1,0 +1,6 @@
+flowchart LR
+    U["<b>Outside</b><br/>JSON, environment, forms:<br/>every value arrives as Any"]
+    V["<b>The boundary</b><br/>one place that validates,<br/>and refuses what it cannot convert"]
+    T["<b>Inside</b><br/>typed objects, where a hint<br/>is worth what it says"]
+    U -->|"untrusted"| V
+    V -->|"trusted"| T

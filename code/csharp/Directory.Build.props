@@ -1,0 +1,20 @@
+<Project>
+  <!-- One place for the settings every project here shares. Warnings are
+       errors on purpose: this project exists to verify the book's C# claims,
+       and a claim that compiles with a warning is a claim half made.
+       CS0659 is the deliberate exception. Ch04.cs has to override Equals
+       WITHOUT GetHashCode to demonstrate what C# does when you do, which is
+       the whole point of the comparison, so it is suppressed per project.
+
+       Note for whoever edits this file: an XML comment may not contain two
+       consecutive hyphens, which is why the prose here uses none. It is the
+       same shape as the trap Chapter 2 records for a LaTeX typewriter font,
+       and it cost a build here too. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>

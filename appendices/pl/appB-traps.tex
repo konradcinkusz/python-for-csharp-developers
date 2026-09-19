@@ -1,25 +1,427 @@
-%% appB --- Pułapki dla ludzi przychodzących z C\#
+%% appB --- Pulapki dla ludzi przychodzacych z C#
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie zalążkowego bloku (tego, który zaczyna się po
-%% linii \chapter) i zastąpienie go rozdziałem -- po czym ten plik nie jest
-%% już generowany.
+%% Napisany we wrzesniu 2026, z notes/02-traps.md, ktory jest autorytetem.
+%% Kazdy wpis niesie numer z tamtego pliku -- numery nigdy nie sa ponownie
+%% uzywane, wiec rozdzial moze sie na wpis powolac -- i nazywa rozdzial,
+%% ktory go WYWOLUJE. Wpis, ktorego nie wywoluje zaden rozdzial, jest wada
+%% katalogu, a nie faktem o ksiazce; w chwili pisania nie ma takich.
 
 \chapter{Pułapki dla ludzi przychodzących z C\#}
 \label{app:traps}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\noindent
+Każdy nawyk poniżej kompiluje się w twojej głowie. To właśnie czyni z nich
+pułapki, a nie pomyłki: każdy z nich jest poprawnym odruchem co do C\#,
+zastosowanym do języka, w którym jest błędny, i większość z nich daje
+Pythona, który działa. Książka stawia ci każdy przed nazwaniem go, w
+rozdziale, który jest jego właścicielem; ten dodatek jest listą, do której
+wracasz.
 
-The catalogue of habits that compile in the reader's head and fail in
-Python, each elicited before it is named: a mutable default argument, a
-late-binding closure, \code{is} against \code{==}, truthiness,
-\code{\_\_eq\_\_} without \code{\_\_hash\_\_}, side effects at import,
-integer caching under \code{is}, string building in a loop, a bare
-\code{except}, a shadowed builtin, \code{[[]] * n} aliasing, floating-point
-equality, \code{/} against \code{//}, and the rest of notes/02-traps.md.
-Every entry names the chapter that owns it, and an entry no chapter owns is
-a defect in the catalogue rather than a fact about the book.
-}
+Dwie rzeczy o numeracji, bo jest nośna. \textbf{Numer nigdy nie jest
+używany ponownie}, więc rozdział, który się na niego powołuje, powołuje się
+na ten sam wpis na zawsze \dash{} dlatego lista nie jest w kolejności
+numerycznej wewnątrz części i dlatego część numerów jest w setkach. Oraz
+\textbf{każdy wpis nazywa rozdział, który go wywołuje}, więc każda linia
+tutaj jest twierdzeniem o książce, które można sprawdzić, otwierając ten
+rozdział.
+
+\section{Część I \dash{} Środowisko uruchomieniowe i narzędzia}
+\label{sec:appB-part1}
+
+\trapentry{1}{Wątki są w Pythonie bezużyteczne, więc nie będę sobie nimi
+zawracał głowy.}{Blokada serializuje \emph{kod bajtowy}; wątek
+zablokowany na I/O nie trzyma blokady. Wątki są właściwym narzędziem do
+pracy ograniczonej przez I/O i niewłaściwym do pracy ograniczonej przez
+procesor, a eksperyment E1 mierzy oba.
+Rozdział~\ref{ch:runtime}.}
+
+\trapentry{2}{Interpreter jest teraz wolnowątkowy, więc blokady już
+nie ma.}{Budowa wolnowątkowa to osobny plik binarny, \code{python3.14t},
+i wybierasz ją świadomie. Domyślna budowa nadal ma blokadę.
+Rozdział~\ref{ch:runtime}.}
+
+\trapentry{3}{Python nie ma kroku kompilacji, więc nie ma tam nic takiego
+jak IL.}{Źródło jest kompilowane do kodu bajtowego i cache'owane w
+\code{\_\_pycache\_\_}; \api{dis.dis} na funkcji to pokazuje. Nie ma JIT-a,
+na którego mógłbyś domyślnie liczyć. Rozdział~\ref{ch:runtime}.}
+
+\trapentry{4}{\code{if \_\_name\_\_ == "\_\_main\_\_"} to
+szablonowy kod.}{To jest różnica między modułem, który uruchamia się przy
+imporcie, a takim, który uruchamia się przy wykonaniu \dash{} powód, dla
+którego listing w tej książce może być i importowalny, i uruchamialny.
+Rozdział~\ref{ch:runtime}.}
+
+\trapentry{5}{\code{pip install} kładzie pakiet na maszynie, jak
+narzędzie globalne.}{Środowisko jest katalogiem. Instalacja globalna to ta
+jedna rzecz, której listingi żadnego z późniejszych rozdziałów nie
+przeżyją. Rozdział~\ref{ch:packaging}.}
+
+\trapentry{6}{Aktywuję środowisko, a potem uruchamiam
+rzeczy.}{\code{uv run} rozwiązuje środowisko na każde wywołanie. Aktywacja
+jest tym nawykiem, który wysyła do CI niewłaściwy interpreter.
+Rozdział~\ref{ch:packaging}.}
+
+\trapentry{7}{\code{requirements.txt} jest plikiem blokady.}{To lista
+życzeń z zakresami. \code{uv.lock} jest plikiem blokady, jest commitowany,
+a \code{uv sync --locked} odmawia od niego odejść.
+Rozdział~\ref{ch:packaging}.}
+
+\trapentry{8}{Adnotacja typu jest typem.}{To twierdzenie, którego
+środowisko uruchomieniowe nigdy nie sprawdza: parametr z adnotacją
+\code{str} może być w czasie działania \code{None} i nic tego nie powie.
+Checker jest drugim kompilatorem, którego musisz zaprosić.
+Rozdział~\ref{ch:typing}.}
+
+\trapentry{9}{\code{List[int]}, \code{Optional[str]},
+\code{Dict[str, Any]}.}{To zapisy z 2019 roku. Na przypiętym
+interpreterze jest \code{list[int]}, \code{str | None} i
+\code{dict[str, Any]}, a do typów generycznych składnia PEP~695.
+Rozdział~\ref{ch:typing}.}
+
+\trapentry{10}{\code{@dataclass} waliduje swoje pola, jak rekord z
+konstruktorem.}{Generuje \code{\_\_init\_\_}, \code{\_\_eq\_\_} i
+\code{\_\_repr\_\_} i nie sprawdza niczego. Walidacja na granicy jest
+zadaniem pydantica. Rozdział~\ref{ch:typing}.}
+
+\trapentry{11}{\code{def f(items=[])} \dash{} opcjonalny parametr
+listowy.}{Wartość domyślna jest obliczana raz, przy definicji, i
+współdzielona przez każde wywołanie, które jej nie poda. Domyślnie
+\code{None} i konstrukcja w środku. Rozdział~\ref{ch:typing}.}
+
+\trapentry{12}{\code{Any} jest jak \code{dynamic}: rzecz, którą mogę
+ogrodzić.}{\code{Any} się propaguje. Jedno \code{Any} w łańcuchu zamienia
+wszystko dalej w \code{Any}, a checker nie zgłasza zupełnie nic.
+Rozdział~\ref{ch:typing}.}
+
+\section{Część II \dash{} Język, odwzorowany}
+\label{sec:appB-part2}
+
+\trapentry{13}{Nadpisuję \code{\_\_eq\_\_} i mam równość wartościową, jak
+przy nadpisaniu \code{Equals}.}{Zdefiniowanie \code{\_\_eq\_\_} ustawia
+\code{\_\_hash\_\_} na \code{None}: obiekt staje się niehaszowalny i nie
+może być kluczem \code{dict} ani elementem \code{set}. C\# ostrzega
+(CS0659) i jedzie dalej; Python działa. Rozdział~\ref{ch:objects}.}
+
+\trapentry{14}{\code{is} to równość referencji, więc \code{x is 5} jest w
+porządku dla małych liczb całkowitych.}{Dwa mechanizmy, a folklor nazywa
+tylko jeden. CPython cache'uje liczby całkowite od \code{-5} do
+\code{256}; niezależnie od tego kompilator zapisuje równe stałe raz na
+obiekt kodu, więc dwa literały \code{257} w jednej funkcji też są jednym
+obiektem. Klasyczna demonstracja \emph{nie} odtwarza się więc w skrypcie, a
+błąd pojawia się dopiero, gdy wartość przekroczy granicę czasu działania.
+Zostaw \code{is} dla \code{None} i wartowników.
+Rozdział~\ref{ch:objects}.}
+
+\trapentry{15}{\code{[[]] * n} daje mi \code{n} list.}{Daje jedną listę
+\code{n} razy, bo \code{*} kopiuje referencję.
+\code{[[] for \_ in range(n)]} daje \code{n}. Rozdział~\ref{ch:objects}.}
+
+\trapentry{16}{Atrybut klasy to pole statyczne.}{Jest współdzielony przez
+każdą instancję \emph{i} czytelny przez nie, więc mutowalny atrybut klasy
+zmieniony przez \code{self} jest zmieniony dla wszystkich.
+\code{@dataclass} odmawia zapisu, który widzi; zapis na zwykłej klasie jest
+tym, którego nie widzi. Rozdział~\ref{ch:objects}.}
+
+\trapentry{17}{\code{\_\_str\_\_} to \code{ToString()}.}{\code{\_\_repr\_\_}
+jest tym, co pokazuje debugger, REPL i \emph{lista} tych obiektów.
+\code{\_\_str\_\_} jest tym, co pokazuje \code{print}, i cofa się do
+\code{\_\_repr\_\_}; odwrotnie to nie działa.
+Rozdział~\ref{ch:objects}.}
+
+\trapentry{18}{\code{0.1 + 0.2 == 0.3} to błąd Pythona.}{To IEEE~754 w
+obu językach, a od .NET Core~3.0 oba nawet wypisują to tak samo, jako
+\code{0.30000000000000004}. Używaj \api{math.isclose} do wyliczanych liczb
+zmiennoprzecinkowych, a \api{decimal.Decimal} do pieniędzy.
+Rozdział~\ref{ch:objects}.}
+
+\trapentry{19}{\code{/} na dwóch liczbach całkowitych to dzielenie
+całkowite, jak w C\#.}{\code{/} to dzielenie prawdziwe. \code{//}
+zaokrągla w dół, i to ku minus nieskończoności, co pokazuje
+\code{-7 // 2 == -4}; odpowiedzią C\# jest w Pythonie \code{int(a / b)}.
+Rozdział~\ref{ch:objects}.}
+
+\trapentry{20}{Dekorator to atrybut \dash{} metadane, które czyta
+framework.}{Dekorator to funkcja, która uruchamia się w czasie definicji i
+może zastąpić to, co dekoruje. To middleware, a nie metadane.
+Rozdział~\ref{ch:functions}.}
+
+\trapentry{21}{Wyrażenie listowe to LINQ.}{Wyrażenie listowe jest
+zachłanne tam, gdzie \code{IEnumerable} jest odroczony, a wyrażenie
+generatorowe jest odroczone \emph{i jednoprzebiegowe}, podczas gdy zapytanie
+LINQ uruchamia się ponownie przy każdym przejściu. Materializuj raz, celowo.
+Rozdział~\ref{ch:functions}.}
+
+\trapentry{22}{Domknięcie w pętli przechwytuje wartość zmiennej
+pętli.}{Przechwytuje zmienną, wiązaną późno, więc każde domknięcie widzi
+ostatnią wartość. Zwiąż argumentem domyślnym albo
+\api{functools.partial}. Ruff łapie to jako B023, co czyni z tego jedyną
+pułapkę w tym rozdziale, którą narzędziówka znajduje za ciebie.
+Rozdział~\ref{ch:functions}.}
+
+\trapentry{23}{\code{s += piece} w pętli jest w porządku; napisy to
+napisy.}{Na CPythonie zwykła pętla jest \emph{liniowa}: interpreter ma
+specjalizację, która zmienia rozmiar w miejscu, kiedy lewy argument nie ma
+innej referencji. Jest znów kwadratowa w chwili, gdy cokolwiek innego trzyma
+referencję \dash{} lista, domknięcie, atrybut \dash{} bez żadnej zmiany w
+miejscu wywołania. \code{"".join(pieces)} nie ma złego przypadku.
+Rozdział~\ref{ch:functions}.}
+
+\trapentry{24}{Generator to \code{yield return}.}{Jest nim, łącznie z
+\code{finally}, które wykonuje się przy wcześniejszym wyjściu, czyli z
+\code{IEnumerator.Dispose}. Ma też \code{send()}, \code{close()} i
+wynoszoną wartość zwracaną \dash{} korutynę, zanim istniało \code{async},
+dlatego \code{Generator} ma trzy parametry typu tam, gdzie
+\code{IEnumerable} ma jeden. Rozdział~\ref{ch:functions}.}
+
+\trapentry{140}{\code{case ACTIVE:} porównuje ze stałą, jak robi to ramię
+\code{switch}.}{Goła nazwa we wzorcu \textbf{przechwytuje}: wiąże każdy
+podmiot z \code{ACTIVE} i ramię zawsze pasuje. Kompilator odmawia, gdy
+następuje po nim kolejny przypadek, więc kompiluje się w ciszy tylko jako
+ostatni \dash{} czyli dokładnie tam, gdzie przeżywa przegląd. Użyj nazwy z
+kropką albo strażnika. Rozdział~\ref{ch:functions}.}
+
+\trapentry{25}{\code{except:} łapie wszystko, jak \code{catch
+\{\}}.}{Łapie też \code{KeyboardInterrupt} i \code{SystemExit}, dlatego
+procesu nie da się zatrzymać. Najwyżej \code{except Exception:}, i loguj
+ślad stosu. Ruff zgłasza to jako E722.
+Rozdział~\ref{ch:errors}.}
+
+\trapentry{26}{Łapię \code{Exception}, loguję i jadę dalej \dash{} to
+zapobiegawcze.}{Zamienia awarię w cichą błędną odpowiedź. EAFP oznacza
+łapanie wyjątku, którego się spodziewasz, a nie każdego. To jedyna pułapka
+w tym rozdziale, której nic w narzędziówce książki nie zgłasza, i dlatego
+właśnie ta dociera na produkcję. Rozdział~\ref{ch:errors}.}
+
+\trapentry{27}{\code{raise e} wewnątrz \code{except} rzuca ponownie, jak
+\code{throw ex;}.}{Python trzyma ślad stosu na \emph{obiekcie} wyjątku,
+więc \code{raise e} niczego nie ucina: każda ramka pod nim przeżywa, a
+linia ponownego rzucenia jest \emph{dodawana}. Gołe \code{raise} jest nadal
+lepszym nawykiem, bo zdublowana ramka to szum, ale reguła z C\# się nie
+przenosi. Co ponowne rzucenie może stracić, to powiązanie: bez
+\code{from} \code{\_\_cause\_\_} zostaje \code{None}.
+Rozdział~\ref{ch:errors}.}
+
+\trapentry{28}{\code{return} w \code{finally} jest nieszkodliwy.}{Połyka
+każdy wyjątek w locie i wraca, jakby nic się nie stało. Nie po cichu na
+przypiętym interpreterze \dash{} PEP~765 każe kompilatorowi wyemitować
+\code{SyntaxWarning}, a ruff zgłasza B012 i SIM107 \dash{} ale nadal połyka,
+bo ostrzeżenie nie jest błędem. Rozdział~\ref{ch:errors}.}
+
+\trapentry{29}{Adnotacja metody mówi mi, co ona rzuca.}{Nic w systemie
+typów nie niesie wyjątków. Docstring niesie, i nic tego nie weryfikuje.
+Python nie ma wyjątków kontrolowanych \dash{} ani C\# ich nie ma, więc źle
+przenosi się narzędziówka wokół nich, a nie język.
+Rozdział~\ref{ch:errors}.}
+
+\trapentry{30}{\code{KeyError} znaczy, że coś poszło
+źle.}{\code{KeyError}, \code{StopIteration} i \code{AttributeError} są
+protokołem: odczyt ze \code{dict}, koniec iteratora i \api{getattr} mówią
+przez nie. Rozdział~\ref{ch:errors}.}
+
+\trapentry{31}{Prawdziwościowość to \code{bool}, jak w C\#.}{Puste
+kontenery, zero, \code{None} i puste napisy są fałszem. \code{if items:}
+jest idiomatyczne, a \code{if items is not None:} zadaje inne pytanie.
+Rozdział~\ref{ch:errors}.}
+
+\trapentry{150}{Klasa wyjątku to \code{FooException}.}{Przyrostkiem
+Pythona jest \code{Error}, a N818 w ruffie zgłasza klasę bez niego:
+\code{JobUnavailable} oblewa lint, dopóki nie jest
+\code{JobUnavailableError}. Rozdział~\ref{ch:errors}.}
+
+\trapentry{32}{Moduł to przestrzeń nazw, więc import jest darmowy i
+czysty.}{Moduł to obiekt, który wykonuje się raz, od góry do dołu. Efekt
+uboczny przy imporcie wykonuje się dla każdego importującego, a import
+cykliczny to dwa moduły w połowie wykonane.
+Rozdział~\ref{ch:imports}.}
+
+\trapentry{33}{\code{from x import *} to \code{using x;}.}{Kopiuje każdą
+publiczną nazwę do modułu importującego i ukrywa, skąd cokolwiek przyszło.
+Używaj \code{import x} albo \code{from x import name}.
+Rozdział~\ref{ch:imports}.}
+
+\trapentry{34}{Mogę nazwać zmienną \code{list}, \code{id} albo
+\code{type}.}{Przesłania to wbudowaną nazwę do końca zasięgu, a awaria
+przychodzi trzy funkcje później. Rozdział~\ref{ch:imports}.}
+
+\trapentry{35}{Potrzebuję kontenera DI.}{Korzeń kompozycji jest funkcją.
+\api{functools.partial} i \code{Protocol} robią to, co robił kontener, a
+\code{Depends} z FastAPI jest tym jednym kontenerem, który większość
+czytelników spotka. Rozdział~\ref{ch:imports}.}
+
+\section{Część III \dash{} Współbieżność}
+\label{sec:appB-part3}
+
+\trapentry{36}{Korutyna to \code{Task}: wywołanie jej ją
+uruchamia.}{Korutyna jest zimna. Wywołanie jej buduje obiekt, który nic nie
+robi, dopóki nie jest oczekiwany albo zaplanowany, a zapomniany
+\code{await} jest ostrzeżeniem, a nie błędem.
+Rozdział~\ref{ch:asyncio}.}
+
+\trapentry{37}{\code{create\_task} uruchamia zadanie
+natychmiast.}{Planuje je; ciało nie działa, dopóki wołający nie ustąpi.
+Rozdział~\ref{ch:asyncio}.}
+
+\trapentry{38}{\code{.Result} na zadaniu powoduje zakleszczenie, więc
+używam \code{ConfigureAwait(false)}.}{Nie ma kontekstu synchronizacji ani
+\code{ConfigureAwait}. Jest jedna pętla, a jedno blokujące wywołanie w
+niej zamraża każdą inną korutynę, bez błędu i bez linii w logu.
+Rozdział~\ref{ch:asyncio}.}
+
+\trapentry{39}{\code{gather} to \code{WhenAll}.}{\code{gather} osierocą
+swoje rodzeństwo, gdy jedno padnie; \code{TaskGroup} je anuluje. Oba są
+identyczne co do szybkości, więc wybór dotyczy wyłącznie semantyki awarii.
+Rozdział~\ref{ch:asyncio}.}
+
+\trapentry{40}{Anulowanie to token, który odpytuję, więc łapanie
+\code{Exception} jest tym, jak je tracę.}{Na opak w obu połowach. To
+\code{CancelledError}, dostarczany przy \code{await}, i dziedziczy po
+\code{BaseException} \dash{} więc \code{except Exception} jest klauzulą,
+która je \emph{przepuszcza}. Połyka je gołe \code{except:},
+\code{except BaseException:} albo blok \code{except asyncio.CancelledError}
+bez \code{raise} pod nim. Rozdział~\ref{ch:asyncio}.}
+
+\trapentry{41}{\code{HttpClient} jest singletonem, więc
+\code{httpx.AsyncClient} też.}{Rada co do czasu życia się przenosi
+\dash{} skonstruuj raz, współdziel, zamknij \dash{} a wartości domyślne
+nie: domyślny klient ma już pięciosekundowy termin, nakładany osobno na
+połączenie, odczyt, zapis i pulę, a nie na żądanie jako całość.
+Rozdział~\ref{ch:asyncio}.}
+
+\trapentry{170}{Na \code{Task} można czekać dwa razy, więc na korutynę
+też.}{\code{Task} to uchwyt do pracy już trwającej i rozdaje swój wynik
+tyle razy, ile poprosisz. Korutyna \emph{jest} tą pracą, a oczekiwanie na
+nią po raz drugi podnosi \code{RuntimeError}.
+Rozdział~\ref{ch:asyncio}.}
+
+\section{Część IV \dash{} Wdrażanie}
+\label{sec:appB-part4}
+
+\trapentry{42}{\code{Depends} to kontener DI, więc zależność jest
+singletonem.}{Domyślnie jest na żądanie. Zależność z \code{yield} to
+zasięg z zamknięciem, a stan o czasie życia aplikacji idzie do lifespanu.
+Rozdział~\ref{ch:services}.}
+
+\trapentry{43}{Niepowodzenie walidacji to 400 z
+\code{ProblemDetails}.}{To 422 z listą błędów pydantica, a kształt należy
+do pydantica, a nie do frameworka. Rozdział~\ref{ch:services}.}
+
+\trapentry{44}{Ustawienia biorą się z \code{IOptions<T>} i
+\code{appsettings.json}.}{\pkg{pydantic-settings} czyta środowisko, plik
+\code{.env} i katalog sekretów do zwalidowanego modelu. Nie ma łańcucha
+dostawców JSON. Rozdział~\ref{ch:services}.}
+
+\trapentry{45}{Więcej workerów uvicorna to większa
+przepustowość.}{Workery to procesy: każdy ma własną pętlę, własną pulę i
+własną pamięć. E5 to zmierzył i dla oczekiwanego upstreamu cztery workery
+nie ruszyły przepustowości, mnożąc przy tym pamięć.
+Rozdział~\ref{ch:services}.}
+
+\trapentry{180}{Middleware działa w kolejności, w jakiej je
+zarejestrowałem, więc pierwszy jest tym zewnętrznym.}{Ostatni
+zarejestrowany jest najbardziej zewnętrzny: \code{add\_middleware} ze
+starlette wstawia na początek stosu. Nic nie ostrzega, a obie kolejności
+różnią się tylko wtedy, gdy coś zależy od sekwencji.
+Rozdział~\ref{ch:services}.}
+
+\trapentry{181}{\code{Field(alias=...)} to \code{JsonPropertyName}:
+zmienia nazwę pola na drucie.}{Zmienia ją także na wejściu, więc modelu
+nie da się już skonstruować po nazwie pola \dash{} a checker typów mówi to
+wcześniej niż test. \code{serialization\_alias} jest tym tylko
+wyjściowym. Rozdział~\ref{ch:services}.}
+
+\trapentry{182}{\code{--workers 4} rozkłada mój ruch na cztery
+procesy.}{Workery współdzielą jedno gniazdo nasłuchujące, a ten worker,
+który pierwszy jest w \code{accept()}, trzyma połączenie przez całe jego
+życie, więc równoważenie dzieje się na \emph{połączenie}, a nie na
+żądanie. Rozdział~\ref{ch:services}.}
+
+\trapentry{46}{\code{Session} to \code{DbContext}, więc robię
+\code{commit()} i obiekty zostają używalne.}{\code{expire\_on\_commit} jest
+domyślnie prawdą, więc każdy atrybut jest przeładowywany przy następnym
+dostępie \dash{} czyli zapytanie w pętli, której nie napisałeś.
+Rozdział~\ref{ch:data}.}
+
+\trapentry{47}{Relacje ładują się, kiedy je czytam, jak w EF.}{Leniwie
+domyślnie w obu, pod sesją \emph{synchroniczną}, i N+1 jest identyczne;
+\code{selectinload} to \code{Include}. Pod sesją asynchroniczną ten sam
+odczyt podnosi \code{MissingGreenlet} zamiast ładować, więc błąd jest tam
+głośny, a tu cichy. Rozdział~\ref{ch:data}.}
+
+\trapentry{48}{Autogenerate Alembica jest migracją.}{To diff modeli
+względem bazy i gubi zmiany nazw, zmiany typów i więzy. Zmiana nazwy
+wychodzi jako dodanie plus usunięcie, co gubi dane. Czytaj każdą
+wygenerowaną migrację. Rozdział~\ref{ch:data}.}
+
+\trapentry{49}{Potrzebuję repozytorium nad ORM-em.}{\code{Session} jest
+jednostką pracy, a wzorzec repozytorium ją dubluje.
+Rozdział~\ref{ch:data} mówi, dlaczego to zwykle błąd w tym miejscu.}
+
+\trapentry{50}{Klasa testowa na fixture, jak
+\code{IClassFixture}.}{Fixture'y pytesta to funkcje z zasięgiem. Klasa jest
+opcjonalna i zwykle jej nie ma. Rozdział~\ref{ch:testing}.}
+
+\trapentry{51}{Mockuję tam, gdzie rzecz jest zdefiniowana.}{Podmieniaj
+tam, gdzie nazwa jest \emph{wyszukiwana} \dash{} w module importującym
+\dash{} albo podmiana nic nie robi, a test przechodzi z niewłaściwego
+powodu. To, którą nazwę rozwiązuje wywołanie, zdecydował import, więc
+\code{import x} plus \code{x.y()} naprawdę podmienia się w \code{x.y}.
+Rozdział~\ref{ch:testing}.}
+
+\trapentry{52}{\code{assert} jest do buildów debugowych.}{pytest
+przepisuje \code{assert}, żeby sam się tłumaczył; to jest biblioteka
+asercji. Połowa nawyku jest słuszna: pod \code{-O} \code{assert} w
+\emph{aplikacji} naprawdę znika, więc jest do testów i niezmienników, a
+nigdy do walidacji wejścia. Rozdział~\ref{ch:testing}.}
+
+\trapentry{200}{Raport z testów to raport z testów; ta sama awaria
+wypisuje wszędzie to samo.}{pytest raportuje na serwerze build\-owym
+inaczej, i to celowo: kilka miejsc pyta, czy ustawione jest \code{CI} albo
+\code{BUILD\_NUMBER}, i wtedy różnica sekwencji jest wypisywana w całości, a
+długie wyjście nie jest ucinane. Transkrypt, plik wzorcowy albo zrzut
+ekranu z awarii jest twierdzeniem o jednej z dwóch maszyn.
+Rozdział~\ref{ch:testing}.}
+
+\trapentry{53}{\api{logging.basicConfig} i gotowe.}{Konfiguracja modułu
+standardowego jest globalna i wrażliwa na kolejność importów, a drugie
+wywołanie jest cichym brakiem działania. To jest powód, dla którego istnieje
+structlog. Rozdział~\ref{ch:observability}.}
+
+\trapentry{54}{Identyfikator korelacji w polu statycznym, jak
+\code{AsyncLocal}.}{\api{contextvars} to \code{AsyncLocal}. Zmienna na
+poziomie modułu jest współdzielona przez każde żądanie na pętli.
+Rozdział~\ref{ch:observability}.}
+
+\trapentry{55}{\code{FROM python} i \code{pip install} w
+Dockerfile'u.}{Wieloetapowo, z \code{uv sync --frozen --no-dev},
+użytkownikiem bez roota i dwiema zmiennymi środowiskowymi.
+Rozdział~\ref{ch:observability}.}
+
+\section{Część V \dash{} Python do pracy z AI}
+\label{sec:appB-part5}
+
+\trapentry{56}{SDK jest magią.}{Każdy SDK do AI to model pydantica,
+klient httpx i iterator strumieniowy. Przeczytaj zainstalowany, przypięty
+pakiet. Rozdział~\ref{ch:aitoolkit}.}
+
+\trapentry{57}{\code{model\_validate\_json} to
+\code{JsonSerializer.Deserialize}.}{Tryb luźny konwertuje tam, gdzie
+\code{System.Text.Json} odmawia; tryb ścisły jest tym, czego oczekuje
+inżynier C\#, a E8 wycenia oba \dash{} na nic.
+Rozdział~\ref{ch:aitoolkit}.}
+
+\trapentry{58}{Notatnik jest tam, gdzie dzieje się Python.}{Notatnik to
+REPL z pamięcią każdej komórki, którą uruchomiłeś w dowolnej kolejności.
+Nic w tej książce nim nie jest, a rozdział~\ref{ch:aitoolkit} mówi, kiedy
+jest właściwy.}
+
+\trapentry{220}{SDK używa \pkg{httpx}, który przypiąłem.}{Oba SDK zależą
+od dystrybucji \pkg{httpx2}, a nie od \pkg{httpx}, więc sprawdzenie
+\api{isinstance} względem tej, którą przypiąłeś, daje \code{False} na
+kliencie, który jest oczywiście klientem httpx. Z dwóch SDK jeden odmawia
+niedopasowanego klienta, a drugi go przyjmuje.
+Rozdział~\ref{ch:aitoolkit}.}
+
+\trapentry{59}{Asercja na śladzie potrzebuje modelu, żeby ją
+ocenić.}{Pierwsza warstwa instrumentu, który ta książka portuje, jest
+deterministyczna: działa bez modelu, i właśnie dlatego może działać w CI.
+Rozdział~\ref{ch:traceassert}.}

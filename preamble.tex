@@ -73,6 +73,23 @@
 % meant to be pasted into an editor, this line is load-bearing.
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 
+% And upquote's twin, for the same reason one character over. In T1 the pair
+% -- is a ligature for an en dash, in EVERY family including the typewriter
+% one, so \code{uv sync --locked} sets as "uv sync <en dash>locked" and a
+% reader who copies it off the page gets an unknown-argument error from a
+% command the chapter told them to run. It is invisible in review because it
+% looks like a dash, and it bites exactly the flags a packaging chapter is
+% made of. A `listings` body is already safe -- listings sets characters
+% singly and no ligature forms -- which is what makes the defect so easy to
+% miss: the same text is right inside a listing and wrong in the sentence
+% above it.
+%
+% Scoped to tt* on purpose, and measured rather than assumed: prose keeps its
+% own dashes, so \dash{} still sets an em dash and a range like 1--2 still
+% sets an en dash. Probed against this preamble in all three positions before
+% it was believed.
+\DisableLigatures[-]{encoding = T1, family = tt*}
+
 % ---------- Language ----------
 % Loading babel with a language whose .ldf is absent is a *fatal* error, not
 % a warning, so both the package and each language file are probed before
@@ -332,6 +349,33 @@
 % form the reader opens in the editor beside the PDF. That is the whole point
 % of a listing being a file, and the front matter promises it. The \nobreak
 % keeps the path on the same page as the listing it names.
+% ---------------------------------------------------------------------------
+%  Appendix B prints the trap catalogue from notes/02-traps.md. One entry is
+%  its number -- which a chapter may cite, and which is never reused -- the
+%  habit in the reader's own voice, and what Python does instead.
+%
+%  The body is set RAGGED RIGHT on purpose. An entry is mostly \code{} spans,
+%  which are unbreakable runs, and sixty-seven justified paragraphs of them
+%  is sixty-seven chances at an overfull hbox in the edition with the longer
+%  words. Ragged right removes the class rather than fixing it one box at a
+%  time, and a reference list is the one place in this book where it reads
+%  better anyway.
+%
+%  The habit is set with \enquote{} rather than \emph{}, and that is not a
+%  style choice. Every habit here carries \code{} spans, and \code{} inside
+%  \emph{} asks inconsolata for an italic it does not have: the first build
+%  of this appendix raised `Font shape T1/zi4/m/it undefined', which
+%  checklog.py is hard on for exactly this reason. It is the trap CLAUDE.md
+%  records, met sixty-seven times at once -- and fixed once, because the
+%  entries go through a macro. A quotation is also what the habit IS, and
+%  \enquote{} is what the Polish edition owes anyway.
+\newcommand{\trapentry}[3]{%
+  \par\medskip
+  \noindent\textbf{#1.}\enspace\enquote{#2}\par
+  \nopagebreak
+  {\raggedright\noindent#3\par}%
+}
+
 \newcommand{\listingpath}[1]{%
   \par\medskip\noindent
   {\ttfamily\footnotesize\color{mgrey}\detokenize{#1}}%
@@ -535,6 +579,18 @@
 \makeatother
 
 \newcommand{\mermaidfig}[3]{%
+  % \phantomsection is load-bearing and not decoration. \addcontentsline
+  % records hyperref's CURRENT anchor, and here that is whatever preceded
+  % the figure -- for a figure placed after a listing it is the listing's
+  % line-number anchor, and listings has already advanced the counter past
+  % the last line it printed, so the manifest entry linked to a
+  % destination that is never created: "name{lstnumber.10.4.46} has been
+  % referenced but does not exist, replaced by a fixed one". The two
+  % front-matter figures had the same wrong target and were silent about
+  % it, because the lines they named happen to be printed. The exercise
+  % manifest never had the bug, because \begin{exercise} steps a counter
+  % and that is what sets the anchor.
+  \phantomsection%
   \addcontentsline{dgm}{subsection}{\protect\numberline{}\texttt{#1.mmd} --- #3}%
   \IfFileExists{figures/diagrams/\booklang/#1.pdf}{%
     \begin{figure}[htbp]
@@ -655,6 +711,7 @@
 \newcommand{\pyver}{3.14}              % the minor the book targets
 \newcommand{\pypatch}{3.14.7}          % the exact interpreter the code ran on
 \newcommand{\uvver}{0.12.13}           % uv
+\newcommand{\dotnetver}{10.0.100}      % dotnet
 \newcommand{\ruffver}{0.16.7}          % ruff
 \newcommand{\pyrightver}{1.1.414}      % pyright
 \newcommand{\mypyver}{2.3.1}           % mypy
@@ -664,9 +721,11 @@
 \newcommand{\uvicornver}{0.53.0}       % uvicorn
 \newcommand{\sqlalchemyver}{2.0.52}    % sqlalchemy
 \newcommand{\alembicver}{1.20.0}       % alembic
+\newcommand{\aiosqlitever}{0.22.1}     % aiosqlite
 \newcommand{\pytestver}{9.1.1}         % pytest
 \newcommand{\pytestasyncver}{1.4.0}    % pytest-asyncio
 \newcommand{\hypothesisver}{6.168.0}   % hypothesis
+\newcommand{\coveragever}{7.16.1}      % coverage
 \newcommand{\httpxver}{0.28.1}         % httpx
 \newcommand{\structlogver}{26.1.0}     % structlog
 \newcommand{\otelver}{1.44.0}          % opentelemetry-sdk

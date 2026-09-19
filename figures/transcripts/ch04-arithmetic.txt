@@ -1,0 +1,11 @@
+    a, b     a / b   a // b    fmod   a % b
+   7,  2       3.5        3     1.0       1
+  -7,  2      -3.5       -4    -1.0       1
+   7, -2      -3.5       -4     1.0      -1
+
+C# would give -3 for -7 / 2; Python's // gives -4, because it
+floors rather than truncating. int(-7 / 2) is the C# answer.
+int(-7 / 2)  -3     -7 // 2  -4
+
+0.1 + 0.2 == 0.3          False
+math.isclose(...)         True

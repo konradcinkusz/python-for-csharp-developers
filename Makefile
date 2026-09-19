@@ -1,4 +1,4 @@
-.PHONY: all en pl check numbers verify diagrams diagrams-clean code starters \
+.PHONY: all en pl check numbers verify diagrams diagrams-clean code starters csharp \
         stubs stubs-check listings exercises transcripts lines pins words csbox \
         translate shots debt site watch-en watch-pl clean
 
@@ -8,6 +8,7 @@
 LANGS := en pl
 
 UV ?= uv
+DOTNET ?= dotnet
 MMD_SRC := $(wildcard figures/mermaid/en/*.mmd) $(wildcard figures/mermaid/pl/*.mmd)
 MMD_PDF := $(patsubst figures/mermaid/%.mmd,figures/diagrams/%.pdf,$(MMD_SRC))
 
@@ -46,6 +47,8 @@ check:
 	@python3 tools/check_structure.py --lines
 	@python3 tools/check_structure.py --pins
 	@python3 tools/check_structure.py --words
+	@python3 tools/check_structure.py --traps
+	@python3 tools/gen_site.py --check
 	@python3 tools/checklog.py main-en.log main-pl.log
 	@# reflist needs both aux trees, so it is skipped -- and says so -- on a
 	@# tree without a build, and is a hard failure on one with a build.
@@ -85,6 +88,12 @@ code:
 # a strict expected failure under this variable, so an unexpected pass fails.
 starters:
 	cd code && PYBOOK_STARTERS=fail $(UV) run pytest exercises
+
+# The C# half of Appendix D, and the C# claims the chapters make. Warnings
+# are errors: a claim that compiles with a warning is a claim half made. The
+# SDK version comes from code/csharp/global.json and nowhere else.
+csharp:
+	cd code/csharp && $(DOTNET) test --nologo
 
 # ---------------------------------------------------------------------------
 # Numbers. Every measured value and every quoted program output is produced
@@ -173,6 +182,9 @@ words:
 	@python3 tools/check_structure.py --words --soft
 
 csbox:
+	@echo ""
+	@echo "== Traps against the catalogue =="
+	@python3 tools/check_structure.py --traps
 	@python3 tools/check_structure.py --csbox
 
 translate:
@@ -201,10 +213,12 @@ debt:
 	@echo; echo "== Polish/English parity =="    ; $(MAKE) -s translate
 	@echo; echo "== Unverified listings, diagrams =="; $(MAKE) -s shots
 
-# Assemble locally exactly what CI publishes to Pages.
+# Assemble locally exactly what CI publishes to Pages. gen_site.py renders
+# docs/index.html.in -- the one-pager's counts come from the ledger file and
+# its contents from tools/chapters.json, so the page cannot describe a
+# different book from the two PDFs beside it.
 site: en pl
-	@rm -rf _site && mkdir -p _site
-	@cp -r docs/. _site/
+	@python3 tools/gen_site.py _site
 	@cp main-en.pdf "_site/Python-for-dotNET-Engineers.pdf"
 	@cp main-pl.pdf "_site/Python-dla-inzynierow-dotNET.pdf"
 	@cp main-en.pdf _site/book-en.pdf
