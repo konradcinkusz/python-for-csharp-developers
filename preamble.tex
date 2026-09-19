@@ -349,6 +349,33 @@
 % form the reader opens in the editor beside the PDF. That is the whole point
 % of a listing being a file, and the front matter promises it. The \nobreak
 % keeps the path on the same page as the listing it names.
+% ---------------------------------------------------------------------------
+%  Appendix B prints the trap catalogue from notes/02-traps.md. One entry is
+%  its number -- which a chapter may cite, and which is never reused -- the
+%  habit in the reader's own voice, and what Python does instead.
+%
+%  The body is set RAGGED RIGHT on purpose. An entry is mostly \code{} spans,
+%  which are unbreakable runs, and sixty-seven justified paragraphs of them
+%  is sixty-seven chances at an overfull hbox in the edition with the longer
+%  words. Ragged right removes the class rather than fixing it one box at a
+%  time, and a reference list is the one place in this book where it reads
+%  better anyway.
+%
+%  The habit is set with \enquote{} rather than \emph{}, and that is not a
+%  style choice. Every habit here carries \code{} spans, and \code{} inside
+%  \emph{} asks inconsolata for an italic it does not have: the first build
+%  of this appendix raised `Font shape T1/zi4/m/it undefined', which
+%  checklog.py is hard on for exactly this reason. It is the trap CLAUDE.md
+%  records, met sixty-seven times at once -- and fixed once, because the
+%  entries go through a macro. A quotation is also what the habit IS, and
+%  \enquote{} is what the Polish edition owes anyway.
+\newcommand{\trapentry}[3]{%
+  \par\medskip
+  \noindent\textbf{#1.}\enspace\enquote{#2}\par
+  \nopagebreak
+  {\raggedright\noindent#3\par}%
+}
+
 \newcommand{\listingpath}[1]{%
   \par\medskip\noindent
   {\ttfamily\footnotesize\color{mgrey}\detokenize{#1}}%

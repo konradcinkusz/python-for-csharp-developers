@@ -319,18 +319,68 @@ def check_csbox(soft: bool) -> int:
     return 0
 
 
+def check_traps(soft: bool) -> int:
+    """Appendix B against notes/02-traps.md, which is the authority.
+
+    Three things nothing else can see. The catalogue must carry no
+    duplicate number, because an entry is cited BY number and a collision
+    breaks the one thing the numbering exists for -- six parallel branches
+    produced three collisions before this check existed. Both editions'
+    Appendix B must print exactly the catalogue's entries, so a trap added
+    to the notes and not to the book, or dropped from one edition, fails
+    here rather than reaching a reader. And every entry must name a
+    chapter, because an entry no chapter elicits is a defect in the
+    catalogue rather than a fact about the book.
+
+    Numbers are language-independent, which is what lets one check cover
+    both editions; parity compares the prose around them.
+    """
+    notes = (ROOT / "notes" / "02-traps.md").read_text(encoding="utf8")
+    rows = re.findall(r"^\| (\d+) \|(.*)$", notes, flags=re.M)
+    problems = []
+
+    seen: dict[str, int] = {}
+    for num, _ in rows:
+        seen[num] = seen.get(num, 0) + 1
+    for num, n in sorted(seen.items(), key=lambda kv: int(kv[0])):
+        if n > 1:
+            problems.append(f"notes/02-traps.md: entry {num} appears {n} times; "
+                            f"a number is cited and is never reused")
+
+    for num, body in rows:
+        if not re.search(r"\bCh\. \d+", body):
+            problems.append(f"notes/02-traps.md: entry {num} names no chapter")
+
+    catalogue = {n for n, _ in rows}
+    for lang in LANGS:
+        src = (ROOT / "appendices" / lang / "appB-traps.tex")
+        if not src.exists() or not written(src.read_text(encoding="utf8")):
+            continue
+        printed = set(re.findall(r"\\trapentry\{(\d+)\}",
+                                 src.read_text(encoding="utf8")))
+        for num in sorted(catalogue - printed, key=int):
+            problems.append(f"appendices/{lang}/appB-traps.tex: entry {num} is in "
+                            f"the catalogue and not in the appendix")
+        for num in sorted(printed - catalogue, key=int):
+            problems.append(f"appendices/{lang}/appB-traps.tex: entry {num} is in "
+                            f"the appendix and not in the catalogue")
+    return result("traps", problems, soft,
+                  f"{len(catalogue)} trap entries, each numbered once and naming a "
+                  f"chapter, and every one printed in both editions")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     for name in ("stubs", "listings", "exercises", "transcripts", "lines", "pins",
-                 "words", "csbox", "all"):
+                 "words", "csbox", "traps", "all"):
         ap.add_argument(f"--{name}", action="store_true")
     ap.add_argument("--soft", action="store_true", help="report instead of failing")
     a = ap.parse_args()
     checks = {
         "stubs": check_stubs, "listings": check_listings, "exercises": check_exercises,
         "transcripts": check_transcripts, "lines": check_lines, "pins": check_pins,
-        "words": check_words, "csbox": check_csbox,
+        "words": check_words, "csbox": check_csbox, "traps": check_traps,
     }
     chosen = [k for k in checks if getattr(a, k)] or (list(checks) if a.all else [])
     if not chosen:

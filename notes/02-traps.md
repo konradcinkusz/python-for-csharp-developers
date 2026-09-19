@@ -22,22 +22,55 @@ and never reused; a retired entry keeps its number and says why. An owner
 reading `Ch. N §N.M, delivered` names the section that elicits the trap in
 the written chapter; an owner reading a bare `Ch. N` is still a promise.
 
-> **The numbering in the high fifties and sixties has collided and must be
-> swept in one pass, from a branch that is the only one open.** Chapters 5,
-> 8, 9, 11, 13 and 14 each allocated from this range while none of them
-> could see the others, which is the parallel-append class the Chapter 8
-> pass recorded for this exact file: git merges different *rows* of one
-> table without a conflict, so no session's copy is wrong until somebody
-> merges. **A branch cannot fix it by renumbering**, and two have tried:
-> each picks the next free number from a maximum that is already stale, and
-> lands on a row another branch allocated an hour earlier. It reaches
-> nobody today — Appendix B is a stub — and the check is
+**The numbering, and how to add an entry without breaking it.**
+
+Entries 1 to 59 are the first tier, allocated in chapter order with no gaps:
+Ch. 1 has 1--4, Ch. 2 has 5--7, and so on to Ch. 14's 59. That tier is full
+and closed. **Do not append to it and do not allocate from the running
+maximum**, which is what produced the collision this file carried for a
+week: six branches, none able to see the others, each took "the next free
+number" from a maximum that was already stale, and git merged different
+rows of one table without a conflict, so no session's copy was wrong until
+somebody merged. Two branches then tried to sweep it and each created a new
+collision, for the same reason.
+
+**The second tier is blocked per chapter, with room, and that is what makes
+the next collision impossible rather than merely unlikely.** Chapter N owns
+`100 + 10 * (N - 1)` through `+9`:
+
+    Ch. 1   100-109      Ch. 6   150-159      Ch. 11  200-209
+    Ch. 2   110-119      Ch. 7   160-169      Ch. 12  210-219
+    Ch. 3   120-129      Ch. 8   170-179      Ch. 13  220-229
+    Ch. 4   130-139      Ch. 9   180-189      Ch. 14  230-239
+    Ch. 5   140-149      Ch. 10  190-199
+
+(Indented rather than tabulated on purpose: a markdown table whose first
+cell is a bare number is indistinguishable from an entry row to the
+`uniq -d` check below, which is how the first draft of this paragraph made
+the check report five duplicates that were its own documentation.)
+
+So a pass adding a trap takes the next free number **in its own chapter's
+block**, which no other chapter's pass can be holding. A branch never has
+to know what any other branch did.
+
+> **Swept September 2026**, from the only branch then open, which is the
+> condition the previous note said the fix needed. Seven rows moved out of
+> the collided 60--63 range into their chapters' blocks: Ch. 5's pattern
+> capture to 140, Ch. 8's re-awaited coroutine to 170, Ch. 9's three to
+> 180--182, Ch. 11's to 200 and Ch. 13's to 220. Numbers are never reused,
+> so 60--63 stay empty.
+>
+> Two neighbouring defects went with it, both found by writing Appendix B
+> from this file. **`31a` became 150**: it was Chapter 6's, written with a
+> letter because 25--31 was full, and a non-integer is invisible to the
+> duplicate check above — the same out-of-band allocation the sweep
+> exists for, in a costume the check could not see. And **entry 200 moved
+> from Part V to Part IV**, because it is Chapter 11's and Chapter 11 is a
+> Part IV chapter; it had been appended to the end of the file rather than
+> to its own part. Every citation of a moved number in `CLAUDE.md` was
+> updated with it. The check is
 > `grep -oE '^\| [0-9]+ \|' notes/02-traps.md | grep -oE '[0-9]+' |
-> sort -n | uniq -d`, which should print nothing and currently does not.
-> **Whoever sweeps it should allocate a block per owning chapter rather
-> than from a running maximum**, which is what makes the next collision
-> impossible rather than merely unlikely, and should correct the pass notes
-> in `CLAUDE.md` that cite a number they move.
+> sort -n | uniq -d`, which prints nothing.
 
 ## Part I — Runtime and toolchain
 
@@ -79,12 +112,12 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 | 29 | A method's hint tells me what it raises | Nothing in the type system carries exceptions; a docstring does, nothing verifies it, and Python has no checked exceptions — nor does C#, so what transfers badly is the tooling around them rather than the language | Ch. 6 §6.3, delivered |
 | 30 | `KeyError` means something went wrong | `KeyError`, `StopIteration` and `AttributeError` are protocol: a `dict` lookup, an iterator's end and `getattr` all speak through them | Ch. 6 §6.2, delivered |
 | 31 | Truthiness is `bool`, like C# | Empty containers, zero, `None` and empty strings are false; `if items:` is idiomatic and `if items is not None:` is a different question | Ch. 6 §6.2, delivered |
-| 31a | An exception class is a `FooException` | Python's suffix is `Error`, and ruff's N818 reports a class without it. `JobUnavailable` fails the lint until it is `JobUnavailableError` | Ch. 6 §6.3, delivered |
+| 150 | An exception class is a `FooException` | Python's suffix is `Error`, and ruff's N818 reports a class without it. `JobUnavailable` fails the lint until it is `JobUnavailableError` | Ch. 6 §6.3, delivered |
 | 32 | A module is a namespace; importing it is free and pure | A module is an object that runs once, top to bottom; a side effect at import runs for every importer, and a circular import is two modules half-run | Ch. 7 §7.1, delivered |
 | 33 | `from x import *` is `using x;` | It copies every public name into the importing module and hides where anything came from; `import x` and `from x import name` | Ch. 7 §7.2, delivered |
 | 34 | I can name a variable `list`, `id` or `type` | It shadows the builtin for the rest of the scope, and the failure arrives three functions later | Ch. 7 §7.2, delivered, at module level as well as at name level |
 | 35 | I need a DI container | A composition root is a function; `functools.partial` and a `Protocol` do what the container did, and FastAPI's `Depends` is the one container most readers will meet | Ch. 7 §7.5, delivered |
-| 61 | `case ACTIVE:` compares against the constant, as a `switch` arm does | A bare name in a pattern **captures**: it binds every subject to `ACTIVE` and the arm always matches. The compiler refuses it when another case follows (`SyntaxError: name capture 'ACTIVE' makes remaining patterns unreachable`), so it compiles in silence only as the last case — which is where it survives review. Use a dotted name, `Colour.ACTIVE`, or a guard | Ch. 5 §5.8, delivered |
+| 140 | `case ACTIVE:` compares against the constant, as a `switch` arm does | A bare name in a pattern **captures**: it binds every subject to `ACTIVE` and the arm always matches. The compiler refuses it when another case follows (`SyntaxError: name capture 'ACTIVE' makes remaining patterns unreachable`), so it compiles in silence only as the last case — which is where it survives review. Use a dotted name, `Colour.ACTIVE`, or a guard | Ch. 5 §5.8, delivered |
 
 ## Part III — Concurrency
 
@@ -96,7 +129,7 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 | 39 | `gather` is `WhenAll` | `gather` orphans its siblings when one fails; `TaskGroup` cancels them. The two are identical on speed, so the choice is only ever about failure semantics | Ch. 8 §8.4, delivered |
 | 40 | Cancellation is a token I poll, so catching `Exception` is how I lose it | Backwards in both halves. It is `CancelledError`, delivered at an `await` -- and it inherits from `BaseException`, so `except Exception` is the clause that lets it THROUGH. What swallows it is a bare `except:`, `except BaseException:`, or an `except asyncio.CancelledError` block with no `raise` under it | Ch. 8 §8.5, delivered |
 | 41 | `HttpClient` is a singleton, so `httpx.AsyncClient` is too | The lifetime advice carries -- construct it once, share it, close it -- and the defaults do not: a default `AsyncClient` already has a five-second deadline, applied separately to connect, read, write and pool rather than to the request as a whole | Ch. 8 §8.6, delivered |
-| 60 | A `Task` can be awaited twice, so a coroutine can | A `Task` is a handle on work already running and hands out its result as often as you ask; a coroutine IS the work, and awaiting it a second time raises `RuntimeError: cannot reuse already awaited coroutine`. Out of block because numbers are never reused | Ch. 8 §8.2, delivered |
+| 170 | A `Task` can be awaited twice, so a coroutine can | A `Task` is a handle on work already running and hands out its result as often as you ask; a coroutine IS the work, and awaiting it a second time raises `RuntimeError: cannot reuse already awaited coroutine`. Out of block because numbers are never reused | Ch. 8 §8.2, delivered |
 
 ## Part IV — Shipping
 
@@ -116,6 +149,7 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 | 53 | `logging.basicConfig` and I am done | The standard module's configuration is global, import-order-sensitive and the reason structlog exists | Ch. 12 §12.1, delivered — the second `basicConfig` call is a silent no-op, elicited before it is named |
 | 54 | Correlation id in a static field, like `AsyncLocal` | `contextvars` is `AsyncLocal`; a module-level variable is shared by every request on the loop | Ch. 12 §12.3, delivered — two concurrent handlers, and the module-level column reports the same name twice |
 | 55 | `FROM python:3.14` and `pip install` in the Dockerfile | Multi-stage with `uv sync --frozen --no-dev`, a non-root user, and the two environment variables | Ch. 12 §12.5, delivered — the three shapes side by side. E7 would measure them and has not run: see `notes/01-curriculum.md` §4 |
+| 200 | A test report is a test report; the same failure prints the same thing everywhere | pytest reports differently on a build server on purpose: `running_on_ci()` is true when `CI` or `BUILD_NUMBER` is set, and a sequence diff is then printed in full and long output is not truncated. A transcript, a golden file or a screenshot of a failure is a claim about one of the two | Ch. 11 — **delivered**, §11.1 |
 
 ### Found while writing Chapter 9
 
@@ -125,9 +159,9 @@ against the installed package at the pinned version, not remembered.
 
 | # | The habit, in the reader's voice | What Python does | Owner |
 |---|---|---|---|
-| 60 | Middleware runs in the order I registered it, so the first one is the outer one | The last one registered is the outermost: starlette's `add_middleware` does `user_middleware.insert(0, ...)`, so every registration goes on the front of the stack. Nothing warns, and the two orders differ only when something depends on the sequence | Ch. 9 — **delivered**, §9.4 |
-| 61 | `Field(alias=...)` is `JsonPropertyName`: it renames the field on the wire | It renames it on the way IN as well, so the model can no longer be constructed by field name and a type checker says so before the test does. `serialization_alias` is the output-only one. A model whose input and output differ gets two OpenAPI schemas, `-Input` and `-Output`, where Swashbuckle emits one | Ch. 9 — **delivered**, §9.3 |
-| 62 | `--workers 4` spreads my traffic over four processes | Workers share one listening socket and the worker that is in `accept()` first keeps the connection for its whole life, so balancing happens per CONNECTION rather than per request. Measured in E5: of the keep-alive connections opened at once, most landed on a single worker and one worker got none. The figures are the chapter's | Ch. 9 — **delivered**, §9.7 |
+| 180 | Middleware runs in the order I registered it, so the first one is the outer one | The last one registered is the outermost: starlette's `add_middleware` does `user_middleware.insert(0, ...)`, so every registration goes on the front of the stack. Nothing warns, and the two orders differ only when something depends on the sequence | Ch. 9 — **delivered**, §9.4 |
+| 181 | `Field(alias=...)` is `JsonPropertyName`: it renames the field on the wire | It renames it on the way IN as well, so the model can no longer be constructed by field name and a type checker says so before the test does. `serialization_alias` is the output-only one. A model whose input and output differ gets two OpenAPI schemas, `-Input` and `-Output`, where Swashbuckle emits one | Ch. 9 — **delivered**, §9.3 |
+| 182 | `--workers 4` spreads my traffic over four processes | Workers share one listening socket and the worker that is in `accept()` first keeps the connection for its whole life, so balancing happens per CONNECTION rather than per request. Measured in E5: of the keep-alive connections opened at once, most landed on a single worker and one worker got none. The figures are the chapter's | Ch. 9 — **delivered**, §9.7 |
 
 ## Part V — Python for AI work
 
@@ -136,9 +170,8 @@ against the installed package at the pinned version, not remembered.
 | 56 | The SDK is magic | Every AI SDK is a pydantic model, an httpx client and a streaming iterator; read the installed, pinned package | Ch. 13, **delivered** §13.1 and §13.5 |
 | 57 | `model_validate_json` is `JsonSerializer.Deserialize` | Lax mode coerces where `System.Text.Json` refuses; strict mode is what a C# engineer expects, and E8 prices both | Ch. 13, **delivered** §13.3, priced §13.4 |
 | 58 | A notebook is where Python happens | A notebook is a REPL with a memory of every cell you ran in any order; nothing in this book is one, and Chapter 13 says when one is right | Ch. 13, **delivered** §13.7 |
-| 62 | The SDK uses the `httpx` I pinned | Both SDKs depend on the `httpx2` distribution, not `httpx`: `isinstance(c._client, httpx.Client)` is False, and of the two SDKs one refuses a mismatched client and the other accepts it | Ch. 13, **delivered** §13.5 |
+| 220 | The SDK uses the `httpx` I pinned | Both SDKs depend on the `httpx2` distribution, not `httpx`: `isinstance(c._client, httpx.Client)` is False, and of the two SDKs one refuses a mismatched client and the other accepts it | Ch. 13, **delivered** §13.5 |
 | 59 | A trace assertion needs a model to evaluate | The first layer of agent-eval-bench is deterministic; it runs with no model, which is why it can run in CI | Ch. 14, **delivered** in section 14.1, elicited before it is named |
-| 63 | A test report is a test report; the same failure prints the same thing everywhere | pytest reports differently on a build server on purpose: `running_on_ci()` is true when `CI` or `BUILD_NUMBER` is set, and a sequence diff is then printed in full and long output is not truncated. A transcript, a golden file or a screenshot of a failure is a claim about one of the two | Ch. 11 — **delivered**, §11.1 |
 
 ## Retired
 
