@@ -1,21 +1,228 @@
-%% appA --- Ściągawka C\# do Pythona
+%% appA --- Sciagawka C# do Pythona
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie zalążkowego bloku (tego, który zaczyna się po
-%% linii \chapter) i zastąpienie go rozdziałem -- po czym ten plik nie jest
-%% już generowany.
+%% Napisany we wrzesniu 2026. Jedna tabela na czesc ksiazki. Kazdy wiersz
+%% nazywa rozdzial, ktory go UCZY, przez \ref zamiast wpisanego numeru, a
+%% tools/check_structure.py --cheatsheet oblewa, gdy wiersz wskazuje na
+%% etykiete, ktorej nie ma, albo na rozdzial, ktory jest wciaz zaslepka.
+%% Wiersz, ktorego nic nie uczy, jest wada tego dodatku, a nie faktem o
+%% ksiazce.
 
 \chapter{Ściągawka C\# do Pythona}
 \label{app:cheatsheet}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\noindent
+Wszystko tutaj jest gdzieś w książce nauczane, a ostatnia kolumna mówi
+gdzie. To właśnie jest sens tej kolumny: wiersz jest twierdzeniem o
+rozdziale, a wiersz, którego żaden rozdział nie uczy, jest wadą tego
+dodatku, a nie luką w twojej wiedzy.
 
-One table per part of the book, C\# on the left and Python on the right, and
-every row names the chapter that teaches it \dash{} so a row can be checked
-against the book and a row nothing teaches is a defect. It is written by
-hand and it is therefore a claim about the book on every line; the ledger
-that checks its chapter references against the chapters is owed before v1.0.
-}
+Czytaj dwie środkowe kolumny jako tłumaczenie, a nie jako równoważność.
+Kilka wierszy odwzorowuje się czysto; kilka odwzorowuje się z różnicą,
+która coś kosztuje, i to na nie rozdział poświęca swoje strony. Tam, gdzie
+wiersz sam z siebie wprowadzałby w błąd, mówi o tym w kolumnie Pythona.
+
+\section{Część I \dash{} Środowisko uruchomieniowe i narzędzia}
+\label{sec:appA-part1}
+
+\begin{cheatsheet}{C\#}{Python}{Rozdz.}
+CLR, JIT do kodu natywnego & CPython, kod bajtowy w
+  \code{\_\_pycache\_\_}; brak JIT-a, na którym można polegać &
+  \ref{ch:runtime} \\
+IL, \code{ildasm} & kod bajtowy, \api{dis.dis} na funkcji &
+  \ref{ch:runtime} \\
+wątki skalują pracę procesora & nie skalują: blokada serializuje kod
+  bajtowy. Skalują pracę I/O & \ref{ch:runtime} \\
+\code{static void Main} & \code{if \_\_name\_\_ == "\_\_main\_\_"} &
+  \ref{ch:runtime} \\
+\code{Parallel.For} & \api{multiprocessing} albo budowa wolnowątkowa &
+  \ref{ch:runtime} \\
+NuGet & PyPI, a do rozmowy z nim \pkg{uv} & \ref{ch:packaging} \\
+\code{packages.lock.json} & \code{uv.lock}, commitowany &
+  \ref{ch:packaging} \\
+\code{dotnet restore} & \code{uv sync --locked} & \ref{ch:packaging} \\
+\code{.csproj} & \code{pyproject.toml} & \ref{ch:packaging} \\
+\code{dotnet run} & \code{uv run}, które rozwiązuje środowisko na każde
+  wywołanie & \ref{ch:packaging} \\
+narzędzie globalne & środowisko na projekt; nie ma dobrej instalacji
+  globalnej & \ref{ch:packaging} \\
+kompilator sprawdza typy & checker sprawdza, jeśli go zaprosisz: pyright
+  albo mypy & \ref{ch:typing} \\
+\code{int?}, \code{string?} & \code{int | None}, \code{str | None} &
+  \ref{ch:typing} \\
+\code{List<int>}, \code{Dictionary<K,V>} & \code{list[int]},
+  \code{dict[K, V]} & \ref{ch:typing} \\
+interfejs & \code{Protocol}, spełniany strukturalnie, bez żadnej
+  deklaracji & \ref{ch:typing} \\
+\code{where T : IComparable} & ograniczenie na parametrze typu, składnia
+  PEP~695 & \ref{ch:typing} \\
+\code{dynamic} & \code{Any} \dash{} ale propaguje się i ucisza checker
+  dalej w łańcuchu & \ref{ch:typing} \\
+wzorzec \code{is T t} & \api{isinstance}, a \code{TypeIs}, żeby powiedzieć
+  to checkerowi & \ref{ch:typing} \\
+\end{cheatsheet}
+
+\section{Część II \dash{} Język, odwzorowany}
+\label{sec:appA-part2}
+
+\begin{cheatsheet}{C\#}{Python}{Rozdz.}
+\code{Equals} + \code{GetHashCode} & \code{\_\_eq\_\_} +
+  \code{\_\_hash\_\_}, a pominięcie drugiej usuwa hashowanie &
+  \ref{ch:objects} \\
+\code{ToString()} & \code{\_\_repr\_\_}, a opcjonalnie
+  \code{\_\_str\_\_} & \ref{ch:objects} \\
+przeciążanie operatorów & \code{\_\_add\_\_}, \code{\_\_lt\_\_} i reszta,
+  żadna nie zadeklarowana & \ref{ch:objects} \\
+\code{IComparable} & \code{\_\_lt\_\_} albo \code{order=True} na
+  dataclassie & \ref{ch:objects} \\
+\code{record}, \code{with} & \code{@dataclass(frozen=True)},
+  \api{dataclasses.replace} & \ref{ch:objects} \\
+właściwość & \code{@property}, awansowane ze zwykłego atrybutu, gdy jest
+  potrzebne & \ref{ch:objects} \\
+indekser, \code{Count} & \code{\_\_getitem\_\_}, \code{\_\_len\_\_} &
+  \ref{ch:objects} \\
+\code{IEnumerable<T>} & \code{\_\_iter\_\_} & \ref{ch:objects} \\
+\code{enum}, \code{[Flags]} & \code{Enum}, \code{StrEnum}, \code{Flag} &
+  \ref{ch:objects} \\
+pole \code{static} & atrybut klasy \dash{} ale czytelny przez
+  \code{self}, i to jest pułapka & \ref{ch:objects} \\
+\code{struct} & \code{\_\_slots\_\_} jest najbliższą rzeczą i nie jest
+  typem wartościowym & \ref{ch:objects} \\
+\code{/} na dwóch \code{int}-ach & \code{//}, które zaokrągla w dół, a nie
+  obcina & \ref{ch:objects} \\
+\code{decimal} & \api{decimal.Decimal} & \ref{ch:objects} \\
+\code{Func<>}, delegat & funkcja z adnotacją
+  \code{Callable[[A], B]} & \ref{ch:functions} \\
+atrybut, który czyta framework & nic: dekorator \emph{działa} &
+  \ref{ch:functions} \\
+middleware wokół wywołania & dekorator & \ref{ch:functions} \\
+\code{params}, opcjonalne, nazwane & \code{*args}, wartości domyślne,
+  słowa kluczowe i znaczniki \code{/} oraz \code{*} & \ref{ch:functions} \\
+LINQ, odroczone i powtarzalne & wyrażenie listowe (zachłanne) albo
+  generatorowe (odroczone, jednoprzebiegowe) & \ref{ch:functions} \\
+\code{yield return} & \code{yield}, plus \code{send} i wartość zwracana &
+  \ref{ch:functions} \\
+\code{using} / \code{IDisposable} & \code{with} /
+  \api{contextlib.contextmanager} & \ref{ch:functions} \\
+wyrażenie \code{switch} & \code{match}, ze wzorcami sekwencji i mapowania &
+  \ref{ch:functions} \\
+\code{try} / \code{catch} / \code{finally} & \code{try} / \code{except} /
+  \code{finally} / \code{else} & \ref{ch:errors} \\
+\code{catch \{ \}} & najwyżej \code{except Exception:}; gołe
+  \code{except:} łapie też przerwanie & \ref{ch:errors} \\
+\code{throw;} & gołe \code{raise} & \ref{ch:errors} \\
+\code{throw new X(..., inner)} & \code{raise X(...) from err} &
+  \ref{ch:errors} \\
+\code{AggregateException} & \code{ExceptionGroup} i \code{except*} &
+  \ref{ch:errors} \\
+\code{FooException} & \code{FooError} \dash{} N818 w ruffie &
+  \ref{ch:errors} \\
+\code{TryGetValue} & proś o wybaczenie: \code{try} /
+  \code{except KeyError} & \ref{ch:errors} \\
+\code{using X;} & \code{import x} albo \code{from x import name}, nigdy
+  \code{import *} & \ref{ch:imports} \\
+zestaw (assembly) & pakiet; moduł to plik, który wykonuje się raz &
+  \ref{ch:imports} \\
+\code{internal} & wiodące podkreślenie, wyłącznie umownie &
+  \ref{ch:imports} \\
+\code{IServiceCollection} & korzeń kompozycji: funkcja,
+  \api{functools.partial} i \code{Protocol} & \ref{ch:imports} \\
+\code{Program.cs} & punkt wejścia \code{[project.scripts]}, który pisze
+  \code{uv init} & \ref{ch:imports} \\
+\end{cheatsheet}
+
+\section{Część III \dash{} Współbieżność}
+\label{sec:appA-part3}
+
+\begin{cheatsheet}{C\#}{Python}{Rozdz.}
+\code{Task} & korutyna \dash{} ale zimna: wywołanie jej nic nie
+  uruchamia & \ref{ch:asyncio} \\
+\code{Task.Run} & \api{asyncio.to\_thread} & \ref{ch:asyncio} \\
+\code{Task.WhenAll} & \api{asyncio.gather} albo \code{TaskGroup}, jeśli
+  chcesz anulowanego rodzeństwa & \ref{ch:asyncio} \\
+\code{CancellationToken} & \code{CancelledError}, dostarczany przy
+  \code{await}; nic nie jest odpytywane & \ref{ch:asyncio} \\
+\code{CancelAfter} & \api{asyncio.timeout} & \ref{ch:asyncio} \\
+\code{ConfigureAwait(false)} & nic: nie ma kontekstu synchronizacji &
+  \ref{ch:asyncio} \\
+\code{.Result}, \code{.Wait()} & nic bezpiecznego: blokujące wywołanie
+  zamraża całą pętlę & \ref{ch:asyncio} \\
+\code{SemaphoreSlim} & \api{asyncio.Semaphore} & \ref{ch:asyncio} \\
+\code{IAsyncEnumerable<T>} & \code{async for} po generatorze
+  asynchronicznym & \ref{ch:asyncio} \\
+\code{HttpClient} & \code{httpx.AsyncClient} \dash{} jedna instancja, i
+  ma już termin & \ref{ch:asyncio} \\
+pula wątków rośnie & domyślny executor ma sufit, i to niski &
+  \ref{ch:asyncio} \\
+\end{cheatsheet}
+
+\section{Część IV \dash{} Wdrażanie}
+\label{sec:appA-part4}
+
+\begin{cheatsheet}{C\#}{Python}{Rozdz.}
+ASP.NET Core & FastAPI na uvicornie & \ref{ch:services} \\
+kontroler & router i funkcja z dekoratorem & \ref{ch:services} \\
+wiązanie modelu & model pydantica w sygnaturze & \ref{ch:services} \\
+400 z \code{[ApiController]} & 422 niosące listę błędów pydantica &
+  \ref{ch:services} \\
+\code{IOptions<T>}, \code{appsettings.json} & \pkg{pydantic-settings} nad
+  środowiskiem i \code{.env} & \ref{ch:services} \\
+czasy życia DI & \code{Depends}, na żądanie; \code{yield} na zasięg;
+  lifespan na singletony & \ref{ch:services} \\
+middleware, pierwszy zarejestrowany jest zewnętrzny & ostatni
+  zarejestrowany jest zewnętrzny & \ref{ch:services} \\
+wątki Kestrela & workery uvicorna to procesy, równoważone na połączenie &
+  \ref{ch:services} \\
+\code{JsonPropertyName} & \code{serialization\_alias}; samo \code{alias}
+  zmienia też wejście & \ref{ch:services} \\
+Entity Framework & SQLAlchemy & \ref{ch:data} \\
+\code{DbContext} & \code{Session} \dash{} i wygasza twoje obiekty przy
+  commicie & \ref{ch:data} \\
+\code{DbSet<T>}, LINQ & \code{select(T).where(...)}, które nie przyjmuje
+  lambdy & \ref{ch:data} \\
+\code{Include} & \code{selectinload}, przeciw temu samemu N+1 &
+  \ref{ch:data} \\
+\code{Add-Migration} & \code{alembic revision --autogenerate}, które
+  musisz przeczytać & \ref{ch:data} \\
+\code{Update-Database} & \code{alembic upgrade head} & \ref{ch:data} \\
+DataTable & ramka \pkg{polars} & \ref{ch:data} \\
+xUnit & pytest & \ref{ch:testing} \\
+\code{[Fact]}, \code{[Theory]} & funkcja \code{test\_},
+  \code{@pytest.mark.parametrize} & \ref{ch:testing} \\
+\code{IClassFixture<T>} & funkcja fixture z zasięgiem &
+  \ref{ch:testing} \\
+Moq & \api{unittest.mock}, podmieniany tam, gdzie nazwa jest wyszukiwana &
+  \ref{ch:testing} \\
+\code{Assert.Equal} & zwykły \code{assert}, który pytest przepisuje, by
+  sam się tłumaczył & \ref{ch:testing} \\
+FluentAssertions & znowu zwykły \code{assert} & \ref{ch:testing} \\
+\code{ILogger<T>} & \pkg{structlog} nad standardowym modułem
+  \api{logging} & \ref{ch:observability} \\
+\code{AsyncLocal<T>} & \api{contextvars} & \ref{ch:observability} \\
+OpenTelemetry & OpenTelemetry i te same spany & \ref{ch:observability} \\
+zamykanie \code{IHostedService} & lifespan uvicorna, który domyślnie czeka
+  w nieskończoność & \ref{ch:observability} \\
+\code{dotnet publish}, obraz runtime'owy & wieloetapowy Dockerfile i
+  \code{uv sync --frozen --no-dev} & \ref{ch:observability} \\
+\code{dotnet list package -{}-vulnerable} & \code{pip-audit}, nad
+  \code{pylock.toml}, który eksportujesz & \ref{ch:observability} \\
+\end{cheatsheet}
+
+\section{Część V \dash{} Python do pracy z AI}
+\label{sec:appA-part5}
+
+\begin{cheatsheet}{C\#}{Python}{Rozdz.}
+klient SDK & model pydantica, klient httpx i iterator strumieniowy &
+  \ref{ch:aitoolkit} \\
+\code{JsonSerializer.Deserialize} & \code{model\_validate\_json}, i jest
+  szybsze niż wcześniejsze parsowanie & \ref{ch:aitoolkit} \\
+ścisły deserializator & \code{strict=True}, które nic nie kosztuje &
+  \ref{ch:aitoolkit} \\
+\code{IAsyncEnumerable} po strumieniu & \code{async for} po strumieniu
+  SDK & \ref{ch:aitoolkit} \\
+projekt konsolowy na brudno & notatnik, a książka mówi, kiedy jest
+  właściwy & \ref{ch:aitoolkit} \\
+xUnit nad nagranym śladem & \code{pytest} nad \code{Trace}, z dwunastoma
+  deterministycznymi asercjami & \ref{ch:traceassert} \\
+\code{dotnet pack}, \code{nuget push} & \code{uv build}, \code{uv
+  publish} z trusted publishing & \ref{ch:traceassert} \\
+\end{cheatsheet}

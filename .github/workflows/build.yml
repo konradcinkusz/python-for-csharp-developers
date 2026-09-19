@@ -172,6 +172,13 @@ jobs:
       # parallel branches broke three times before this check existed.
       - name: Appendix B prints every trap, once, in both editions
         run: python3 tools/check_structure.py --traps
+
+      # Appendix A's every row names the chapter that teaches it, which
+      # makes every row a claim about the book. This checks the half a
+      # machine can: the label exists and its chapter is written. Whether
+      # the row is TRUE of that chapter stays a reading job.
+      - name: Every cheat-sheet row names a chapter that exists
+        run: python3 tools/check_structure.py --cheatsheet
       - name: The Pages one-pager renders from the tree
         run: python3 tools/gen_site.py --check
 

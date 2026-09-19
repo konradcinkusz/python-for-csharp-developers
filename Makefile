@@ -1,4 +1,4 @@
-.PHONY: all en pl check numbers verify diagrams diagrams-clean code starters csharp \
+.PHONY: all en pl check numbers verify diagrams diagrams-clean code starters csharp cheatsheet \
         stubs stubs-check listings exercises transcripts lines pins words csbox \
         translate shots debt site watch-en watch-pl clean
 
@@ -48,6 +48,7 @@ check:
 	@python3 tools/check_structure.py --pins
 	@python3 tools/check_structure.py --words
 	@python3 tools/check_structure.py --traps
+	@python3 tools/check_structure.py --cheatsheet
 	@python3 tools/gen_site.py --check
 	@python3 tools/checklog.py main-en.log main-pl.log
 	@# reflist needs both aux trees, so it is skipped -- and says so -- on a
@@ -185,6 +186,9 @@ csbox:
 	@echo ""
 	@echo "== Traps against the catalogue =="
 	@python3 tools/check_structure.py --traps
+	@echo ""
+	@echo "== Cheat-sheet rows against the chapters =="
+	@python3 tools/check_structure.py --cheatsheet
 	@python3 tools/check_structure.py --csbox
 
 translate:

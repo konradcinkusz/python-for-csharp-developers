@@ -369,11 +369,58 @@ def check_traps(soft: bool) -> int:
                   f"chapter, and every one printed in both editions")
 
 
+def check_cheatsheet(soft: bool) -> int:
+    """Appendix A's chapter references against the chapters.
+
+    Every row of the cheat sheet names the chapter that teaches it, which
+    makes every row a claim about the book -- and an appendix is the class
+    of claim nothing else gates. This checks the half a machine can: that
+    each \\ref names a label some chapter actually defines, and that the
+    chapter is WRITTEN rather than still a stub, since a row pointing at a
+    stub promises something no reader can go and read.
+
+    The other half stays a reading job and cannot be automated: whether the
+    row is TRUE of that chapter. The count printed here is what the author
+    has to re-read, and it is printed for that reason.
+    """
+    labels: dict[str, str] = {}
+    for lang in LANGS:
+        for p in tex_files("chapters", lang):
+            src = p.read_text(encoding="utf8")
+            for lab in re.findall(r"\\label\{(ch:[^}]+)\}", RE_COMMENT.sub("", src)):
+                labels[lab] = p.stem
+    stubs = {p.stem for p in tex_files("chapters", "en")
+             if not written(p.read_text(encoding="utf8"))}
+
+    problems, rows = [], 0
+    for lang in LANGS:
+        src = ROOT / "appendices" / lang / "appA-cheatsheet.tex"
+        if not src.exists():
+            continue
+        text = RE_COMMENT.sub("", src.read_text(encoding="utf8"))
+        if not written(text):
+            continue
+        refs = re.findall(r"\\ref\{(ch:[^}]+)\}", text)
+        rows += len(refs)
+        for ref in refs:
+            if ref not in labels:
+                problems.append(f"appendices/{lang}/appA-cheatsheet.tex: a row "
+                                f"points at {ref}, which no chapter defines")
+            elif labels[ref] in stubs:
+                problems.append(f"appendices/{lang}/appA-cheatsheet.tex: a row "
+                                f"points at {ref}, whose chapter is still a stub")
+    return result("cheatsheet", problems, soft,
+                  f"{rows} cheat-sheet rows across both editions, every one naming a "
+                  f"chapter that exists and is written "
+                  f"({len(set(labels))} chapter labels); whether each row is TRUE of "
+                  f"its chapter is a reading job and is not checked here")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     for name in ("stubs", "listings", "exercises", "transcripts", "lines", "pins",
-                 "words", "csbox", "traps", "all"):
+                 "words", "csbox", "traps", "cheatsheet", "all"):
         ap.add_argument(f"--{name}", action="store_true")
     ap.add_argument("--soft", action="store_true", help="report instead of failing")
     a = ap.parse_args()
@@ -381,6 +428,7 @@ def main() -> int:
         "stubs": check_stubs, "listings": check_listings, "exercises": check_exercises,
         "transcripts": check_transcripts, "lines": check_lines, "pins": check_pins,
         "words": check_words, "csbox": check_csbox, "traps": check_traps,
+        "cheatsheet": check_cheatsheet,
     }
     chosen = [k for k in checks if getattr(a, k)] or (list(checks) if a.all else [])
     if not chosen:
