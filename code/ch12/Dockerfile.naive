@@ -1,0 +1,16 @@
+# Shape one: what the reflex writes. Kept because it is the baseline the
+# other two are measured against, not because it is worth copying.
+#
+# The full python image carries a compiler toolchain, a package manager
+# and the headers for both. pip resolves at build time, so the image
+# depends on whatever PyPI served that morning rather than on a lockfile.
+# The process runs as root. Nothing tells the interpreter it is talking
+# to a pipe rather than a terminal.
+FROM python:3.14
+
+WORKDIR /app
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+
+CMD ["python", "-m", "ops"]

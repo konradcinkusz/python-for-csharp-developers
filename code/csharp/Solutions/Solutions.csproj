@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Solutions</RootNamespace>
+    <!-- CS0659 is raised on purpose by Ch04Claims.EqualsOnly, which is the
+         claim being demonstrated rather than a defect to fix. -->
+    <NoWarn>$(NoWarn);CS0659</NoWarn>
+  </PropertyGroup>
+</Project>

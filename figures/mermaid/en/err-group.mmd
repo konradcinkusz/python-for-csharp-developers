@@ -1,0 +1,5 @@
+flowchart LR
+    A["<b>One raise</b><br/>an ExceptionGroup carrying<br/>every check that failed,<br/>not only the first"]
+    B["<b>Several handlers</b><br/>every except* clause that matches<br/>something in the group runs,<br/>which no catch block can do"]
+    C["<b>Whatever matched nothing</b><br/>keeps propagating, still a group<br/>and still carrying the message<br/>the raise gave it"]
+    A --> B --> C

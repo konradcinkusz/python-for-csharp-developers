@@ -1,0 +1,5 @@
+flowchart LR
+    A["Etap builder:<br/>uv, pyproject.toml, uv.lock,<br/>uv sync --frozen --no-dev"]
+    B["Co przechodzi dalej:<br/>/app/.venv i kod zrodlowy.<br/>Bez uv, bez locka, bez cache"]
+    C["Etap runtime:<br/>python:slim, uzytkownik<br/>nie-root po id, zmienne PYTHON*"]
+    A --> B --> C

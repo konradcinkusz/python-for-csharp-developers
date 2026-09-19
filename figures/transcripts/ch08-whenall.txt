@@ -1,0 +1,6 @@
+gather:
+  caller caught ValueError
+  sibling finished, long after the caller moved on
+TaskGroup:
+  sibling cancelled
+  caller caught ExceptionGroup containing ['ValueError']

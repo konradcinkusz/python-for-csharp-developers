@@ -1,0 +1,3 @@
+flowchart LR
+    C["task.cancel()<br/>zapisuje zadanie<br/>i natychmiast wraca"] --> A["przy nastepnym await korutyny<br/>zostaje w niej podniesiony<br/>CancelledError"]
+    A --> E["dziedziczy po BaseException,<br/>wiec przechodzi przez except Exception<br/>i zatrzymuje sie na except BaseException"]

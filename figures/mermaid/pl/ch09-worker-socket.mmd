@@ -1,0 +1,6 @@
+flowchart LR
+    A["<b>Jedno gniazdo</b><br/>zwiazane przez proces<br/>rodzica i dziedziczone<br/>przez kazdy worker"]
+    B["<b>Decyduje accept()</b><br/>worker, ktory pierwszy<br/>jest w accept(), bierze<br/>polaczenie i trzyma je<br/>przez cale jego zycie"]
+    C["<b>Kestrel, dla porownania</b><br/>jeden proces, pula watkow,<br/>a kazdy watek obsluzy<br/>kazde zadanie z kazdego<br/>polaczenia"]
+    A --> B
+    B -.->|"rownowazone przy accept,<br/>nie na zadanie"| C

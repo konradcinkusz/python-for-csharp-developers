@@ -1,0 +1,14 @@
+repr           Money(amount=Decimal('1200.00'), currency='GBP')
+value equality True
+hashable       1 entry for two equal values
+ordering       True
+replace        Money(amount=Decimal('1250.00'), currency='GBP')
+               original still 1200.00
+frozen         FrozenInstanceError: cannot assign to field 'amount'
+__add__        Money(amount=Decimal('1250.00'), currency='GBP')
+
+0.1 + 0.2 is   0.30000000000000004
+== 0.3         False as float, True as Decimal
+
+by hand        MoneyByHand(amount=Decimal('1200.00'), currency='GBP')
+equal          True

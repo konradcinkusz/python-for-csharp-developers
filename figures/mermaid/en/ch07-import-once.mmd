@@ -1,0 +1,5 @@
+flowchart LR
+    A["import x"] --> B{"in sys.modules?"}
+    B -->|"miss"| C["run x.py once,<br/>cache the object"]
+    B -->|"hit"| D["bind the name,<br/>run nothing"]
+    C --> D

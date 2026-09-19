@@ -39,16 +39,48 @@ jobs:
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      # The source gates cost seconds and need no PDF, and a workflow that
+      # publishes a book must run the same gates as the one that checks a
+      # pull request -- a push straight to main is not checked by build.yml
+      # before this runs.
+      - name: The source gates
+        run: |
+          python3 tools/gen_stubs.py --check
+          python3 tools/parity.py
+          python3 tools/check_structure.py --listings --exercises --transcripts \
+            --lines --pins --words --traps
+
+      # The C# side, for the same reason the Python steps below are here: a
+      # tag is not checked by build.yml before it publishes, and Appendix D
+      # ships C# listings. The SDK version comes from global.json only.
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: code/csharp/global.json
+
+      - name: Every C# claim the book makes is compiled and asserted
+        run: cd code/csharp && dotnet test --nologo
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: 1
+          DOTNET_NOLOGO: 1
+
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.12.13"
 
+      # The same steps build.yml's code job runs, and all of them: a release
+      # that skipped pyright or the starters would ship a book whose title
+      # page promises a check that was not made.
       - name: Run every listing and refuse to release on a failure or on drift
         run: |
           cd code
           uv sync --locked
           uv run ruff check .
+          uv run pyright
           PYBOOK_SOLUTIONS=1 uv run pytest
+          PYBOOK_STARTERS=fail uv run pytest exercises
           for f in measure/*.py; do uv run python "$f"; done
           cd ..
           drift=$(git diff --name-only -- figures/values figures/transcripts)

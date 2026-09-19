@@ -10,15 +10,20 @@ name: Build
 # listing runs on the pinned versions, and a job that does not run them is a
 # promise nobody is keeping.
 
+# docs/ is deliberately NOT in paths-ignore. It stopped being inert static
+# HTML when the Pages one-pager became docs/index.html.in, a template that
+# tools/gen_site.py renders from the manifest and the ledger file -- and a
+# template can fail to render. Skipping the gates on a docs-only change
+# would let that reach main, where pages.yml is the only thing that would
+# notice, after the fact and instead of publishing.
+
 on:
   push:
     branches: [main]
     paths-ignore:
-      - 'docs/**'
       - '**.md'
   pull_request:
     paths-ignore:
-      - 'docs/**'
       - '**.md'
   workflow_dispatch:
 
@@ -97,6 +102,39 @@ jobs:
           if-no-files-found: ignore
 
   # -------------------------------------------------------------------------
+  # The C# side. Appendix D solves twenty problems in both languages, and the
+  # book's promise is that every listing runs in CI -- so the half a reader
+  # arriving from .NET will read most carefully cannot be the half nobody
+  # compiled. See CLAUDE.md, *Resolved questions*, for why this is a job
+  # rather than twenty verifybox blocks.
+  #
+  # It already earns its place before Appendix D exists: Solutions.Tests
+  # asserts the C# claims the chapters make, and its first run found one of
+  # them wrong (Chapter 4 on how a double prints). Warnings are errors here.
+  # -------------------------------------------------------------------------
+  csharp:
+    name: Compile and test the C# side
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: code/csharp
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      DOTNET_NOLOGO: 1
+    steps:
+      - uses: actions/checkout@v5
+      # The SDK version lives in ONE place, code/csharp/global.json, and this
+      # step reads it rather than carrying a second copy. That is the defect
+      # uv's pin had before check_structure.py --pins started comparing them,
+      # and --pins now fails a workflow that names a .NET version directly.
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: code/csharp/global.json
+      - name: Every C# claim the book makes is compiled and asserted
+        run: dotnet test --nologo
+
+  # -------------------------------------------------------------------------
   # Parity is a hard gate. A bilingual book fails by having a correction
   # applied to one edition and missed in the other; this is what stops that.
   # Every check here reads the SOURCE and needs no PDF.
@@ -126,6 +164,16 @@ jobs:
         run: python3 tools/check_structure.py --pins
       - name: Every written chapter is inside its word budget
         run: python3 tools/check_structure.py --words
+
+      # Appendix B is written from notes/02-traps.md and can drift from it
+      # silently: a trap added to the notes and not to the book, an entry
+      # dropped from one edition, or two entries sharing a number, which is
+      # the one thing the numbering exists to prevent and which six
+      # parallel branches broke three times before this check existed.
+      - name: Appendix B prints every trap, once, in both editions
+        run: python3 tools/check_structure.py --traps
+      - name: The Pages one-pager renders from the tree
+        run: python3 tools/gen_site.py --check
 
   diagrams:
     name: Render diagrams
@@ -193,7 +241,11 @@ jobs:
     name: Compile ${{ matrix.lang }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: [code, diagrams]
+    # parity is in the list on purpose: without it the compile ran beside the
+    # parity job rather than behind it, and a pull request could carry a green
+    # compile next to a red parity check -- which is not "parity as a hard
+    # gate", whatever the comment above said.
+    needs: [code, csharp, parity, diagrams]
     strategy:
       fail-fast: false
       matrix:

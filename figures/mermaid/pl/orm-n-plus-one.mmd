@@ -1,0 +1,6 @@
+flowchart LR
+    A["<b>petla</b><br/>dla kazdej uslugi<br/>czytaj service.incidents"]
+    B["<b>leniwie, domyslnie</b><br/>1 + N zapytan: jedno na uslugi,<br/>po jednym na usluge"]
+    C["<b>selectinload</b><br/>2 zapytania, niezaleznie od N:<br/>rodzice, potem dzieci"]
+    A --> B
+    B -->|".options(...)"| C

@@ -1,0 +1,3 @@
+flowchart LR
+    Q["the ready queue<br/>holds every coroutine<br/>that can make progress"] --> T["one thread takes<br/>exactly one of them<br/>and runs it to its next await"]
+    T --> B["a blocking call here<br/>never reaches an await, so<br/>the whole queue waits for it"]

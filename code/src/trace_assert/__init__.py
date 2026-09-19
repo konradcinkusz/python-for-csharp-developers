@@ -1,61 +1,78 @@
 """trace-assert: deterministic assertions over an agent's execution trace.
 
 This is the guiding project of *Python for .NET Engineers*. It is a port to
-Python of the first layer of agent-eval-bench, and it is built up one stage
-per chapter: the trace model and the first two assertions in chapter 11,
-trace capture from a real model call in chapter 13, the full assertion set
-and packaging in chapter 14.
+Python of the first layer of agent-eval-bench: the questions a test can
+answer about an agent's run with no model, no budget and no judgement.
+*Did it call the tool it was supposed to? In the order it was supposed to?
+With arguments that came from somewhere? Without calling anything it was
+forbidden?*
 
-What is here now is the model and nothing else, so that the package exists
-from the first commit and the book's build has been running it since. Every
-public name is a claim about the finished package, so the surface is kept as
-small as the chapters have earned.
+It is built one stage per chapter. Chapter 11 takes the trace model, the
+`trace` fixture and the first two assertions; chapter 13 records a real
+model call into the same trace; chapter 14 has the rest of the assertion
+set and the packaging. Everything a reader imports is re-exported here, so
+the package's surface is one import line and its layout is free to change
+underneath it.
+
+The trace model and the twelve assertions are that project's own, copied
+from its specification at commit 12b1bbd and not reconstructed: the point
+of the exercise is that three languages implement one design, and a
+thirteenth assertion invented here would be a thirteenth in two other
+languages that do not have it.
+
+Every name below is a claim about the finished package. Usage:
+
+    from trace_assert import Recorder, tool_called, tool_not_called
+
+    def test_the_gate_held(trace: Recorder) -> None:
+        run(trace)
+        tool_called(trace.trace, "list_leave_types")
+        tool_not_called(trace.trace, "request_time_off")
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from .assertions import (
+    ASSERTIONS,
+    INTERNAL_ID,
+    argument_grounded,
+    call_attempts,
+    event_emitted,
+    event_not_emitted,
+    order,
+    outcome,
+    output_excludes_internal_ids,
+    span_attribute,
+    termination,
+    tool_called,
+    tool_called_with,
+    tool_not_called,
+)
+from .recorder import Recorder
+from .trace import Event, Span, ToolCall, Trace, Turn
 
-__all__ = ["Event", "Trace", "__version__"]
+__all__ = [
+    "ASSERTIONS",
+    "INTERNAL_ID",
+    "Event",
+    "Recorder",
+    "Span",
+    "ToolCall",
+    "Trace",
+    "Turn",
+    "__version__",
+    "argument_grounded",
+    "call_attempts",
+    "event_emitted",
+    "event_not_emitted",
+    "order",
+    "outcome",
+    "output_excludes_internal_ids",
+    "span_attribute",
+    "termination",
+    "tool_called",
+    "tool_called_with",
+    "tool_not_called",
+]
 
-__version__ = "0.0.1"
-
-
-def _empty_payload() -> dict[str, object]:
-    """A typed empty dict: `default_factory=dict` is dict[Unknown, Unknown]
-    to a strict checker, and that is the chapter 3 lesson arriving early."""
-    return {}
-
-
-@dataclass(frozen=True, slots=True)
-class Event:
-    """One thing the agent did, in the order it did it.
-
-    `kind` is what happened -- `tool_call`, `tool_result`, `model_call`,
-    `model_result` -- and `name` is what it happened to. Everything else is
-    in `payload`, which is deliberately untyped at this stage: chapter 13
-    decides what a model call records.
-    """
-
-    kind: str
-    name: str
-    payload: dict[str, object] = field(default_factory=_empty_payload)
-
-
-@dataclass(frozen=True, slots=True)
-class Trace:
-    """The ordered record of one run.
-
-    A trace is a tuple rather than a list so that an assertion cannot mutate
-    the evidence it is asserting over.
-    """
-
-    events: tuple[Event, ...] = ()
-
-    def of_kind(self, kind: str) -> tuple[Event, ...]:
-        """Every event of one kind, in order."""
-        return tuple(e for e in self.events if e.kind == kind)
-
-    def names(self, kind: str) -> tuple[str, ...]:
-        """The names of every event of one kind, in order."""
-        return tuple(e.name for e in self.of_kind(kind))
+__version__ = "0.1.0"

@@ -1,0 +1,69 @@
+{
+  "builds": {
+    "default": {
+      "facts": {
+        "ABI flags": "''",
+        "GIL enabled right now": "True",
+        "JIT available / enabled": "True / False",
+        "bytecode cache tag": "cpython-314",
+        "free-threaded build": "False",
+        "interpreter": "cpython 3.14.7"
+      },
+      "rows": {
+        "cpu (pure Python)": {
+          "many": 0.6957942940000521,
+          "one": 0.16976094300002842,
+          "ratio_hi": 4.224605637954064,
+          "ratio_lo": 3.9312350389191453
+        },
+        "digest (C extension)": {
+          "many": 0.1489801720001651,
+          "one": 0.14774621900005513,
+          "ratio_hi": 1.0353763569244339,
+          "ratio_lo": 0.9863419485360746
+        },
+        "io (socket read)": {
+          "many": 0.05242839099992125,
+          "one": 0.05131252499995753,
+          "ratio_hi": 1.0258052570645368,
+          "ratio_lo": 1.0176806923492991
+        }
+      },
+      "version": "3.14.7"
+    },
+    "freethreaded": {
+      "facts": {
+        "ABI flags": "'t'",
+        "GIL enabled right now": "False",
+        "JIT available / enabled": "False / False",
+        "bytecode cache tag": "cpython-314",
+        "free-threaded build": "True",
+        "interpreter": "cpython 3.14.7"
+      },
+      "rows": {
+        "cpu (pure Python)": {
+          "many": 0.18167836399993575,
+          "one": 0.18237524599999233,
+          "ratio_hi": 1.0756947623856832,
+          "ratio_lo": 0.9524945634696242
+        },
+        "digest (C extension)": {
+          "many": 0.14862564800000655,
+          "one": 0.14810356900011357,
+          "ratio_hi": 1.032667455908127,
+          "ratio_lo": 1.000142540665165
+        },
+        "io (socket read)": {
+          "many": 0.052609871999948155,
+          "one": 0.051880778999930044,
+          "ratio_hi": 1.0216205415182278,
+          "ratio_lo": 1.0097899279134765
+        }
+      },
+      "version": "3.14.7t"
+    }
+  },
+  "machine": "Linux x86_64, 4 cores",
+  "recorded": "2026-09-14",
+  "repeats": 7
+}

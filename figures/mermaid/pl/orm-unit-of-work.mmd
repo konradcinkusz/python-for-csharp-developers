@@ -1,0 +1,5 @@
+flowchart LR
+    A["<b>dodanie / zmiana</b><br/>Session sledzi obiekt;<br/>nic nie zostalo zapisane"]
+    B["<b>flush</b><br/>INSERT wykonuje sie wewnatrz<br/>transakcji i wraca klucz"]
+    C["<b>commit</b><br/>transakcja sie konczy, a kazdy<br/>obiekt zostaje uniewazniony:<br/>kolejny odczyt to SELECT"]
+    A --> B --> C

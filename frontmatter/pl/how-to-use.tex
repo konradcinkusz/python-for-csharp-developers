@@ -38,9 +38,10 @@ jest plikiem; otwórz go.
 \pyfile{code/ch00/loop.py}{Pierwszy listing i kształt każdego następnego}{lst:ch00-loop}
 
 \noindent
-Uruchomiony z katalogu głównego repozytorium drukuje to, co poniżej \dash{}
-również wygenerowane, a nie przepisane: ta linia jest tym, co przypięty
-interpreter wydrukował przy ostatnim buildzie książki:
+Uruchomiony z katalogu \code{code/}, tego, który wskazuje jego własny
+docstring, drukuje to, co poniżej \dash{} również wygenerowane, a nie
+przepisane: ta linia jest tym, co przypięty interpreter wydrukował przy
+ostatnim buildzie książki:
 
 \transcript{ch00-loop}
 
@@ -48,13 +49,14 @@ interpreter wydrukował przy ostatnim buildzie książki:
 A oto ćwiczenie, które do niego należy. Ma numer 0.1, bo ten rozdział nie
 jest rozdziałem; pierwsze prawdziwe to Ćwiczenie~1.1.
 
-\exercise{e00_01_hello}{Spraw, żeby pierwszy test przeszedł}{%
+\begin{exercise}{e00_01_hello}{Spraw, żeby pierwszy test przeszedł}
 Otwórz plik startowy. Zawiera jedną funkcję, która rzuca
 \code{NotImplementedError}, a test obok niej nie przechodzi, dopóki funkcja
 nie zwróci tego, czego test oczekuje. Spraw, żeby przeszedł. Potem uruchom
 test ponownie z \code{-v} i przeczytaj, co wydrukował pytest, bo sposób, w
 jaki pytest raportuje niepowodzenie, to pierwsza rzecz w tej książce, która
-nie ma odpowiednika w .NET wartego nazwania.}
+nie ma odpowiednika w .NET wartego nazwania.
+\end{exercise}
 
 \noindent
 Każde ćwiczenie w książce drukuje te trzy linie: plik, który otwierasz, plik,

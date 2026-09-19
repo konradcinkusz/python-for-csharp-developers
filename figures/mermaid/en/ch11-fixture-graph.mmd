@@ -1,0 +1,5 @@
+flowchart LR
+    T["A test asks for what it needs<br/>by naming it as a parameter:<br/>def test_x(big_basket)"]
+    F["pytest resolves the name to a fixture,<br/>and that fixture may ask for another"]
+    B["Each is built once per scope,<br/>torn down after the yield"]
+    T --> F --> B

@@ -1,0 +1,5 @@
+flowchart LR
+    A["<b>Your class</b><br/>four lines of pydantic, the only<br/>place the shape is written down"]
+    B["<b>Its JSON schema</b><br/>model_json_schema(), plus the two<br/>keys the provider wants, sent<br/>with the request"]
+    C["<b>Text, then your class again</b><br/>the reply is a string; validating<br/>it back is the same class doing<br/>the second half of its job"]
+    A --> B --> C

@@ -13,94 +13,215 @@ entries delivered with the section that carries them; when a chapter's
 brief changes, re-derive the owner from `tools/chapters.json` rather than
 from this file.
 
+A delivered entry names a section number, and a section number is a fact
+about a build. Re-derive one from `chapters/en/chNN-*.aux` after a
+renumbering rather than carrying it across; nothing here can check it.
+
 Numbered so a chapter can cite an entry. The numbering is by owning chapter
-and never reused; a retired entry keeps its number and says why.
+and never reused; a retired entry keeps its number and says why. An owner
+reading `Ch. N §N.M, delivered` names the section that elicits the trap in
+the written chapter; an owner reading a bare `Ch. N` is still a promise.
+
+**The numbering, and how to add an entry without breaking it.**
+
+Entries 1 to 59 are the first tier, allocated in chapter order with no gaps:
+Ch. 1 has 1--4, Ch. 2 has 5--7, and so on to Ch. 14's 59. That tier is full
+and closed. **Do not append to it and do not allocate from the running
+maximum**, which is what produced the collision this file carried for a
+week: six branches, none able to see the others, each took "the next free
+number" from a maximum that was already stale, and git merged different
+rows of one table without a conflict, so no session's copy was wrong until
+somebody merged. Two branches then tried to sweep it and each created a new
+collision, for the same reason.
+
+**The second tier is blocked per chapter, with room, and that is what makes
+the next collision impossible rather than merely unlikely.** Chapter N owns
+`100 + 10 * (N - 1)` through `+9`:
+
+    Ch. 1   100-109      Ch. 6   150-159      Ch. 11  200-209
+    Ch. 2   110-119      Ch. 7   160-169      Ch. 12  210-219
+    Ch. 3   120-129      Ch. 8   170-179      Ch. 13  220-229
+    Ch. 4   130-139      Ch. 9   180-189      Ch. 14  230-239
+    Ch. 5   140-149      Ch. 10  190-199
+
+(Indented rather than tabulated on purpose: a markdown table whose first
+cell is a bare number is indistinguishable from an entry row to the
+`uniq -d` check below, which is how the first draft of this paragraph made
+the check report five duplicates that were its own documentation.)
+
+So a pass adding a trap takes the next free number **in its own chapter's
+block**, which no other chapter's pass can be holding. A branch never has
+to know what any other branch did.
+
+> **Swept September 2026**, from the only branch then open, which is the
+> condition the previous note said the fix needed. Seven rows moved out of
+> the collided 60--63 range into their chapters' blocks: Ch. 5's pattern
+> capture to 140, Ch. 8's re-awaited coroutine to 170, Ch. 9's three to
+> 180--182, Ch. 11's to 200 and Ch. 13's to 220. Numbers are never reused,
+> so 60--63 stay empty.
+>
+> Two neighbouring defects went with it, both found by writing Appendix B
+> from this file. **`31a` became 150**: it was Chapter 6's, written with a
+> letter because 25--31 was full, and a non-integer is invisible to the
+> duplicate check above — the same out-of-band allocation the sweep
+> exists for, in a costume the check could not see. And **entry 200 moved
+> from Part V to Part IV**, because it is Chapter 11's and Chapter 11 is a
+> Part IV chapter; it had been appended to the end of the file rather than
+> to its own part. Every citation of a moved number in `CLAUDE.md` was
+> updated with it. The check is
+> `grep -oE '^\| [0-9]+ \|' notes/02-traps.md | grep -oE '[0-9]+' |
+> sort -n | uniq -d`, which prints nothing.
 
 ## Part I — Runtime and toolchain
 
 | # | The habit, in the reader's voice | What Python does | Owner |
 |---|---|---|---|
-| 1 | Threads are useless in Python, so I will not bother with them | The GIL serialises *bytecode*; a thread blocked on I/O holds no lock. Threads are the right tool for I/O-bound work and the wrong one for CPU-bound work, and E1 measures both | Ch. 1 |
-| 2 | 3.14 is free-threaded now, so the GIL is gone | The free-threaded build is a separate binary, `python3.14t`, opt-in; the default build still has the lock | Ch. 1 |
-| 3 | Python has no compile step, so there is nothing like IL | Source is compiled to bytecode and cached in `__pycache__`; `python -m dis` shows it. There is no JIT you can count on by default | Ch. 1 |
-| 4 | `if __name__ == "__main__"` is boilerplate | It is the difference between a module that runs when imported and one that runs when executed — the reason a listing can be both importable and runnable | Ch. 1 |
-| 5 | `pip install` puts the package on the machine, like a global tool | An environment is a directory; a global install is the one thing every later chapter's listings cannot survive | Ch. 2 |
-| 6 | I activate the environment and then run things | `uv run` resolves the environment per invocation; activation is the habit that ships the wrong interpreter to CI | Ch. 2 |
-| 7 | `requirements.txt` is the lockfile | It is a wish list with ranges; `uv.lock` is the lockfile, it is committed, and `uv sync --locked` refuses to drift from it | Ch. 2 |
-| 8 | A type hint is a type | It is a claim the runtime never checks; `str` can be `None` at run time and nothing says so. A checker is a second compiler you have to invite | Ch. 3 |
-| 9 | `List[int]`, `Optional[str]`, `Dict[str, Any]` | 2019 spellings; `list[int]`, `str | None` and `dict[str, Any]` on the pinned interpreter, and PEP 695 for generics | Ch. 3 |
-| 10 | `@dataclass` validates its fields, like a record with a constructor | It generates `__init__`, `__eq__` and `__repr__` and checks nothing; validation at a boundary is pydantic's job | Ch. 3 |
-| 11 | `def f(items=[])` — an optional list parameter | The default is evaluated once, at definition, and shared by every call. `None` and construct inside | Ch. 3 |
-| 12 | `Any` is like `dynamic`, a thing I can contain | `Any` propagates: one `Any` in a chain turns everything downstream into `Any`, and the checker reports nothing | Ch. 3 |
+| 1 | Threads are useless in Python, so I will not bother with them | The GIL serialises *bytecode*; a thread blocked on I/O holds no lock. Threads are the right tool for I/O-bound work and the wrong one for CPU-bound work, and E1 measures both | Ch. 1, delivered in §1.4 |
+| 2 | 3.14 is free-threaded now, so the GIL is gone | The free-threaded build is a separate binary, `python3.14t`, opt-in; the default build still has the lock | Ch. 1, delivered in §1.5 |
+| 3 | Python has no compile step, so there is nothing like IL | Source is compiled to bytecode and cached in `__pycache__`; `dis.dis` on a function shows it. There is no JIT you can count on by default | Ch. 1, delivered in §1.2 |
+| 4 | `if __name__ == "__main__"` is boilerplate | It is the difference between a module that runs when imported and one that runs when executed — the reason a listing can be both importable and runnable | Ch. 1, delivered in §1.3 |
+| 5 | `pip install` puts the package on the machine, like a global tool | An environment is a directory; a global install is the one thing every later chapter's listings cannot survive | Ch. 2 §2.2, delivered |
+| 6 | I activate the environment and then run things | `uv run` resolves the environment per invocation; activation is the habit that ships the wrong interpreter to CI | Ch. 2 §2.4, delivered |
+| 7 | `requirements.txt` is the lockfile | It is a wish list with ranges; `uv.lock` is the lockfile, it is committed, and `uv sync --locked` refuses to drift from it | Ch. 2 §2.3, delivered |
+| 8 | A type hint is a type | It is a claim the runtime never checks; `str` can be `None` at run time and nothing says so. A checker is a second compiler you have to invite | Ch. 3 §3.1, delivered |
+| 9 | `List[int]`, `Optional[str]`, `Dict[str, Any]` | 2019 spellings; `list[int]`, `str | None` and `dict[str, Any]` on the pinned interpreter, and PEP 695 for generics | Ch. 3 §3.2, delivered |
+| 10 | `@dataclass` validates its fields, like a record with a constructor | It generates `__init__`, `__eq__` and `__repr__` and checks nothing; validation at a boundary is pydantic's job | Ch. 3 §3.3, delivered |
+| 11 | `def f(items=[])` — an optional list parameter | The default is evaluated once, at definition, and shared by every call. `None` and construct inside | Ch. 3 §3.5, delivered |
+| 12 | `Any` is like `dynamic`, a thing I can contain | `Any` propagates: one `Any` in a chain turns everything downstream into `Any`, and the checker reports nothing | Ch. 3 §3.5, delivered |
 
 ## Part II — The language, mapped
 
 | # | The habit, in the reader's voice | What Python does | Owner |
 |---|---|---|---|
-| 13 | Override `__eq__` and I have value equality, like overriding `Equals` | Defining `__eq__` sets `__hash__` to `None`: the object is now unhashable and cannot be a `dict` key or `set` member. The headline trap of Chapter 4 | Ch. 4 |
-| 14 | `is` is reference equality, so `x is 5` is fine for small ints | It happens to be true for small integers because CPython caches them, and false one magnitude up. `is` is for `None` and sentinels; `==` for values | Ch. 4 |
-| 15 | `[[]] * n` gives me `n` lists | It gives one list `n` times; `[[] for _ in range(n)]` gives `n` | Ch. 4 |
-| 16 | A class attribute is a static field | It is shared by every instance *and* readable through them, so a mutable class attribute mutated through `self` is mutated for everyone | Ch. 4 |
-| 17 | `__str__` is `ToString()` | `__repr__` is what the debugger, the REPL and a list of the objects show; `__str__` is what `print` shows, and falls back to `__repr__` | Ch. 4 |
-| 18 | `0.1 + 0.2 == 0.3` is a Python bug | It is IEEE 754 in both languages; the difference is that Python prints the shortest round-tripping repr, so the mismatch is visible. `math.isclose`, or `Decimal` for money | Ch. 4 |
-| 19 | `/` on two integers is integer division, as in C# | `/` is true division; `//` floors, and floors towards negative infinity, which `-7 // 2 == -4` demonstrates | Ch. 4 |
-| 20 | A decorator is an attribute — metadata a framework reads | A decorator is a function that runs at definition time and can replace what it decorates. It is middleware, not metadata, and Chapter 5's headline | Ch. 5 |
-| 21 | A comprehension is LINQ | A list comprehension is eager where `IEnumerable` is deferred; a generator expression is deferred. Materialise once, on purpose | Ch. 5 |
-| 22 | A closure in a loop captures the loop variable's value | It captures the variable, late-bound; every closure sees the last value. Bind with a default argument or `functools.partial` | Ch. 5 |
-| 23 | `s += piece` in a loop is fine, strings are strings | Quadratic; `"".join(pieces)` is linear | Ch. 5 |
-| 24 | A generator is `yield return` | It is, and it also has `send()`, `close()` and a `return` value carried in `StopIteration` — a coroutine before `async` existed | Ch. 5 |
-| 25 | `except:` catches everything, like `catch {}` | It catches `KeyboardInterrupt` and `SystemExit` too, which is why the process cannot be stopped. `except Exception:` at most, and log the traceback | Ch. 6 |
-| 26 | Catch `Exception`, log it, continue — defensive | It converts a crash into a silent wrong answer; EAFP means catching the exception you expect, not every one | Ch. 6 |
-| 27 | `raise e` inside `except` re-throws, like `throw ex;` | It resets the traceback to the `raise` line, exactly as `throw ex;` does; bare `raise` preserves it, exactly as `throw;` does | Ch. 6 |
-| 28 | `return` in `finally` is harmless | It swallows any in-flight exception, silently, and returns as if nothing happened | Ch. 6 |
-| 29 | A method's hint tells me what it raises | Nothing in the type system carries exceptions; a docstring does, and Python has no checked exceptions | Ch. 6 |
-| 30 | `KeyError` means something went wrong | `KeyError`, `StopIteration` and `AttributeError` are protocol: a `dict` lookup, an iterator's end and `getattr` all speak through them | Ch. 6 |
-| 31 | Truthiness is `bool`, like C# | Empty containers, zero, `None` and empty strings are false; `if items:` is idiomatic and `if items is not None:` is a different question | Ch. 6 |
-| 32 | A module is a namespace; importing it is free and pure | A module is an object that runs once, top to bottom; a side effect at import runs for every importer, and a circular import is two modules half-run | Ch. 7 |
-| 33 | `from x import *` is `using x;` | It copies every public name into the importing module and hides where anything came from; `import x` and `from x import name` | Ch. 7 |
-| 34 | I can name a variable `list`, `id` or `type` | It shadows the builtin for the rest of the scope, and the failure arrives three functions later | Ch. 7 |
-| 35 | I need a DI container | A composition root is a function; `functools.partial` and a `Protocol` do what the container did, and FastAPI's `Depends` is the one container most readers will meet | Ch. 7 |
+| 13 | Override `__eq__` and I have value equality, like overriding `Equals` | Defining `__eq__` sets `__hash__` to `None`: the object is now unhashable and cannot be a `dict` key or `set` member. C# warns (CS0659) and carries on; Python acts. The headline trap of Chapter 4 | Ch. 4 §4.2, delivered |
+| 14 | `is` is reference equality, so `x is 5` is fine for small ints | Two mechanisms, and the folklore names only one. CPython caches -5 to 256, so a run-time 256 IS the literal; independently, the compiler stores equal constants once per code object, so two literal `257`s in one function are one object too. **Corrected, see below: the classic demonstration does not reproduce in a script.** `is` is for `None` and sentinels; `==` for values | Ch. 4 §4.2, delivered |
+| 15 | `[[]] * n` gives me `n` lists | It gives one list `n` times; `[[] for _ in range(n)]` gives `n` | Ch. 4 §4.6, delivered |
+| 16 | A class attribute is a static field | It is shared by every instance *and* readable through them, so a mutable class attribute mutated through `self` is mutated for everyone. `@dataclass` refuses the spelling it can see; the plain-class spelling is the one it cannot | Ch. 4 §4.6, delivered |
+| 17 | `__str__` is `ToString()` | `__repr__` is what the debugger, the REPL and a list of the objects show; `__str__` is what `print` shows, and falls back to `__repr__` | Ch. 4 §4.1, delivered |
+| 18 | `0.1 + 0.2 == 0.3` is a Python bug | It is IEEE 754 in both languages, and since .NET Core 3.0 both even PRINT it the same way: `0.30000000000000004`. **Corrected, see below** — the printing difference this row used to claim is gone. `math.isclose`, or `Decimal` for money | Ch. 4 §4.7, delivered |
+| 19 | `/` on two integers is integer division, as in C# | `/` is true division; `//` floors, and floors towards negative infinity, which `-7 // 2 == -4` demonstrates. C#'s answer is Python's `int(a / b)` | Ch. 4 §4.7, delivered |
+| 20 | A decorator is an attribute — metadata a framework reads | A decorator is a function that runs at definition time and can replace what it decorates. It is middleware, not metadata, and Chapter 5's headline, elicited by the transcript that shows a line recorded before anything is called | Ch. 5 §5.2, delivered |
+| 21 | A comprehension is LINQ | A list comprehension is eager where `IEnumerable` is deferred; a generator expression is deferred **and single-pass**, where a LINQ query re-runs on every walk. Materialise once, on purpose | Ch. 5 §5.5, delivered |
+| 22 | A closure in a loop captures the loop variable's value | It captures the variable, late-bound; every closure sees the last value. Bind with a default argument or `functools.partial`. Ruff's B023 catches it, which makes this the one trap in the chapter the toolchain finds for you | Ch. 5 §5.4, delivered |
+| 23 | `s += piece` in a loop is fine, strings are strings | **Corrected by measurement, and the entry as first written was wrong.** On CPython the plain loop is LINEAR: the interpreter carries a specialisation, `BINARY_OP_INPLACE_ADD_UNICODE`, that resizes in place when the left operand has no other reference. It is quadratic again the moment anything else holds a reference — a list, a closure, an attribute — with nothing at the call site changed. `"".join(pieces)` has no bad case, measured by `code/measure/ch05_concat.py` and committed as bounds | Ch. 5 §5.5.1, delivered |
+| 24 | A generator is `yield return` | It is, including the `finally` that runs on early exit, which is `IEnumerator.Dispose`. It also has `send()`, `close()` and a return value carried out — a coroutine before `async` existed, which is why `Generator` has three type parameters where `IEnumerable` has one | Ch. 5 §5.6, delivered |
+| 25 | `except:` catches everything, like `catch {}` | It catches `KeyboardInterrupt` and `SystemExit` too, which is why the process cannot be stopped. `except Exception:` at most, and log the traceback. ruff reports it as E722 | Ch. 6 §6.4, delivered |
+| 26 | Catch `Exception`, log it, continue — defensive | It converts a crash into a silent wrong answer; EAFP means catching the exception you expect, not every one. **The one trap in this chapter that nothing in the book's toolchain reports**, which is why it is the one that reaches production | Ch. 6 §6.4, delivered |
+| 27 | `raise e` inside `except` re-throws, like `throw ex;` | **This entry was wrong, and the chapter that owns it measured the correction.** Python keeps the traceback on the exception OBJECT, so `raise e` truncates nothing: every frame under it survives and the re-raise line is *added*, so the re-raising frame appears twice. Bare `raise` is still the better habit — the duplicate frame is noise — but the C# rule does not transfer and neither does the anxiety. What a re-raise can lose is the *link*: `raise New(...)` without `from` sets `__context__` rather than `__cause__` | Ch. 6 §6.4, delivered |
+| 28 | `return` in `finally` is harmless | It swallows any in-flight exception and returns as if nothing happened. Not silently on the pinned interpreter: PEP 765 has the compiler emit `SyntaxWarning: 'return' in a 'finally' block`, and ruff reports B012 and SIM107 — and it still swallows, because a warning is not an error | Ch. 6 §6.4, delivered |
+| 29 | A method's hint tells me what it raises | Nothing in the type system carries exceptions; a docstring does, nothing verifies it, and Python has no checked exceptions — nor does C#, so what transfers badly is the tooling around them rather than the language | Ch. 6 §6.3, delivered |
+| 30 | `KeyError` means something went wrong | `KeyError`, `StopIteration` and `AttributeError` are protocol: a `dict` lookup, an iterator's end and `getattr` all speak through them | Ch. 6 §6.2, delivered |
+| 31 | Truthiness is `bool`, like C# | Empty containers, zero, `None` and empty strings are false; `if items:` is idiomatic and `if items is not None:` is a different question | Ch. 6 §6.2, delivered |
+| 150 | An exception class is a `FooException` | Python's suffix is `Error`, and ruff's N818 reports a class without it. `JobUnavailable` fails the lint until it is `JobUnavailableError` | Ch. 6 §6.3, delivered |
+| 32 | A module is a namespace; importing it is free and pure | A module is an object that runs once, top to bottom; a side effect at import runs for every importer, and a circular import is two modules half-run | Ch. 7 §7.1, delivered |
+| 33 | `from x import *` is `using x;` | It copies every public name into the importing module and hides where anything came from; `import x` and `from x import name` | Ch. 7 §7.2, delivered |
+| 34 | I can name a variable `list`, `id` or `type` | It shadows the builtin for the rest of the scope, and the failure arrives three functions later | Ch. 7 §7.2, delivered, at module level as well as at name level |
+| 35 | I need a DI container | A composition root is a function; `functools.partial` and a `Protocol` do what the container did, and FastAPI's `Depends` is the one container most readers will meet | Ch. 7 §7.5, delivered |
+| 140 | `case ACTIVE:` compares against the constant, as a `switch` arm does | A bare name in a pattern **captures**: it binds every subject to `ACTIVE` and the arm always matches. The compiler refuses it when another case follows (`SyntaxError: name capture 'ACTIVE' makes remaining patterns unreachable`), so it compiles in silence only as the last case — which is where it survives review. Use a dotted name, `Colour.ACTIVE`, or a guard | Ch. 5 §5.8, delivered |
 
 ## Part III — Concurrency
 
 | # | The habit, in the reader's voice | What Python does | Owner |
 |---|---|---|---|
-| 36 | A coroutine is a `Task`: calling it starts it | A coroutine is cold; calling it builds an object that does nothing until awaited or scheduled. Forgetting the `await` is a warning, not an error | Ch. 8 |
-| 37 | `create_task` starts the task immediately | It schedules; the body does not run until the caller yields. Measured in the LangChain book's Chapter 3 | Ch. 8 |
-| 38 | `.Result` on a task deadlocks, so I use `ConfigureAwait(false)` | There is no `SynchronizationContext` and no `ConfigureAwait`; there is one loop, and one blocking call inside it freezes every other coroutine, with no error and no log line | Ch. 8 |
-| 39 | `gather` is `WhenAll` | `gather` orphans its siblings when one fails; `TaskGroup` cancels them. The two are identical on speed, so the choice is only ever about failure semantics | Ch. 8 |
-| 40 | Cancellation is a token I poll | It is `CancelledError`, delivered at an `await`; catching `Exception` swallows it and the task cannot be stopped | Ch. 8 |
-| 41 | `HttpClient` is a singleton, so `httpx.AsyncClient` is too | It is a resource with a lifetime and a connection pool; construct it once per application and close it, and note that it has a default timeout where `HttpClient` has none | Ch. 8 |
+| 36 | A coroutine is a `Task`: calling it starts it | A coroutine is cold; calling it builds an object that does nothing until awaited or scheduled. Forgetting the `await` is a warning, not an error | Ch. 8 §8.2, delivered |
+| 37 | `create_task` starts the task immediately | It schedules; the body does not run until the caller yields. Measured in the LangChain book's Chapter 3 | Ch. 8 §8.2, delivered |
+| 38 | `.Result` on a task deadlocks, so I use `ConfigureAwait(false)` | There is no `SynchronizationContext` and no `ConfigureAwait`; there is one loop, and one blocking call inside it freezes every other coroutine, with no error and no log line | Ch. 8 §8.3, delivered |
+| 39 | `gather` is `WhenAll` | `gather` orphans its siblings when one fails; `TaskGroup` cancels them. The two are identical on speed, so the choice is only ever about failure semantics | Ch. 8 §8.4, delivered |
+| 40 | Cancellation is a token I poll, so catching `Exception` is how I lose it | Backwards in both halves. It is `CancelledError`, delivered at an `await` -- and it inherits from `BaseException`, so `except Exception` is the clause that lets it THROUGH. What swallows it is a bare `except:`, `except BaseException:`, or an `except asyncio.CancelledError` block with no `raise` under it | Ch. 8 §8.5, delivered |
+| 41 | `HttpClient` is a singleton, so `httpx.AsyncClient` is too | The lifetime advice carries -- construct it once, share it, close it -- and the defaults do not: a default `AsyncClient` already has a five-second deadline, applied separately to connect, read, write and pool rather than to the request as a whole | Ch. 8 §8.6, delivered |
+| 170 | A `Task` can be awaited twice, so a coroutine can | A `Task` is a handle on work already running and hands out its result as often as you ask; a coroutine IS the work, and awaiting it a second time raises `RuntimeError: cannot reuse already awaited coroutine`. Out of block because numbers are never reused | Ch. 8 §8.2, delivered |
 
 ## Part IV — Shipping
 
 | # | The habit, in the reader's voice | What Python does | Owner |
 |---|---|---|---|
-| 42 | `Depends` is the DI container, so a dependency is a singleton | Per-request by default; a `yield` dependency is a disposable scope; application-lifetime state goes in the lifespan | Ch. 9 |
-| 43 | A validation failure is a 400 with `ProblemDetails` | It is a 422 with pydantic's error list, and the shape is pydantic's, not the framework's | Ch. 9 |
-| 44 | Settings come from `IOptions<T>` and `appsettings.json` | `pydantic-settings` reads the environment, a `.env` file and secrets directories into a validated model; there is no JSON provider chain | Ch. 9 |
-| 45 | More uvicorn workers is more throughput | Workers are processes; each has its own loop, its own pool and its own memory. E5 measures the curve | Ch. 9 |
-| 46 | A `Session` is a `DbContext`, so I `commit()` and the objects stay usable | `expire_on_commit=True` by default: every attribute is reloaded on next access, which is a query inside a loop you did not write | Ch. 10 |
-| 47 | Relationships are loaded when I read them, as in EF | Lazy by default in both; the N+1 is identical, and `selectinload` is `Include`. E6 counts it | Ch. 10 |
-| 48 | Alembic autogenerate is the migration | It is a diff of the models against the database, and it misses renames, type changes and constraints; read every generated migration | Ch. 10 |
-| 49 | I need a repository over the ORM | The `Session` is the unit of work and the repository pattern doubles it; Chapter 10 says why that pattern is usually a mistake here | Ch. 10 |
-| 50 | A test class per fixture, like `IClassFixture` | pytest fixtures are functions with a scope; the class is optional and usually absent | Ch. 11 |
-| 51 | Mock where the thing is defined | Patch where the name is *looked up* — the importing module — or the patch does nothing and the test passes for the wrong reason | Ch. 11 |
-| 52 | `assert` is for debug builds | pytest rewrites `assert` to explain itself; it is the assertion library | Ch. 11 |
-| 53 | `logging.basicConfig` and I am done | The standard module's configuration is global, import-order-sensitive and the reason structlog exists | Ch. 12 |
-| 54 | Correlation id in a static field, like `AsyncLocal` | `contextvars` is `AsyncLocal`; a module-level variable is shared by every request on the loop | Ch. 12 |
-| 55 | `FROM python:3.14` and `pip install` in the Dockerfile | Multi-stage with `uv sync --frozen --no-dev`, a non-root user, and the two environment variables. E7 measures the three shapes | Ch. 12 |
+| 42 | `Depends` is the DI container, so a dependency is a singleton | Per-request by default; a `yield` dependency is a disposable scope; application-lifetime state goes in the lifespan | Ch. 9 — **delivered**, §9.1 |
+| 43 | A validation failure is a 400 with `ProblemDetails` | It is a 422 with pydantic's error list, and the shape is pydantic's, not the framework's | Ch. 9 — **delivered**, §9.2 |
+| 44 | Settings come from `IOptions<T>` and `appsettings.json` | `pydantic-settings` reads the environment, a `.env` file and secrets directories into a validated model; there is no JSON provider chain | Ch. 9 — **delivered**, §9.5 |
+| 45 | More uvicorn workers is more throughput | Workers are processes; each has its own loop, its own pool and its own memory. E5 measured it: for an awaited upstream, four workers moved throughput by nothing and multiplied the memory by about the worker count. The figures are the chapter's, from `code/measure/e05_workers.py` | Ch. 9 — **delivered**, §9.7 |
+| 46 | A `Session` is a `DbContext`, so I `commit()` and the objects stay usable | `expire_on_commit=True` by default: every attribute is reloaded on next access, which is a query inside a loop you did not write | Ch. 10 §2, **delivered** |
+| 47 | Relationships are loaded when I read them, as in EF | Lazy by default in both under a *sync* session; the N+1 is identical, and `selectinload` is `Include`. E6 counts it. Under the async session the same read raises `MissingGreenlet` rather than loading, so the bug is loud there and silent here | Ch. 10 §3 and §4, **delivered** |
+| 48 | Alembic autogenerate is the migration | It is a diff of the models against the database, and it misses renames, type changes and constraints; read every generated migration. A rename comes out as `add_column` plus `remove_column`, which drops the data | Ch. 10 §5, **delivered** |
+| 49 | I need a repository over the ORM | The `Session` is the unit of work and the repository pattern doubles it; Chapter 10 says why that pattern is usually a mistake here | Ch. 10 §6, **delivered** |
+| 50 | A test class per fixture, like `IClassFixture` | pytest fixtures are functions with a scope; the class is optional and usually absent | Ch. 11 — **delivered**, §11.2 |
+| 51 | Mock where the thing is defined | Patch where the name is *looked up* — the importing module — or the patch does nothing and the test passes for the wrong reason | Ch. 11 — **delivered**, §11.4, and the chapter's headline. The rule is one clause wider than this entry had it: which name the call resolves was decided by the IMPORT, so `import x` plus `x.y()` really is patched at `x.y`. Both halves are asserted in `code/ch11/test_patching.py` |
+| 52 | `assert` is for debug builds | pytest rewrites `assert` to explain itself; it is the assertion library | Ch. 11 — **delivered**, §11.1. Half of the habit is right and the entry did not say so: under `-O` an `assert` in the APPLICATION really does vanish, so it is for tests and invariants, never for validating input |
+| 53 | `logging.basicConfig` and I am done | The standard module's configuration is global, import-order-sensitive and the reason structlog exists | Ch. 12 §12.1, delivered — the second `basicConfig` call is a silent no-op, elicited before it is named |
+| 54 | Correlation id in a static field, like `AsyncLocal` | `contextvars` is `AsyncLocal`; a module-level variable is shared by every request on the loop | Ch. 12 §12.3, delivered — two concurrent handlers, and the module-level column reports the same name twice |
+| 55 | `FROM python:3.14` and `pip install` in the Dockerfile | Multi-stage with `uv sync --frozen --no-dev`, a non-root user, and the two environment variables | Ch. 12 §12.5, delivered — the three shapes side by side. E7 would measure them and has not run: see `notes/01-curriculum.md` §4 |
+| 200 | A test report is a test report; the same failure prints the same thing everywhere | pytest reports differently on a build server on purpose: `running_on_ci()` is true when `CI` or `BUILD_NUMBER` is set, and a sequence diff is then printed in full and long output is not truncated. A transcript, a golden file or a screenshot of a failure is a claim about one of the two | Ch. 11 — **delivered**, §11.1 |
+
+### Found while writing Chapter 9
+
+Numbered from the end rather than inserted, because a number is never
+reused and 46 onwards already belong to Chapter 10. All three were measured
+against the installed package at the pinned version, not remembered.
+
+| # | The habit, in the reader's voice | What Python does | Owner |
+|---|---|---|---|
+| 180 | Middleware runs in the order I registered it, so the first one is the outer one | The last one registered is the outermost: starlette's `add_middleware` does `user_middleware.insert(0, ...)`, so every registration goes on the front of the stack. Nothing warns, and the two orders differ only when something depends on the sequence | Ch. 9 — **delivered**, §9.4 |
+| 181 | `Field(alias=...)` is `JsonPropertyName`: it renames the field on the wire | It renames it on the way IN as well, so the model can no longer be constructed by field name and a type checker says so before the test does. `serialization_alias` is the output-only one. A model whose input and output differ gets two OpenAPI schemas, `-Input` and `-Output`, where Swashbuckle emits one | Ch. 9 — **delivered**, §9.3 |
+| 182 | `--workers 4` spreads my traffic over four processes | Workers share one listening socket and the worker that is in `accept()` first keeps the connection for its whole life, so balancing happens per CONNECTION rather than per request. Measured in E5: of the keep-alive connections opened at once, most landed on a single worker and one worker got none. The figures are the chapter's | Ch. 9 — **delivered**, §9.7 |
 
 ## Part V — Python for AI work
 
 | # | The habit, in the reader's voice | What Python does | Owner |
 |---|---|---|---|
-| 56 | The SDK is magic | Every AI SDK is a pydantic model, an httpx client and a streaming iterator; read the installed, pinned package | Ch. 13 |
-| 57 | `model_validate_json` is `JsonSerializer.Deserialize` | Lax mode coerces where `System.Text.Json` refuses; strict mode is what a C# engineer expects, and E8 prices both | Ch. 13 |
-| 58 | A notebook is where Python happens | A notebook is a REPL with a memory of every cell you ran in any order; nothing in this book is one, and Chapter 13 says when one is right | Ch. 13 |
-| 59 | A trace assertion needs a model to evaluate | The first layer of agent-eval-bench is deterministic; it runs with no model, which is why it can run in CI | Ch. 14 |
+| 56 | The SDK is magic | Every AI SDK is a pydantic model, an httpx client and a streaming iterator; read the installed, pinned package | Ch. 13, **delivered** §13.1 and §13.5 |
+| 57 | `model_validate_json` is `JsonSerializer.Deserialize` | Lax mode coerces where `System.Text.Json` refuses; strict mode is what a C# engineer expects, and E8 prices both | Ch. 13, **delivered** §13.3, priced §13.4 |
+| 58 | A notebook is where Python happens | A notebook is a REPL with a memory of every cell you ran in any order; nothing in this book is one, and Chapter 13 says when one is right | Ch. 13, **delivered** §13.7 |
+| 220 | The SDK uses the `httpx` I pinned | Both SDKs depend on the `httpx2` distribution, not `httpx`: `isinstance(c._client, httpx.Client)` is False, and of the two SDKs one refuses a mismatched client and the other accepts it | Ch. 13, **delivered** §13.5 |
+| 59 | A trace assertion needs a model to evaluate | The first layer of agent-eval-bench is deterministic; it runs with no model, which is why it can run in CI | Ch. 14, **delivered** in section 14.1, elicited before it is named |
 
 ## Retired
 
 None yet. An entry retires when its chapter is written and finds it false;
 it keeps its number and gains the reason.
+
+**Corrected rather than retired, September 2026, writing Chapter 8.** Two
+entries had the habit right and the correction wrong, which is a different
+thing from being false, so both keep their number and their row:
+
+- **40** said catching `Exception` swallows a cancellation. It does not:
+  `asyncio.CancelledError.__mro__` is `(CancelledError, BaseException,
+  object)` on the pinned interpreter, so `except Exception` never sees one.
+  The entry had the clause that is SAFE in Python named as the dangerous
+  one, which is the worst possible advice to give a reader arriving from
+  C#. Verified by running it, not by reading the source; `code/ch08/
+  cancelled.py` is the demonstration and prints the inheritance chain.
+**Corrected rather than retired, September 2026, writing Chapter 4.**
+
+- **18** was right that the representation error is identical in both
+  languages and wrong about the printing, which is the half the row hung
+  on. It said Python prints the shortest round-tripping repr "so the
+  mismatch is visible", implying C# hides it. **Measured on .NET 10:
+  `(0.1 + 0.2).ToString()` is `0.30000000000000004`** — the same string
+  Python prints. The fifteen-significant-digit behaviour the row described
+  was the default in .NET Framework and in .NET Core before 3.0, and it
+  survives only as an explicit format (`G15`, which does give `0.3`). So a
+  C# engineer meeting this today sees exactly what a Python engineer sees,
+  and the reason they remember otherwise is that they last met it on .NET
+  Framework. Asserted in `code/csharp/Solutions.Tests/Ch04ClaimsTests.cs`
+  rather than restated, which is the point of that project existing.
+
+- **14** had the mechanism half right and the demonstration wrong, and the
+  wrong half is the one a reader would try. The row said `is` on integers
+  is true for small ones "and false one magnitude up". Measured on 3.14.7,
+  `a = 257; b = 257; a is b` inside a function is **True** — so the classic
+  demonstration does not reproduce in a script, and a reader who tries it
+  concludes `is` is safe. There are two separate mechanisms and the
+  folklore names only the first: CPython caches -5 to 256 (verified at the
+  boundary: `int(str(n)) is n` flips between 256 and 257), and,
+  independently, the compiler stores equal constants in a code object's
+  table once, so two literal `257`s in one function body are one object.
+  `identity_report.__code__.co_consts` carries `256, 257` once each
+  against two literal occurrences of each, which is the proof. The
+  demonstration therefore has to cross a run-time boundary — and that
+  framing is the better trap anyway: the bug hides from the test you would
+  write for it and appears only where real values come from, a parsed
+  request or a database row. `code/ch04/equality.py` is the demonstration.
+
+- **41** said `HttpClient` has no default timeout. That half was never
+  checked and this repository has no .NET to check it against, so it is
+  gone rather than corrected: the row now states only the httpx side, which
+  `code/ch08/deadline.py` reads off the installed package.

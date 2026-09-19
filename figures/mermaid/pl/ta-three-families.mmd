@@ -1,0 +1,8 @@
+flowchart TB
+    T["Zapisany slad:<br/>wywolania narzedzi, zdarzenia<br/>kontraktu i tury, na jednej osi"]
+    P["Obecnosc, czy sie wydarzylo<br/>tool_called, tool_called_with,<br/>event_emitted, span_attribute,<br/>call_attempts"]
+    A["Nieobecnosc, czy sie nie wydarzylo<br/>tool_not_called,<br/>event_not_emitted"]
+    S["Ksztalt, jaki to byl przebieg<br/>order, argument_grounded,<br/>outcome, termination,<br/>output_excludes_internal_ids"]
+    T --> P
+    T --> A
+    T --> S

@@ -19,38 +19,59 @@ mechanicznie, dokładnie tak jak każda zmierzona liczba w tej książce. To nie
 porządek dla porządku: dodatek z ręcznie wpisanymi liczbami dezaktualizuje się
 w tygodnie i nic tego nie widzi.
 
+\section{Rejestr}
+\label{sec:E-ledger}
+
+\begin{center}
+\begin{tabular}{@{}lr@{}}
+\toprule
+Rozdziały w manifeście & \val{ledger.chapters.total} \\
+\quad napisane & \val{ledger.chapters.written} \\
+\quad nadal zalążki, drukujące czerwoną ramkę \emph{\lblNotWritten} & \val{ledger.chapters.stubs} \\
+Dodatki w manifeście & \val{ledger.appendices.total} \\
+\quad nadal zalążki & \val{ledger.appendices.stubs} \\
+Pliki z listingami w katalogu \code{code/} & \val{ledger.listings} \\
+Ćwiczenia, każde z plikiem startowym, rozwiązaniem i testem & \val{ledger.exercises} \\
+Listingi z ramką \emph{\lblVerify} & \val{ledger.verifybox} \\
+Diagramy w tym wydaniu & \val{ledger.diagrams} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+Liczby siedzą w tabeli, a nie w zdaniach, celowo. Zdanie musi się zgadzać ze
+swoją liczbą \dash{} jeden plik, dwa pliki, pięć plików \dash{} a liczba, która
+przychodzi ze skryptu, nie powie zdaniu, którą formę przyjąć; pierwszy szkic
+tej strony mówił \enquote{1 plików}.
+
 \section{Rozdziały}
 \label{sec:E-chapters}
 
-Z \val{ledger.chapters.total} rozdziałów \val{ledger.chapters.written} jest
-napisanych, a \val{ledger.chapters.stubs} nadal drukuje czerwoną ramkę
-\emph{\lblNotWritten} w miejscu tekstu. Z \val{ledger.appendices.total}
-dodatków \val{ledger.appendices.stubs} to zalążki. Zalążek niesie kontrakt
-rozdziału \dash{} co ma uzasadnić i czego nie ma powtarzać \dash{} więc jest
-umową, a nie zapchajdziurą.
+Rozdział, który nie jest napisany, drukuje czerwoną ramkę
+\emph{\lblNotWritten} w miejscu tekstu, żeby liczba stron nigdy nie schlebiała
+szkicowi. Ramka niesie kontrakt rozdziału \dash{} co ma uzasadnić i czego nie
+ma powtarzać \dash{} więc jest umową, a nie zapchajdziurą.
 
 \section{Listingi i ćwiczenia}
 \label{sec:E-listings}
 
-W katalogu \code{code/} jest \val{ledger.listings} plików z listingami i
-\val{ledger.exercises} ćwiczeń, każde z plikiem startowym i testem. Każdy z
-nich jest uruchamiany przez build repozytorium przy każdej zmianie, na
-wersjach ze strony tytułowej. \val{ledger.verifybox} listingów nosi ramkę
-\emph{\lblVerify}, co znaczy, że przez ten bieg nie przeszły; liczba jest tu
-wydrukowana po to, żeby nie dało się jej po cichu nieść dalej.
+Każdy plik z listingiem w katalogu \code{code/} i każde ćwiczenie jest
+uruchamiane przez build repozytorium przy każdej zmianie, na wersjach ze
+strony tytułowej. Listing, który nosi ramkę \emph{\lblVerify}, przez ten bieg
+nie przeszedł; jego liczba jest wydrukowana powyżej po to, żeby nie dało się
+jej po cichu nieść dalej.
 
 \listofexercises
 
 \section{Diagramy}
 \label{sec:E-diagrams}
 
-W tym wydaniu jest \val{ledger.diagrams} diagramów, każdy narysowany osobno w
-każdym języku, bo diagram z angielskimi etykietami w polskim wydaniu to ten
-rodzaj półprzekładu, przez który dwujęzyczna książka wygląda na zrobioną
-maszynowo. Źródłem prawdy jest plik tekstowy, wersjonowany, więc zmiana jest
-widoczna jako diff. Listę poniżej pisze makro figury w miejscu, w którym
-figura jest umieszczona, więc diagram nie może być w książce i brakować na
-liście.
+Każdy diagram jest narysowany osobno w każdym języku, bo diagram z
+angielskimi etykietami w polskim wydaniu to ten rodzaj półprzekładu, przez
+który dwujęzyczna książka wygląda na zrobioną maszynowo. Źródłem prawdy jest
+plik tekstowy, wersjonowany, więc zmiana jest widoczna jako diff. Listę
+poniżej pisze makro figury w miejscu, w którym figura jest umieszczona, więc
+diagram nie może być w książce i brakować na liście.
 
 \listofdiagrams
 
