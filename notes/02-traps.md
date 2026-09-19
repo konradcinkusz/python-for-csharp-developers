@@ -65,7 +65,7 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 | 15 | `[[]] * n` gives me `n` lists | It gives one list `n` times; `[[] for _ in range(n)]` gives `n` | Ch. 4 §4.6, delivered |
 | 16 | A class attribute is a static field | It is shared by every instance *and* readable through them, so a mutable class attribute mutated through `self` is mutated for everyone. `@dataclass` refuses the spelling it can see; the plain-class spelling is the one it cannot | Ch. 4 §4.6, delivered |
 | 17 | `__str__` is `ToString()` | `__repr__` is what the debugger, the REPL and a list of the objects show; `__str__` is what `print` shows, and falls back to `__repr__` | Ch. 4 §4.1, delivered |
-| 18 | `0.1 + 0.2 == 0.3` is a Python bug | It is IEEE 754 in both languages; the difference is that Python prints the shortest round-tripping repr, so the mismatch is visible. `math.isclose`, or `Decimal` for money | Ch. 4 §4.7, delivered |
+| 18 | `0.1 + 0.2 == 0.3` is a Python bug | It is IEEE 754 in both languages, and since .NET Core 3.0 both even PRINT it the same way: `0.30000000000000004`. **Corrected, see below** — the printing difference this row used to claim is gone. `math.isclose`, or `Decimal` for money | Ch. 4 §4.7, delivered |
 | 19 | `/` on two integers is integer division, as in C# | `/` is true division; `//` floors, and floors towards negative infinity, which `-7 // 2 == -4` demonstrates. C#'s answer is Python's `int(a / b)` | Ch. 4 §4.7, delivered |
 | 20 | A decorator is an attribute — metadata a framework reads | A decorator is a function that runs at definition time and can replace what it decorates. It is middleware, not metadata, and Chapter 5's headline, elicited by the transcript that shows a line recorded before anything is called | Ch. 5 §5.2, delivered |
 | 21 | A comprehension is LINQ | A list comprehension is eager where `IEnumerable` is deferred; a generator expression is deferred **and single-pass**, where a LINQ query re-runs on every walk. Materialise once, on purpose | Ch. 5 §5.5, delivered |
@@ -157,6 +157,19 @@ thing from being false, so both keep their number and their row:
   C#. Verified by running it, not by reading the source; `code/ch08/
   cancelled.py` is the demonstration and prints the inheritance chain.
 **Corrected rather than retired, September 2026, writing Chapter 4.**
+
+- **18** was right that the representation error is identical in both
+  languages and wrong about the printing, which is the half the row hung
+  on. It said Python prints the shortest round-tripping repr "so the
+  mismatch is visible", implying C# hides it. **Measured on .NET 10:
+  `(0.1 + 0.2).ToString()` is `0.30000000000000004`** — the same string
+  Python prints. The fifteen-significant-digit behaviour the row described
+  was the default in .NET Framework and in .NET Core before 3.0, and it
+  survives only as an explicit format (`G15`, which does give `0.3`). So a
+  C# engineer meeting this today sees exactly what a Python engineer sees,
+  and the reason they remember otherwise is that they last met it on .NET
+  Framework. Asserted in `code/csharp/Solutions.Tests/Ch04ClaimsTests.cs`
+  rather than restated, which is the point of that project existing.
 
 - **14** had the mechanism half right and the demonstration wrong, and the
   wrong half is the one a reader would try. The row said `is` on integers

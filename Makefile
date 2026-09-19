@@ -1,4 +1,4 @@
-.PHONY: all en pl check numbers verify diagrams diagrams-clean code starters \
+.PHONY: all en pl check numbers verify diagrams diagrams-clean code starters csharp \
         stubs stubs-check listings exercises transcripts lines pins words csbox \
         translate shots debt site watch-en watch-pl clean
 
@@ -8,6 +8,7 @@
 LANGS := en pl
 
 UV ?= uv
+DOTNET ?= dotnet
 MMD_SRC := $(wildcard figures/mermaid/en/*.mmd) $(wildcard figures/mermaid/pl/*.mmd)
 MMD_PDF := $(patsubst figures/mermaid/%.mmd,figures/diagrams/%.pdf,$(MMD_SRC))
 
@@ -85,6 +86,12 @@ code:
 # a strict expected failure under this variable, so an unexpected pass fails.
 starters:
 	cd code && PYBOOK_STARTERS=fail $(UV) run pytest exercises
+
+# The C# half of Appendix D, and the C# claims the chapters make. Warnings
+# are errors: a claim that compiles with a warning is a claim half made. The
+# SDK version comes from code/csharp/global.json and nowhere else.
+csharp:
+	cd code/csharp && $(DOTNET) test --nologo
 
 # ---------------------------------------------------------------------------
 # Numbers. Every measured value and every quoted program output is produced

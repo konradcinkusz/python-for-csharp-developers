@@ -97,6 +97,39 @@ jobs:
           if-no-files-found: ignore
 
   # -------------------------------------------------------------------------
+  # The C# side. Appendix D solves twenty problems in both languages, and the
+  # book's promise is that every listing runs in CI -- so the half a reader
+  # arriving from .NET will read most carefully cannot be the half nobody
+  # compiled. See CLAUDE.md, *Resolved questions*, for why this is a job
+  # rather than twenty verifybox blocks.
+  #
+  # It already earns its place before Appendix D exists: Solutions.Tests
+  # asserts the C# claims the chapters make, and its first run found one of
+  # them wrong (Chapter 4 on how a double prints). Warnings are errors here.
+  # -------------------------------------------------------------------------
+  csharp:
+    name: Compile and test the C# side
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: code/csharp
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      DOTNET_NOLOGO: 1
+    steps:
+      - uses: actions/checkout@v5
+      # The SDK version lives in ONE place, code/csharp/global.json, and this
+      # step reads it rather than carrying a second copy. That is the defect
+      # uv's pin had before check_structure.py --pins started comparing them,
+      # and --pins now fails a workflow that names a .NET version directly.
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: code/csharp/global.json
+      - name: Every C# claim the book makes is compiled and asserted
+        run: dotnet test --nologo
+
+  # -------------------------------------------------------------------------
   # Parity is a hard gate. A bilingual book fails by having a correction
   # applied to one edition and missed in the other; this is what stops that.
   # Every check here reads the SOURCE and needs no PDF.
@@ -197,7 +230,7 @@ jobs:
     # parity job rather than behind it, and a pull request could carry a green
     # compile next to a red parity check -- which is not "parity as a hard
     # gate", whatever the comment above said.
-    needs: [code, parity, diagrams]
+    needs: [code, csharp, parity, diagrams]
     strategy:
       fail-fast: false
       matrix:

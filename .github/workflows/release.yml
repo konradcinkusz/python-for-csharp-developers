@@ -53,6 +53,19 @@ jobs:
           python3 tools/check_structure.py --listings --exercises --transcripts \
             --lines --pins --words
 
+      # The C# side, for the same reason the Python steps below are here: a
+      # tag is not checked by build.yml before it publishes, and Appendix D
+      # ships C# listings. The SDK version comes from global.json only.
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: code/csharp/global.json
+
+      - name: Every C# claim the book makes is compiled and asserted
+        run: cd code/csharp && dotnet test --nologo
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: 1
+          DOTNET_NOLOGO: 1
+
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.12.13"
