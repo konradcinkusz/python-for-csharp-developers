@@ -47,6 +47,7 @@ check:
 	@python3 tools/check_structure.py --lines
 	@python3 tools/check_structure.py --pins
 	@python3 tools/check_structure.py --words
+	@python3 tools/check_structure.py --traps
 	@python3 tools/gen_site.py --check
 	@python3 tools/checklog.py main-en.log main-pl.log
 	@# reflist needs both aux trees, so it is skipped -- and says so -- on a
@@ -181,6 +182,9 @@ words:
 	@python3 tools/check_structure.py --words --soft
 
 csbox:
+	@echo ""
+	@echo "== Traps against the catalogue =="
+	@python3 tools/check_structure.py --traps
 	@python3 tools/check_structure.py --csbox
 
 translate:
