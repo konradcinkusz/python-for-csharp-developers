@@ -116,7 +116,7 @@ def main() -> int:
     code = ROOT / "code"
     listings = sum(
         1
-        for d in sorted(code.glob("ch[0-9][0-9]"))
+        for d in sorted([*code.glob("ch[0-9][0-9]"), *code.glob("app[a-e]")])
         # rglob, matching code/tests/test_listings.py's own discovery: a
         # nested listing file must be counted the same way it is run, or
         # this number and the test count could disagree with each other.

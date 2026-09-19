@@ -92,7 +92,7 @@ select = ["E", "F", "W", "I", "UP", "B", "N", "SIM"]
 [tool.pyright]
 pythonVersion = "3.14"
 typeCheckingMode = "strict"
-include = ["src", "ch*", "measure", "tests", "exercises"]
+include = ["src", "ch*", "appd", "measure", "tests", "exercises"]
 # Mirrors [tool.pytest.ini_options] pythonpath: pyright does not read
 # that key, so a chapter directory an exercise imports from has to be
 # listed in BOTH or the type-check fails on an import the tests

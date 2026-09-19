@@ -1,21 +1,289 @@
-%% appD --- Dwadzieścia zadań rekrutacyjnych, rozwiązanych w obu językach
+%% appD --- Dwadziescia zadan rekrutacyjnych, rozwiazanych w obu jezykach
 %%
-%% Zalążek, wygenerowany przez tools/gen_stubs.py z tools/chapters.json.
-%% Poniższy opis jest kontraktem tego rozdziału: co ma uzasadnić, co ma dać
-%% czytelnikowi i czego NIE ma powtarzać za tomami towarzyszącymi. Napisanie
-%% rozdziału oznacza usunięcie zalążkowego bloku (tego, który zaczyna się po
-%% linii \chapter) i zastąpienie go rozdziałem -- po czym ten plik nie jest
-%% już generowany.
+%% Napisany we wrzesniu 2026. Kazde rozwiazanie w Pythonie jest plikiem w
+%% code/appd/, ktory dziala jako skrypt i jest asertowany w
+%% code/tests/test_appd.py; kazde rozwiazanie w C# jest regionem pliku
+%% code/csharp/Solutions/Interview/Problems.cs i jest asertowane w
+%% Solutions.Tests/InterviewTests.cs. Oba zestawy dzialaja w CI, na TYCH
+%% SAMYCH przypadkach.
 
-\chapter{Dwadzieścia zadań rekrutacyjnych, rozwiązanych w obu językach}
+\chapter{Dwadzieścia zadań rekrutacyjnych, rozwiązanych w~obu językach}
 \label{app:interview}
 
-\chapterstub{%
-\textit{[Opis do przetłumaczenia --- patrz wydanie angielskie.]}
+\noindent
+To są zadania tego rodzaju, o jaki naprawdę pyta rekrutacja na Pythonie:
+dość małe, by napisać je na tablicy, i dość duże, by idiomatyczna
+odpowiedź różniła się od tej, po którą inżynier C\# sięga najpierw. Każde
+jest rozwiązane dwa razy \dash{} raz w Pythonie, raz w C\# \dash{} a obie
+odpowiedzi są kompilowane, uruchamiane i asertowane przez CI na tych samych
+przypadkach. Rozwiązanie w książce, którego nikt nie uruchamia, jest tym,
+czego ta książka odmawia.
 
-Twenty problems of the kind a Python interview actually asks, each solved in
-C\# and in Python side by side, so the reader can see which habits carry
-across and which do not. Every Python solution is a listing file under
-\code{code/} with a test that CI runs; every C\# solution is a listing too,
-and whether CI compiles those is an open decision recorded in CLAUDE.md.
-}
+Czytaj pary pod kątem kształtu, a nie liczby linii. Tam, gdzie Python jest
+krótszy, zwykle dlatego, że biblioteka standardowa ma już ten krok; tam,
+gdzie krótszy jest C\#, zwykle dlatego, że typ coś uczynił jawnym. Żadne z
+tego nie jest tabelą wyników. Wiersze, przy których warto zwolnić, to te
+trzy, w których oba języki dają \emph{różne odpowiedzi} na to samo wejście,
+jeśli nie napiszesz poprawki: modulo przy obrocie, kontrakt zwrotny
+wyszukiwania binarnego i postrzępiona macierz.
+
+\section{Suma dwóch}
+\label{sec:appD-two-sum}
+
+\noindent
+Dana jest lista liczb całkowitych i cel; zwróć indeksy pierwszych dwóch, które się do niego sumują.
+
+\pyregion{code/appd/p01_two_sum.py}{solution}{Python}{lst:appD-two-sum-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{twosum}{C\#}{lst:appD-two-sum-cs}
+
+\noindent
+Słownik JEST indeksem i buduje się go w trakcie przechodzenia po liście: jeden przebieg, nie dwa. \code{TryGetValue} w C\# robi wyszukanie i pobranie jednym wywołaniem tam, gdzie Python robi \code{in}, a potem indeksowanie; to jedyna różnica i akurat tutaj C\# czyta się nieco lepiej.
+
+\section{Grupowanie anagramów}
+\label{sec:appD-anagrams}
+
+\noindent
+Pogrupuj słowa, które są swoimi anagramami.
+
+\pyregion{code/appd/p02_group_anagrams.py}{solution}{Python}{lst:appD-anagrams-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{anagrams}{C\#}{lst:appD-anagrams-cs}
+
+\noindent
+Posortowane litery są kluczem, w obu językach. Subtelność jest w ostatnim kroku, a nie w grupowaniu: posortuj każdą grupę PRZED posortowaniem grup, bo inaczej zewnętrzne sortowanie uporządkuje je według tego, który członek trafił pierwszy. Pisanie tego dodatku złapało dokładnie ten błąd w pierwszej wersji.
+
+\section{Pierwszy niepowtarzający się znak}
+\label{sec:appD-first-unique}
+
+\noindent
+Pierwszy znak w napisie, który występuje dokładnie raz.
+
+\pyregion{code/appd/p03_first_unique.py}{solution}{Python}{lst:appD-first-unique-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{firstunique}{C\#}{lst:appD-first-unique-cs}
+
+\noindent
+\api{collections.Counter} to słownik z już napisanym zliczaniem, a \code{next(..., None)} to \code{FirstOrDefault} po wyrażeniu generatorowym, więc drugi przebieg zatrzymuje się na pierwszym trafieniu. C\# zwraca \code{char} dopuszczający null, bo \code{FirstOrDefault} na typie wartościowym daje znak zerowy, a nie nic.
+
+\section{Scalanie nakładających się przedziałów}
+\label{sec:appD-merge}
+
+\noindent
+Zwiń listę przedziałów tak, by żadne dwa się nie nakładały.
+
+\pyregion{code/appd/p04_merge_intervals.py}{solution}{Python}{lst:appD-merge-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{merge}{C\#}{lst:appD-merge-cs}
+
+\noindent
+Krotki porównują się element po elemencie w obu językach, więc żadna z wersji nie potrzebuje komparatora. Obie są niezmienne, więc bieżący przedział jest zastępowany, a nie zmieniany \dash{} i to jest ta linijka, która wygląda dziwnie, dopóki się o tym nie pamięta.
+
+\section{Zrównoważone nawiasy}
+\label{sec:appD-balanced}
+
+\noindent
+Czy nawiasy w napisie są poprawnie zagnieżdżone i zamknięte?
+
+\pyregion{code/appd/p05_balanced.py}{solution}{Python}{lst:appD-balanced-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{balanced}{C\#}{lst:appD-balanced-cs}
+
+\noindent
+To jedyne zadanie tutaj, w którym C\# ma typ, a Python nie: nie ma \code{Stack} do zaimportowania, bo lista robi push przez \api{list.append} i pop przez \api{list.pop}. \code{not stack} na końcu to reguła prawdziwościowości robiąca porównanie liczby elementów.
+
+\section{Usuwanie duplikatów z zachowaniem kolejności}
+\label{sec:appD-dedupe}
+
+\noindent
+Usuń powtórzenia z sekwencji, zostawiając pierwsze wystąpienie tam, gdzie było.
+
+\pyregion{code/appd/p06_dedupe.py}{solution}{Python}{lst:appD-dedupe-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{dedupe}{C\#}{lst:appD-dedupe-cs}
+
+\noindent
+\code{dict.fromkeys} to cała odpowiedź i działa dlatego, że \code{dict} zachowuje kolejność wstawiania od Pythona~3.7. \code{Distinct()} w praktyce zachowuje kolejność i tego nie obiecuje, i to jest ta różnica, którą warto znać, a nie liczba linii.
+
+\section{Dzielenie na kawałki stałej wielkości}
+\label{sec:appD-chunk}
+
+\noindent
+Podziel sekwencję na kawałki po najwyżej n.
+
+\pyregion{code/appd/p07_chunk.py}{solution}{Python}{lst:appD-chunk-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{chunk}{C\#}{lst:appD-chunk-cs}
+
+\noindent
+Wycinek poza koniec nie jest w Pythonie błędem i dlatego ostatni kawałek nie potrzebuje osobnego przypadku. \code{Chunk} przyszedł w .NET~6 i robi to samo; wcześniej była to pętla, którą każdy pisał trochę inaczej.
+
+\section{Transpozycja macierzy}
+\label{sec:appD-transpose}
+
+\noindent
+Zamień wiersze na kolumny.
+
+\pyregion{code/appd/p08_transpose.py}{solution}{Python}{lst:appD-transpose-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{transpose}{C\#}{lst:appD-transpose-cs}
+
+\noindent
+\code{zip(*matrix, strict=True)} to odpowiedź, a \code{strict} jest tą połową, którą warto napisać: bez niego postrzępiona macierz transponuje się do najkrótszego wiersza zamiast zgłosić błąd. C\# nie ma rozpakowania, więc wersja C\# indeksuje i sprawdza szerokości ręcznie \dash{} to zabezpieczenie Python dostaje z argumentu nazwanego.
+
+\section{Spłaszczenie zagnieżdżonej listy}
+\label{sec:appD-flatten}
+
+\noindent
+Wydaj każdy liść dowolnie zagnieżdżonej listy, od lewej do prawej.
+
+\pyregion{code/appd/p09_flatten.py}{solution}{Python}{lst:appD-flatten-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{flatten}{C\#}{lst:appD-flatten-cs}
+
+\noindent
+\code{yield from} jest rekursją, a funkcja jest generatorem, więc nic nie powstaje, dopóki ktoś po tym nie przejdzie. Rekurencyjny iterator C\# potrzebuje wypisanego wewnętrznego \code{foreach}, bo nie ma \code{yield from}.
+
+\section{n najczęstszych słów}
+\label{sec:appD-top-words}
+
+\noindent
+Policz słowa w tekście i zwróć n najczęstszych.
+
+\pyregion{code/appd/p10_top_words.py}{solution}{Python}{lst:appD-top-words-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{topwords}{C\#}{lst:appD-top-words-cs}
+
+\noindent
+\code{most\_common} z \api{collections.Counter} to \code{GroupBy} plus \code{OrderByDescending} plus \code{Take}, napisane raz w bibliotece standardowej. Obie wersje tokenizują wyrażeniem regularnym, a nie przez podział, i to właśnie zachowuje apostrofy i usuwa interpunkcję.
+
+\section{Wyszukiwanie binarne}
+\label{sec:appD-binary-search}
+
+\noindent
+Znajdź wartość w posortowanej sekwencji albo zgłoś, że jej nie ma.
+
+\pyregion{code/appd/p11_binary_search.py}{solution}{Python}{lst:appD-binary-search-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{binarysearch}{C\#}{lst:appD-binary-search-cs}
+
+\noindent
+Żadna z wersji nie pisze wyszukiwania binarnego. Kontrakty jednak się różnią i to jest ten wiersz, w którym pułapka jest po stronie C\#: \code{Array.BinarySearch} zwraca bitowe dopełnienie punktu wstawienia, gdy wartości nie ma, i to jest ten test znaku, który ludzie mylą. \api{bisect.bisect\_left} zwraca punkt wstawienia i zostawia tobie sprawdzenie, co tam jest.
+
+\section{Suma narastająca}
+\label{sec:appD-running-total}
+
+\noindent
+Każdy element plus wszystko przed nim.
+
+\pyregion{code/appd/p12_running_total.py}{solution}{Python}{lst:appD-running-total-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{runningtotal}{C\#}{lst:appD-running-total-cs}
+
+\noindent
+\api{itertools.accumulate} to skan z biblioteki standardowej. C\# nie ma \code{Aggregate}, które wydawałoby wartości pośrednie, więc wersja C\# trzyma zmienną lokalną i dopisuje \dash{} to ta pętla, którą zastępuje linijka Pythona.
+
+\section{Obrót listy}
+\label{sec:appD-rotate}
+
+\noindent
+Obróć listę w lewo o n, gdzie n może przekraczać długość albo być ujemne.
+
+\pyregion{code/appd/p13_rotate.py}{solution}{Python}{lst:appD-rotate-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{rotate}{C\#}{lst:appD-rotate-cs}
+
+\noindent
+Modulo to całe zadanie i jest to najostrzejsza rozbieżność w tym dodatku. Reszta w Pythonie bierze znak DZIELNIKA, więc zredukowanie obrotu zamienia ujemny na dodatni za darmo. W C\# bierze znak dzielnej, więc wersja C\# potrzebuje wypisanej poprawki \dash{} i o tym właśnie jest pułapka w rozdziale~\ref{ch:objects}.
+
+\section{Najdłuższy wspólny przedrostek}
+\label{sec:appD-prefix}
+
+\noindent
+Najdłuższy napis, od którego zaczyna się każde słowo z listy.
+
+\pyregion{code/appd/p14_common_prefix.py}{solution}{Python}{lst:appD-prefix-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{commonprefix}{C\#}{lst:appD-prefix-cs}
+
+\noindent
+Liczą się tylko najmniejszy i największy napis: wszystko pomiędzy dzieli co najmniej ich wspólny przedrostek. \code{min} i \code{max} porównują napisy leksykograficznie w obu językach, więc ten przenosi się niemal bez zmian \dash{} C\# musi tylko powiedzieć, o który komparator chodzi.
+
+\section{Czy to palindrom?}
+\label{sec:appD-palindrome}
+
+\noindent
+Ignorując wielkość liter i wszystko, co nie jest literą ani cyfrą.
+
+\pyregion{code/appd/p15_palindrome.py}{solution}{Python}{lst:appD-palindrome-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{palindrome}{C\#}{lst:appD-palindrome-cs}
+
+\noindent
+Odwrócenie jest wycinkiem, a nie metodą: nie ma \api{list.reverse}, które coś zwraca. \api{str.casefold} zamiast \api{str.lower} to szczegół, którego rekruter może chcieć albo nie \dash{} to ten, który radzi sobie z niemieckim ostrym s.
+
+\section{Odczyt ścieżki z kropkami}
+\label{sec:appD-deep-get}
+
+\noindent
+Pobierz zagnieżdżoną wartość po ścieżce z kropkami, z wartością domyślną przy każdym pudle.
+
+\pyregion{code/appd/p16_deep_get.py}{solution}{Python}{lst:appD-deep-get-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{deepget}{C\#}{lst:appD-deep-get-cs}
+
+\noindent
+To kształt, który ma każdy czytnik konfiguracji. Zabezpieczenie \api{isinstance} jest tą częścią, która nie jest opcjonalna: bez niego ścieżka wchodząca w napis albo listę podnosi \code{TypeError} zamiast zwrócić wartość domyślną, i tego właśnie błędu szukają oba zestawy testów.
+
+\section{Usuwanie duplikatów po kluczu}
+\label{sec:appD-dedupe-by}
+
+\noindent
+Zostaw pierwszy element dla każdego różnego klucza.
+
+\pyregion{code/appd/p17_dedupe_by.py}{solution}{Python}{lst:appD-dedupe-by-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{dedupeby}{C\#}{lst:appD-dedupe-by-cs}
+
+\noindent
+\code{DistinctBy} przyszło w .NET~6; Python nigdy go nie miał i nie potrzebuje, bo funkcja jest zwykłym argumentem. Zbiór trzyma klucze, a lista kolejność \dash{} to połączenie, które poprzednie zadanie dostało za darmo od \code{dict}.
+
+\section{Najnowszy wiersz na klucz}
+\label{sec:appD-latest}
+
+\noindent
+Jeden wiersz na klucz: ten z największym znacznikiem czasu.
+
+\pyregion{code/appd/p18_latest_per_key.py}{solution}{Python}{lst:appD-latest-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{latest}{C\#}{lst:appD-latest-cs}
+
+\noindent
+Oczywista odpowiedź w C\# to \code{GroupBy}, a potem \code{MaxBy} w każdej grupie, co buduje każdą grupę, żeby potem wyrzucić z niej wszystko poza jednym. Jeden przebieg ze słownikiem tego nie robi, a różnicę widać na dużym wejściu, a nie w liczbie linii.
+
+\section{Różnice między kolejnymi odczytami}
+\label{sec:appD-pairwise}
+
+\noindent
+Każdy odczyt minus ten poprzedni.
+
+\pyregion{code/appd/p19_pairwise_diff.py}{solution}{Python}{lst:appD-pairwise-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{pairwisediff}{C\#}{lst:appD-pairwise-cs}
+
+\noindent
+\api{itertools.pairwise} jest na tyle nowe, że mnóstwo inżynierów Pythona nadal pisze pętlę po indeksach. C\# nie ma odpowiednika w bibliotece bazowej, więc odpowiedź C\# zipuje sekwencję z nią samą przesuniętą o jeden \dash{} to jeden z niewielu wierszy tutaj, gdzie Python ma bibliotekę, a C\# nie.
+
+\section{Podział predykatem w jednym przebiegu}
+\label{sec:appD-partition}
+
+\noindent
+Zwróć elementy pasujące i całą resztę.
+
+\pyregion{code/appd/p20_partition.py}{solution}{Python}{lst:appD-partition-py}
+
+\csregion{code/csharp/Solutions/Interview/Problems.cs}{partition}{C\#}{lst:appD-partition-cs}
+
+\noindent
+Dwa \code{Where} przechodzą po wejściu dwa razy i liczą predykat dwa razy na element, co ma znaczenie, gdy predykat jest drogi albo gdy źródłem jest generator, po którym da się przejść tylko raz. Zwrócenie krotki jest tym, co czyni wersję jednoprzebiegową równie wygodną co dwuprzebiegową.
+

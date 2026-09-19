@@ -29,7 +29,7 @@ import pytest
 CODE = Path(__file__).resolve().parent.parent
 LISTINGS = sorted(
     p
-    for d in sorted(CODE.glob("ch[0-9][0-9]"))
+    for d in sorted([*CODE.glob("ch[0-9][0-9]"), *CODE.glob("app[a-e]")])
     # rglob, not glob: a chapter's own subdirectory (a small package a
     # listing imports from, say) is real chapter content and \pyfile can
     # point at any path under it. A flat glob("*.py") silently ran and

@@ -20,7 +20,7 @@ repository's `CLAUDE.md`, and it is not repeated here.
 | Structure | `body.tex` read by both main files, shared preamble, generated `structure.tex`, Makefile, CI, parity tooling, Mermaid pipeline, exercise mechanism | — |
 | Front matter | Title page, copyright, *How to use this book*, Introduction — **both editions** | — |
 | Chapters | **All 14 written, both editions.** Chapter 4 *Objects and data* was the last in and completes v0.1 with Chapters 1, 2, 3, 5, 6 and 7 | — |
-| Appendices | **E (Manifest), generated; A (Cheat sheet), B (Traps) and C (Tool matrix), written and each gated against what they claim.** D is a brief | D |
+| Appendices | **All 5 written.** E generated; A, B, C and D each gated against what they claim | — |
 | Code | `code/` is a locked uv project: `trace-assert` **complete** (the specification's trace model, all twelve assertions, the `trace` fixture and the `Recorder` both stages write into), **every chapter's listings and exercises**, Chapter 12's three Dockerfiles, experiments E1, E2, E3, E4, E5, E6 and E8, and the measurement, ledger and transcript scripts, and CI runs all of it | every experiment the manifest's Status column still marks *not run* |
 
 **The scaffold plus thirteen chapters.** The scaffold existed so that the shape
@@ -65,8 +65,8 @@ one.
 
 | | Pages | Errors | Unresolved | Overfull hbox | Overfull vbox |
 |---|---|---|---|---|---|
-| `main-en` | 237 | 0 | 0 | 1 · 10.0 pt | 0 |
-| `main-pl` | 240 | 0 | 0 | 0 | 0 |
+| `main-en` | 247 | 0 | 0 | 1 · 10.0 pt | 0 |
+| `main-pl` | 250 | 0 | 0 | 0 | 0 |
 
 **Re-measure both rows from the build in front of you** after any change; a
 page count carried across a layout change is the first thing in this file
@@ -103,11 +103,11 @@ for the reader in Appendix E, which `code/measure/ledgers.py` computes from
 the tree so that `make verify` fails when a ledger moves and the appendix
 does not:
 
-- **0 of 14 chapters are stubs, in each edition; 1 of 5 appendices is**,
-  and both editions agree about what is written
-- 292 listing references, every file and region present · 58 exercises, each
+- **0 of 14 chapters and 0 of 5 appendices are stubs, in each edition.**
+  The book is written; both editions agree about what is written
+- 372 listing references, every file and region present · 58 exercises, each
   with a starter, a solution and a test · 114 transcript references, every
-  file present · 318 code files (`.py` and `.cs`), none over 79 columns ·
+  file present · 341 code files (`.py` and `.cs`), none over 79 columns ·
   21 pins agree between `preamble.tex` and `code/pyproject.toml`, and .NET
   10.0.100 agrees between `preamble.tex`, `global.json` and 2 workflow steps
 - **1 `verifybox` block** — Chapter 12's three Dockerfiles, which could not
@@ -132,7 +132,7 @@ does not:
   pins something the matrix does not show, and when a version is typed
   rather than printed from its macro
 - 151 computed value keys, every one produced and every one used
-- Parity: 23 file pairs, 0 failures, 0 warnings · 324 labels in each edition,
+- Parity: 23 file pairs, 0 failures, 0 warnings · 394 labels in each edition,
   0 mismatches
 - Prose words against a budget of 3,000, and `csbox` translation boxes,
   English first: Chapter 1 at 2,399 / 2,098 with 2 boxes, Chapter 2 at
@@ -3915,6 +3915,77 @@ first.
 
 ---
 
+### Appendix D, September 2026 --- the last stub, and both halves run
+
+**Appendix D is written and the book has no stubs left.** Twenty problems,
+each solved twice: the Python is a file under `code/appd/` that runs as a
+script and is asserted in `code/tests/test_appd.py`, the C\# is a region of
+`code/csharp/Solutions/Interview/Problems.cs` asserted in
+`Solutions.Tests/InterviewTests.cs`, and both suites run in CI **against
+the same cases**. Two solutions that agreed with their own tests and not
+with each other would make the appendix's central claim false, so they are
+given the same inputs on purpose.
+
+This is the appendix the C\# decision existed for: #34 settled that CI
+compiles the C\# side, and this is what it compiles.
+
+#### Three discoveries, and the first was found before anything shipped
+
+- **Prototyping the twenty solutions in a scratch file caught a real
+  bug**, in the one place a careless reader would never look: `sorted(
+  groups.values())` sorts the groups *before* their contents are ordered,
+  so the anagram grouping came back in the order the first member of each
+  group happened to arrive. Sort each group, then sort the groups. Both
+  language versions and both test suites now check it.
+- **Rotation is the sharpest divergence in the book.** Python's remainder
+  takes the sign of the divisor, so reducing a negative rotation is free;
+  C\#'s takes the sign of the dividend, so the C\# needs the correction
+  written out. The two languages give *different answers to the same
+  input* unless you write it, which is what makes it worth a page.
+- **`deep_get` met the `dict[Unknown, Unknown]` trap** this file records
+  for Chapter 3, for real: `isinstance(x, dict)` narrows to
+  `dict[Unknown, Unknown]`, so strict pyright calls the return partially
+  unknown. One documented `cast` at the boundary, which is the remedy
+  Chapter 3 argues for and now uses.
+
+#### Ruff was right nine times, and one of them was about the book
+
+`UP047` \dash{} *generic function should use type parameters* \dash{} fired
+on six of the twenty. Old-style `TypeVar` here would have **contradicted
+Chapter 3**, which teaches PEP~695 generics on the pinned interpreter; the
+linter caught the appendix disagreeing with the chapter it points at. All
+six are PEP~695 now.
+
+#### Two gates had to learn about C\# regions
+
+`\csregion` is new, and the moment it existed two checks were silently
+blind to it: `check_structure.py --listings` matched only `\pyregion`, so
+twenty C\# regions would have gone unverified, and `parity.py`'s tokeniser
+did not know the macro, so a C\# listing moved in one edition and not the
+other would not have shown. Both were taught the macro in the same commit
+that introduced it. **A new listing macro is a new hole in every gate that
+enumerates listing macros**, which is an argument for the enumerations
+being in two files rather than ten.
+
+`test_listings.py` and `ledgers.py` both globbed `ch[0-9][0-9]` and now
+glob `app[a-e]` as well, so an appendix's listings run and are counted the
+way a chapter's are.
+
+#### Also
+
+- The first generated draft of the Polish edition had **English section
+  titles and no diacritics** \dash{} it was generated from the same table
+  as the English and the Polish column had been filled with ASCII
+  approximations. Parity passed it, because parity compares structure and
+  numbers rather than whether the Polish is Polish. Rewritten properly.
+  **A gate that is green on unwritten Polish is a reminder of what the
+  gates are for**: they catch divergence, not absence of care.
+- 247 and 250 pages, and the appendix cost ten and ten. Zero new overfull
+  boxes in either edition, which is the fourth time the ragged-right
+  decision has paid rather than a fix.
+
+---
+
 ## After each pass
 
 1. `python3 tools/parity.py`, `python3 tools/check_structure.py --all`,
@@ -3964,12 +4035,11 @@ issues under the `chapter`, `appendix`, `experiment` and `infrastructure`
 labels --- **work from the labels, not from a list here**, because a list
 in this file is the class of claim nothing can check. In rough order:
 
-1. **Appendix D** (v1.0), the last stub in the book. **A, B and C are
-   written**, each with a gate gating it against what it claims
-   (`--cheatsheet`, `--traps`, `--tools`). D's open decision is settled
-   \dash{} CI compiles its C\# side, and `code/csharp/` is the scaffold,
-   a library plus a test project, which takes either shape its twenty
-   problems end up in.
+1. **Nothing in the book itself.** All fourteen chapters and all five
+   appendices are written, in both editions, and every appendix that
+   makes a checkable claim has a gate making it (`--cheatsheet`,
+   `--traps`, `--tools`). What is left is release mechanics and the two
+   things this sandbox cannot reach.
 2. **The experiments that have not run.** `notes/01-curriculum.md` §4 is
    the ledger, filled in by the pass that runs each one; naming them here
    would be a second copy to go stale, and **no total is stated in either
