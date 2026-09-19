@@ -7,7 +7,7 @@ be trusted to remember:
 
   --stubs       How many chapters and appendices still print NOT YET WRITTEN,
                 per edition, and are the two editions in step about it?
-  --listings    Does every \\pyfile, \\csfile and \\pyregion name a file that
+  --listings    Does every \\pyfile, \\csfile, \\pyregion and \\csregion name a
                 exists under the repository, and does every region marker
                 exist in its file? A listing the reader is told to open must
                 be there to open.
@@ -50,7 +50,7 @@ COLUMNS = 79
 RE_STUB = re.compile(r"\\chapterstub\{")
 RE_COMMENT = re.compile(r"(?<!\\)%.*$", re.M)
 RE_PYFILE = re.compile(r"\\(?:pyfile|csfile)\{([^}]*)\}")
-RE_PYREGION = re.compile(r"\\pyregion\{([^}]*)\}\{([^}]*)\}")
+RE_PYREGION = re.compile(r"\\(?:pyregion|csregion)\{([^}]*)\}\{([^}]*)\}")
 RE_TRANSCRIPT = re.compile(r"\\transcript\{([^}]*)\}")
 RE_EXERCISE = re.compile(r"\\begin\{exercise\}\{([^}]*)\}")
 # The macro form the environment replaced. It no longer exists, and a chapter
@@ -281,7 +281,8 @@ def prose_words(src: str) -> int:
         s = re.sub(r"\\begin\{%s\}.*?\\end\{%s\}" % (re.escape(env), re.escape(env)),
                    " ", s, flags=re.S)
     s = re.sub(r"\$[^$]*\$", " ", s)
-    s = re.sub(r"\\(?:pyfile|csfile|pyregion|mermaidfig|transcript|label|ref|index)"
+    s = re.sub(r"\\(?:pyfile|csfile|pyregion|csregion|mermaidfig|transcript"
+               r"|label|ref|index)"
                r"(?:\{[^{}]*\})+", " ", s)
     s = re.sub(r"\\[A-Za-z@]+\*?", " ", s)
     s = re.sub(r"[{}\[\]&\\~]", " ", s)

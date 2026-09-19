@@ -73,6 +73,7 @@ KEYED: dict[str, tuple[str, int, tuple[int, ...]]] = {
     "pyfile": ("LISTFILE", 3, (0, 2)),
     "csfile": ("LISTFILE", 3, (0, 2)),
     "pyregion": ("LISTREGION", 4, (0, 1, 3)),
+    "csregion": ("LISTREGION", 4, (0, 1, 3)),
     "transcript": ("TRANSCRIPT", 1, (0,)),
     "chapterstub": ("STUB", 1, ()),
     "index": ("INDEX", 1, ()),

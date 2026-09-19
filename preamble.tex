@@ -482,6 +482,15 @@
     linerange={#2-#2},caption={#3},label={#4}]{#1}%
 }
 
+% The C# twin of \pyregion, for the comparison half of a pair when only
+% part of the file is wanted. Appendix D prints twenty of these beside
+% twenty \pyregion s, which is what "solved in both languages" means.
+\newcommand{\csregion}[4]{%
+  \listingpath{#1}%
+  \lstinputlisting[language=csharpx,style=bookcode,aboveskip=0.3em,
+    linerange={#2-#2},caption={#3},label={#4}]{#1}%
+}
+
 % The C# twin of \pyfile, for the comparison half of a pair.
 \newcommand{\csfile}[3]{%
   \listingpath{#1}%
