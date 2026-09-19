@@ -51,7 +51,7 @@ jobs:
           python3 tools/gen_stubs.py --check
           python3 tools/parity.py
           python3 tools/check_structure.py --listings --exercises --transcripts \
-            --lines --pins --words --traps --cheatsheet
+            --lines --pins --words --traps --cheatsheet --tools
 
       # The C# side, for the same reason the Python steps below are here: a
       # tag is not checked by build.yml before it publishes, and Appendix D
