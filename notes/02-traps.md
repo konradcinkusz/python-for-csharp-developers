@@ -60,13 +60,13 @@ the written chapter; an owner reading a bare `Ch. N` is still a promise.
 
 | # | The habit, in the reader's voice | What Python does | Owner |
 |---|---|---|---|
-| 13 | Override `__eq__` and I have value equality, like overriding `Equals` | Defining `__eq__` sets `__hash__` to `None`: the object is now unhashable and cannot be a `dict` key or `set` member. The headline trap of Chapter 4 | Ch. 4 |
-| 14 | `is` is reference equality, so `x is 5` is fine for small ints | It happens to be true for small integers because CPython caches them, and false one magnitude up. `is` is for `None` and sentinels; `==` for values | Ch. 4 |
-| 15 | `[[]] * n` gives me `n` lists | It gives one list `n` times; `[[] for _ in range(n)]` gives `n` | Ch. 4 |
-| 16 | A class attribute is a static field | It is shared by every instance *and* readable through them, so a mutable class attribute mutated through `self` is mutated for everyone | Ch. 4 |
-| 17 | `__str__` is `ToString()` | `__repr__` is what the debugger, the REPL and a list of the objects show; `__str__` is what `print` shows, and falls back to `__repr__` | Ch. 4 |
-| 18 | `0.1 + 0.2 == 0.3` is a Python bug | It is IEEE 754 in both languages; the difference is that Python prints the shortest round-tripping repr, so the mismatch is visible. `math.isclose`, or `Decimal` for money | Ch. 4 |
-| 19 | `/` on two integers is integer division, as in C# | `/` is true division; `//` floors, and floors towards negative infinity, which `-7 // 2 == -4` demonstrates | Ch. 4 |
+| 13 | Override `__eq__` and I have value equality, like overriding `Equals` | Defining `__eq__` sets `__hash__` to `None`: the object is now unhashable and cannot be a `dict` key or `set` member. C# warns (CS0659) and carries on; Python acts. The headline trap of Chapter 4 | Ch. 4 §4.2, delivered |
+| 14 | `is` is reference equality, so `x is 5` is fine for small ints | Two mechanisms, and the folklore names only one. CPython caches -5 to 256, so a run-time 256 IS the literal; independently, the compiler stores equal constants once per code object, so two literal `257`s in one function are one object too. **Corrected, see below: the classic demonstration does not reproduce in a script.** `is` is for `None` and sentinels; `==` for values | Ch. 4 §4.2, delivered |
+| 15 | `[[]] * n` gives me `n` lists | It gives one list `n` times; `[[] for _ in range(n)]` gives `n` | Ch. 4 §4.6, delivered |
+| 16 | A class attribute is a static field | It is shared by every instance *and* readable through them, so a mutable class attribute mutated through `self` is mutated for everyone. `@dataclass` refuses the spelling it can see; the plain-class spelling is the one it cannot | Ch. 4 §4.6, delivered |
+| 17 | `__str__` is `ToString()` | `__repr__` is what the debugger, the REPL and a list of the objects show; `__str__` is what `print` shows, and falls back to `__repr__` | Ch. 4 §4.1, delivered |
+| 18 | `0.1 + 0.2 == 0.3` is a Python bug | It is IEEE 754 in both languages; the difference is that Python prints the shortest round-tripping repr, so the mismatch is visible. `math.isclose`, or `Decimal` for money | Ch. 4 §4.7, delivered |
+| 19 | `/` on two integers is integer division, as in C# | `/` is true division; `//` floors, and floors towards negative infinity, which `-7 // 2 == -4` demonstrates. C#'s answer is Python's `int(a / b)` | Ch. 4 §4.7, delivered |
 | 20 | A decorator is an attribute — metadata a framework reads | A decorator is a function that runs at definition time and can replace what it decorates. It is middleware, not metadata, and Chapter 5's headline, elicited by the transcript that shows a line recorded before anything is called | Ch. 5 §5.2, delivered |
 | 21 | A comprehension is LINQ | A list comprehension is eager where `IEnumerable` is deferred; a generator expression is deferred **and single-pass**, where a LINQ query re-runs on every walk. Materialise once, on purpose | Ch. 5 §5.5, delivered |
 | 22 | A closure in a loop captures the loop variable's value | It captures the variable, late-bound; every closure sees the last value. Bind with a default argument or `functools.partial`. Ruff's B023 catches it, which makes this the one trap in the chapter the toolchain finds for you | Ch. 5 §5.4, delivered |
@@ -156,6 +156,25 @@ thing from being false, so both keep their number and their row:
   one, which is the worst possible advice to give a reader arriving from
   C#. Verified by running it, not by reading the source; `code/ch08/
   cancelled.py` is the demonstration and prints the inheritance chain.
+**Corrected rather than retired, September 2026, writing Chapter 4.**
+
+- **14** had the mechanism half right and the demonstration wrong, and the
+  wrong half is the one a reader would try. The row said `is` on integers
+  is true for small ones "and false one magnitude up". Measured on 3.14.7,
+  `a = 257; b = 257; a is b` inside a function is **True** — so the classic
+  demonstration does not reproduce in a script, and a reader who tries it
+  concludes `is` is safe. There are two separate mechanisms and the
+  folklore names only the first: CPython caches -5 to 256 (verified at the
+  boundary: `int(str(n)) is n` flips between 256 and 257), and,
+  independently, the compiler stores equal constants in a code object's
+  table once, so two literal `257`s in one function body are one object.
+  `identity_report.__code__.co_consts` carries `256, 257` once each
+  against two literal occurrences of each, which is the proof. The
+  demonstration therefore has to cross a run-time boundary — and that
+  framing is the better trap anyway: the bug hides from the test you would
+  write for it and appears only where real values come from, a parsed
+  request or a database row. `code/ch04/equality.py` is the demonstration.
+
 - **41** said `HttpClient` has no default timeout. That half was never
   checked and this repository has no .NET to check it against, so it is
   gone rather than corrected: the row now states only the httpx side, which
