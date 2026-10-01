@@ -35,7 +35,7 @@ jobs:
           - lang: pl
             pdf: Python-dla-inzynierow-dotNET
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
 

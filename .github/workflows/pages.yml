@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       # FIRST, deliberately. A repository whose Pages site does not exist yet
       # fails here in seconds rather than after a full build it cannot publish.
