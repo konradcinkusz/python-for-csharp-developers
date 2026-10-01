@@ -131,7 +131,7 @@ jobs:
           TAG="${{ github.event.inputs.tag || github.ref_name }}"
           mv main-${{ matrix.lang }}.pdf "${{ matrix.pdf }}-${TAG}.pdf"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: release-${{ matrix.lang }}
           path: '*.pdf'

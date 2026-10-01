@@ -92,7 +92,7 @@ jobs:
           echo "Every computed value and transcript matches its script."
       # Both directories, so the compile jobs get the transcripts as well as
       # the values. With two paths the artefact is rooted at figures/.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: values
           path: |
@@ -244,7 +244,7 @@ jobs:
             exit 1
           fi
           echo "Diagram keys match across both editions."
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: diagrams
           path: figures/diagrams
@@ -331,7 +331,7 @@ jobs:
 
       # The log, and it must be if: always(), because the only run whose log
       # anybody wants is the one that failed.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: log-${{ matrix.lang }}
@@ -342,7 +342,7 @@ jobs:
       - name: Rename artefact
         run: mv main-${{ matrix.lang }}.pdf "${{ matrix.pdf }}.pdf"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: book-${{ matrix.lang }}
           path: ${{ matrix.pdf }}.pdf
@@ -352,7 +352,7 @@ jobs:
       # \@input{} chain into the per-chapter aux files, and given only the
       # main one it finds no labels and reports "0 mismatches" -- a check
       # passing because it read nothing.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: aux-${{ matrix.lang }}
