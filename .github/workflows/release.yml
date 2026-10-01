@@ -56,7 +56,7 @@ jobs:
       # The C# side, for the same reason the Python steps below are here: a
       # tag is not checked by build.yml before it publishes, and Appendix D
       # ships C# listings. The SDK version comes from global.json only.
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           global-json-file: code/csharp/global.json
 
