@@ -128,7 +128,7 @@ jobs:
       # step reads it rather than carrying a second copy. That is the defect
       # uv's pin had before check_structure.py --pins started comparing them,
       # and --pins now fails a workflow that names a .NET version directly.
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           global-json-file: code/csharp/global.json
       - name: Every C# claim the book makes is compiled and asserted
