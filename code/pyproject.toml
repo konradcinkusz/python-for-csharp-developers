@@ -32,7 +32,7 @@ dependencies = [
     "aiosqlite==0.22.1",
     "httpx==0.28.1",
     "structlog==26.1.0",
-    "opentelemetry-sdk==1.44.0",
+    "opentelemetry-sdk==1.45.0",
     "polars==1.44.2",
     "anthropic==1.5.0",
     "openai==3.13.0",
